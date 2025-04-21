@@ -8,7 +8,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
 import { useTranslation } from 'react-i18next';
 
 interface Column {
@@ -27,7 +26,6 @@ interface DataTableProps {
 export const DataTable = ({ columns, data, title, onAdd }: DataTableProps) => {
   const { i18n } = useTranslation();
   const [filteredData, setFilteredData] = useState(data);
-  const [filters, setFilters] = useState<Record<string, string>>({});
   const [displayedItems, setDisplayedItems] = useState(10);
   const [sortConfig, setSortConfig] = useState<{key: string, direction: 'asc' | 'desc'} | null>(null);
   const tableBodyRef = useRef<HTMLTableSectionElement>(null);
@@ -35,21 +33,12 @@ export const DataTable = ({ columns, data, title, onAdd }: DataTableProps) => {
   const bottomRef = useRef<HTMLDivElement>(null);
   const isRTL = i18n.dir() === 'rtl';
 
-  // Filter data when filters change
+  // Apply sorting when config changes
   useEffect(() => {
-    let result = data;
-    Object.keys(filters).forEach((key) => {
-      if (filters[key]) {
-        result = result.filter((item) => {
-          const itemValue = String(item[key] || '').toLowerCase();
-          return itemValue.includes(filters[key].toLowerCase());
-        });
-      }
-    });
-
-    // Apply sorting if configured
+    let result = [...data];
+    
     if (sortConfig) {
-      result = [...result].sort((a, b) => {
+      result = result.sort((a, b) => {
         const aValue = a[sortConfig.key];
         const bValue = b[sortConfig.key];
         
@@ -61,14 +50,13 @@ export const DataTable = ({ columns, data, title, onAdd }: DataTableProps) => {
 
     setFilteredData(result);
     setDisplayedItems(10);
-  }, [filters, data, sortConfig]);
+  }, [data, sortConfig]);
 
   // Setup intersection observer for infinite scroll
   useEffect(() => {
     observerRef.current = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && displayedItems < filteredData.length) {
-          // Load more items
           setTimeout(() => {
             setDisplayedItems((prev) => Math.min(prev + 10, filteredData.length));
           }, 300);
@@ -77,7 +65,6 @@ export const DataTable = ({ columns, data, title, onAdd }: DataTableProps) => {
       { threshold: 0.5 }
     );
 
-    // Observe the bottom element
     if (bottomRef.current) {
       observerRef.current.observe(bottomRef.current);
     }
@@ -99,13 +86,6 @@ export const DataTable = ({ columns, data, title, onAdd }: DataTableProps) => {
       });
     }, 50);
   }, [displayedItems]);
-
-  const handleFilterChange = (key: string, value: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-  };
 
   const handleSort = (key: string) => {
     let direction: 'asc' | 'desc' = 'asc';
@@ -137,20 +117,12 @@ export const DataTable = ({ columns, data, title, onAdd }: DataTableProps) => {
                   key={column.key} 
                   className={`${isRTL ? 'text-right' : 'text-left'}`}
                 >
-                  <div className="space-y-2">
-                    <div 
-                      className="flex items-center gap-2 justify-between cursor-pointer" 
-                      onClick={() => handleSort(column.key)}
-                    >
-                      <span>{column.title}</span>
-                      <span>{getSortIcon(column.key)}</span>
-                    </div>
-                    <Input
-                      placeholder={`Filter ${column.title.toLowerCase()}`}
-                      value={filters[column.key] || ""}
-                      onChange={(e) => handleFilterChange(column.key, e.target.value)}
-                      className="h-8 w-full"
-                    />
+                  <div 
+                    className="flex items-center gap-2 justify-between cursor-pointer" 
+                    onClick={() => handleSort(column.key)}
+                  >
+                    <span>{column.title}</span>
+                    <span>{getSortIcon(column.key)}</span>
                   </div>
                 </TableHead>
               ))}
@@ -195,3 +167,4 @@ export const DataTable = ({ columns, data, title, onAdd }: DataTableProps) => {
     </div>
   );
 };
+
