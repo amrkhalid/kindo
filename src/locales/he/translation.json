@@ -1,0 +1,40 @@
+
+{
+  "navbar": {
+    "time": "זמן נוכחי",
+    "notifications": "התראות",
+    "profile": "הפרופיל שלי",
+    "settings": "הגדרות"
+  },
+  "common": {
+    "copyright": "© 2025 בלום האב",
+    "appName": "בלום האב",
+    "appDescription": "ניהול גן ילדים"
+  },
+  "profile": {
+    "title": "הפרופיל שלי",
+    "personalInfo": "מידע אישי",
+    "name": "שם",
+    "email": "דוא\"ל",
+    "phone": "טלפון",
+    "position": "תפקיד",
+    "updateProfile": "עדכון פרופיל"
+  },
+  "notifications": {
+    "title": "התראות",
+    "markAllRead": "סמן הכל כנקרא",
+    "noNotifications": "אין התראות",
+    "new": "חדש",
+    "earlier": "קודם"
+  },
+  "settings": {
+    "title": "הגדרות",
+    "language": "שפה",
+    "theme": "ערכת נושא",
+    "darkMode": "מצב כהה",
+    "notifications": "הגדרות התראות",
+    "enableNotifications": "הפעל התראות",
+    "emailNotifications": "התראות דוא\"ל",
+    "save": "שמור שינויים"
+  }
+}

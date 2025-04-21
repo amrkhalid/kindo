@@ -1,0 +1,40 @@
+
+{
+  "navbar": {
+    "time": "الوقت الحالي",
+    "notifications": "إشعارات",
+    "profile": "الملف الشخصي",
+    "settings": "الإعدادات"
+  },
+  "common": {
+    "copyright": "© 2025 بلوم هاب",
+    "appName": "بلوم هاب",
+    "appDescription": "إدارة رياض الأطفال"
+  },
+  "profile": {
+    "title": "الملف الشخصي",
+    "personalInfo": "المعلومات الشخصية",
+    "name": "الاسم",
+    "email": "البريد الإلكتروني",
+    "phone": "الهاتف",
+    "position": "المنصب",
+    "updateProfile": "تحديث الملف الشخصي"
+  },
+  "notifications": {
+    "title": "الإشعارات",
+    "markAllRead": "تحديد الكل كمقروء",
+    "noNotifications": "لا توجد إشعارات",
+    "new": "جديد",
+    "earlier": "سابقا"
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "language": "اللغة",
+    "theme": "السمة",
+    "darkMode": "الوضع المظلم",
+    "notifications": "إعدادات الإشعارات",
+    "enableNotifications": "تمكين الإشعارات",
+    "emailNotifications": "إشعارات البريد الإلكتروني",
+    "save": "حفظ التغييرات"
+  }
+}

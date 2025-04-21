@@ -1,0 +1,40 @@
+
+{
+  "navbar": {
+    "time": "Current time",
+    "notifications": "Notifications",
+    "profile": "My Profile",
+    "settings": "Settings"
+  },
+  "common": {
+    "copyright": "© 2025 Bloom Hub",
+    "appName": "Bloom Hub",
+    "appDescription": "Kindergarten Management"
+  },
+  "profile": {
+    "title": "My Profile",
+    "personalInfo": "Personal Information",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "position": "Position",
+    "updateProfile": "Update Profile"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "noNotifications": "No notifications",
+    "new": "New",
+    "earlier": "Earlier"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "darkMode": "Dark Mode",
+    "notifications": "Notifications Settings",
+    "enableNotifications": "Enable Notifications",
+    "emailNotifications": "Email Notifications",
+    "save": "Save Changes"
+  }
+}
