@@ -9,21 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { 
-  DropdownMenu, 
-  DropdownMenuTrigger, 
-  DropdownMenuContent, 
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator
-} from "@/components/ui/dropdown-menu";
-import { Filter, ChevronRight, ChevronLeft } from "lucide-react";
 import { useTranslation } from 'react-i18next';
-import { 
-  ToggleGroup, 
-  ToggleGroupItem 
-} from "@/components/ui/toggle-group";
 
 interface Column {
   key: string;
@@ -44,8 +30,6 @@ export const DataTable = ({ columns, data, title, onAdd }: DataTableProps) => {
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [displayedItems, setDisplayedItems] = useState(10);
   const [sortConfig, setSortConfig] = useState<{key: string, direction: 'asc' | 'desc'} | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
   const tableBodyRef = useRef<HTMLTableSectionElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -76,19 +60,17 @@ export const DataTable = ({ columns, data, title, onAdd }: DataTableProps) => {
     }
 
     setFilteredData(result);
-    setCurrentPage(1);
-    setDisplayedItems(itemsPerPage);
-  }, [filters, data, sortConfig, itemsPerPage]);
+    setDisplayedItems(10);
+  }, [filters, data, sortConfig]);
 
   // Setup intersection observer for infinite scroll
   useEffect(() => {
-    // Create a new observer
     observerRef.current = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && displayedItems < filteredData.length) {
           // Load more items
           setTimeout(() => {
-            setDisplayedItems((prev) => Math.min(prev + 5, filteredData.length));
+            setDisplayedItems((prev) => Math.min(prev + 10, filteredData.length));
           }, 300);
         }
       },
@@ -125,10 +107,6 @@ export const DataTable = ({ columns, data, title, onAdd }: DataTableProps) => {
     }));
   };
 
-  const handleClearFilters = () => {
-    setFilters({});
-  };
-
   const handleSort = (key: string) => {
     let direction: 'asc' | 'desc' = 'asc';
     
@@ -139,12 +117,6 @@ export const DataTable = ({ columns, data, title, onAdd }: DataTableProps) => {
     setSortConfig({ key, direction });
   };
 
-  // Calculate pagination
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = Math.min(startIndex + itemsPerPage, filteredData.length);
-  const currentPageData = filteredData.slice(startIndex, endIndex);
-
   const getSortIcon = (columnKey: string) => {
     if (!sortConfig || sortConfig.key !== columnKey) return null;
     return sortConfig.direction === 'asc' ? '↑' : '↓';
@@ -152,60 +124,8 @@ export const DataTable = ({ columns, data, title, onAdd }: DataTableProps) => {
 
   return (
     <div className={`space-y-4 p-4 bg-white rounded-lg shadow ${isRTL ? 'rtl' : 'ltr'}`}>
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">{title}</h2>
-        {onAdd && (
-          <Button onClick={onAdd} className="bg-primary hover:bg-primary/90">
-            Add New
-          </Button>
-        )}
-      </div>
-
-      <div className="flex flex-wrap gap-2 mb-4">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="flex items-center gap-2">
-              <Filter className="h-4 w-4" />
-              <span>Filter</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align={isRTL ? "start" : "end"} className={`w-[280px] bg-white ${isRTL ? 'rtl text-right' : 'ltr'}`}>
-            <DropdownMenuLabel>Filter Data</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {columns.map((column) => (
-              <DropdownMenuItem key={column.key} className="p-2">
-                <div className="flex flex-col gap-1 w-full">
-                  <label htmlFor={column.key} className="text-sm font-medium">
-                    {column.title}
-                  </label>
-                  <Input
-                    id={column.key}
-                    placeholder={`Filter by ${column.title.toLowerCase()}`}
-                    value={filters[column.key] || ""}
-                    onChange={(e) => handleFilterChange(column.key, e.target.value)}
-                    className="h-8"
-                  />
-                </div>
-              </DropdownMenuItem>
-            ))}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Button 
-                variant="ghost" 
-                className="w-full justify-center" 
-                onClick={handleClearFilters}
-              >
-                Clear Filters
-              </Button>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        
-        <ToggleGroup type="single" defaultValue="10" className={isRTL ? 'rtl flex-row-reverse' : 'ltr'}>
-          <ToggleGroupItem value="10" onClick={() => setItemsPerPage(10)}>10</ToggleGroupItem>
-          <ToggleGroupItem value="20" onClick={() => setItemsPerPage(20)}>20</ToggleGroupItem>
-          <ToggleGroupItem value="50" onClick={() => setItemsPerPage(50)}>50</ToggleGroupItem>
-        </ToggleGroup>
       </div>
 
       <div className="rounded-md border">
@@ -215,22 +135,32 @@ export const DataTable = ({ columns, data, title, onAdd }: DataTableProps) => {
               {columns.map((column) => (
                 <TableHead 
                   key={column.key} 
-                  className={`cursor-pointer ${isRTL ? 'text-right' : 'text-left'}`}
-                  onClick={() => handleSort(column.key)}
+                  className={`${isRTL ? 'text-right' : 'text-left'}`}
                 >
-                  <div className="flex items-center gap-2 justify-between">
-                    <span>{column.title}</span>
-                    <span>{getSortIcon(column.key)}</span>
+                  <div className="space-y-2">
+                    <div 
+                      className="flex items-center gap-2 justify-between cursor-pointer" 
+                      onClick={() => handleSort(column.key)}
+                    >
+                      <span>{column.title}</span>
+                      <span>{getSortIcon(column.key)}</span>
+                    </div>
+                    <Input
+                      placeholder={`Filter ${column.title.toLowerCase()}`}
+                      value={filters[column.key] || ""}
+                      onChange={(e) => handleFilterChange(column.key, e.target.value)}
+                      className="h-8 w-full"
+                    />
                   </div>
                 </TableHead>
               ))}
             </TableRow>
           </TableHeader>
           <TableBody ref={tableBodyRef}>
-            {currentPageData.map((row, rowIndex) => (
+            {filteredData.slice(0, displayedItems).map((row, rowIndex) => (
               <TableRow 
                 key={row.id || rowIndex}
-                className={`scrolling-pagination-item ${rowIndex < displayedItems - 5 ? 'visible' : ''}`}
+                className={`scrolling-pagination-item ${rowIndex < displayedItems - 10 ? 'visible' : ''}`}
               >
                 {columns.map((column) => (
                   <TableCell 
@@ -246,34 +176,6 @@ export const DataTable = ({ columns, data, title, onAdd }: DataTableProps) => {
             ))}
           </TableBody>
         </Table>
-
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between border-t px-4 py-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="flex items-center gap-1"
-            >
-              {isRTL ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-              Prev
-            </Button>
-            <span className="text-sm">
-              Page {currentPage} of {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              className="flex items-center gap-1"
-            >
-              Next
-              {isRTL ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-            </Button>
-          </div>
-        )}
 
         {filteredData.length > displayedItems && (
           <div 
