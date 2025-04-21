@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from "react";
 import {
   Table,
@@ -28,7 +29,7 @@ interface DataTableProps {
 export const DataTable = ({ columns, data, title, onAdd }: DataTableProps) => {
   const { i18n } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredData, setFilteredData] = useState(data);
+  const [filteredData, setFilteredData] = useState<any[]>(data || []);
   const [displayedItems, setDisplayedItems] = useState(10);
   const [sortConfig, setSortConfig] = useState<{key: string, direction: 'asc' | 'desc'} | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -45,6 +46,13 @@ export const DataTable = ({ columns, data, title, onAdd }: DataTableProps) => {
 
   // Filter and sort data
   useEffect(() => {
+    // Ensure data is an array before proceeding
+    if (!Array.isArray(data)) {
+      console.error("DataTable: data prop is not an array", data);
+      setFilteredData([]);
+      return;
+    }
+    
     let result = [...data];
     
     if (searchTerm) {
@@ -56,7 +64,7 @@ export const DataTable = ({ columns, data, title, onAdd }: DataTableProps) => {
     }
     
     if (sortConfig) {
-      result = result.sort((a, b) => {
+      result = [...result].sort((a, b) => {
         const aValue = a[sortConfig.key];
         const bValue = b[sortConfig.key];
         
@@ -67,11 +75,19 @@ export const DataTable = ({ columns, data, title, onAdd }: DataTableProps) => {
     }
 
     setFilteredData(result);
-    setDisplayedItems(10);
+    setDisplayedItems(Math.min(10, result.length));
   }, [data, sortConfig, searchTerm]);
+
+  // Debug log data to console
+  useEffect(() => {
+    console.log("DataTable: data prop received", data);
+    console.log("DataTable: filteredData state", filteredData);
+  }, [data, filteredData]);
 
   // Setup intersection observer for infinite scroll
   useEffect(() => {
+    if (filteredData.length <= displayedItems) return;
+    
     observerRef.current = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && displayedItems < filteredData.length) {
@@ -170,23 +186,31 @@ export const DataTable = ({ columns, data, title, onAdd }: DataTableProps) => {
             </TableRow>
           </TableHeader>
           <TableBody ref={tableBodyRef}>
-            {filteredData.slice(0, displayedItems).map((row, rowIndex) => (
-              <TableRow 
-                key={row.id || rowIndex}
-                className={`scrolling-pagination-item transition-all duration-200 hover:bg-muted/5 ${rowIndex < displayedItems - 10 ? 'visible' : ''}`}
-              >
-                {columns.map((column) => (
-                  <TableCell 
-                    key={`${row.id}-${column.key}`}
-                    className={`${isRTL ? 'text-right' : 'text-left'} py-3`}
-                  >
-                    {column.render
-                      ? column.render(row[column.key], row)
-                      : row[column.key]}
-                  </TableCell>
-                ))}
+            {filteredData.length > 0 ? (
+              filteredData.slice(0, displayedItems).map((row, rowIndex) => (
+                <TableRow 
+                  key={row.id || rowIndex}
+                  className={`scrolling-pagination-item transition-all duration-200 hover:bg-muted/5 ${rowIndex < displayedItems - 10 ? 'visible' : ''}`}
+                >
+                  {columns.map((column) => (
+                    <TableCell 
+                      key={`${row.id || rowIndex}-${column.key}`}
+                      className={`${isRTL ? 'text-right' : 'text-left'} py-3`}
+                    >
+                      {column.render
+                        ? column.render(row[column.key], row)
+                        : row[column.key]}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="text-center py-8 text-muted-foreground">
+                  No data available
+                </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
 
@@ -199,9 +223,9 @@ export const DataTable = ({ columns, data, title, onAdd }: DataTableProps) => {
           </div>
         )}
 
-        {filteredData.length === 0 && (
+        {filteredData.length === 0 && data.length > 0 && (
           <div className="p-8 text-center text-muted-foreground">
-            No data found.
+            No results found for "{searchTerm}".
           </div>
         )}
       </div>

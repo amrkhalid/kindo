@@ -6,8 +6,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from 'next-themes';
 
-// Import pages - making sure we use lowercase index
-import IndexPage from "./pages/index";
+// Import pages - using the correct casing for IndexPage
+import IndexPage from "./pages/Index";
 import KindergartensPage from "./pages/kindergartens";
 import RolesPage from "./pages/roles";
 import ChildrenPage from "./pages/children";
