@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -23,38 +22,33 @@ import { Badge } from "@/components/ui/badge";
 export function Navbar() {
   const { t, i18n } = useTranslation();
   const [time, setTime] = useState<string>(new Date().toLocaleTimeString());
-  const [notificationCount, setNotificationCount] = useState<number>(3); // Example notification count
+  const [notificationCount, setNotificationCount] = useState<number>(3);
 
   // List of available languages
   const languages = [
-    { code: 'en', label: 'English' },
-    { code: 'ar', label: 'العربية' },
-    { code: 'he', label: 'עברית' }
+    { code: 'en', label: 'English', dir: 'ltr' },
+    { code: 'ar', label: 'العربية', dir: 'rtl' },
+    { code: 'he', label: 'עברית', dir: 'rtl' }
   ];
 
   // Change language handler
   const changeLanguage = (langCode: string) => {
     i18n.changeLanguage(langCode);
-    // You could save this preference to localStorage
     localStorage.setItem('preferredLanguage', langCode);
   };
 
   useEffect(() => {
-    // Initialize language from localStorage if available
-    const savedLanguage = localStorage.getItem('preferredLanguage');
-    if (savedLanguage) {
-      i18n.changeLanguage(savedLanguage);
-    }
-    
     const timer = setInterval(() => {
-      setTime(new Date().toLocaleTimeString());
+      setTime(new Date().toLocaleTimeString(i18n.language));
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [i18n]);
+  }, [i18n.language]);
+
+  const isRTL = i18n.dir() === 'rtl';
 
   return (
-    <nav className="border-b bg-background h-14 px-4 flex items-center justify-between">
+    <nav className={`border-b bg-background h-14 px-4 flex items-center justify-between ${isRTL ? 'rtl' : 'ltr'}`}>
       <div className="flex items-center gap-2">
         <Clock className="h-4 w-4 text-muted-foreground" />
         <span className="text-sm text-muted-foreground" title={t('navbar.time')}>{time}</span>
@@ -69,7 +63,7 @@ export function Navbar() {
               <span className="sr-only">Change Language</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align={isRTL ? 'start' : 'end'} className={isRTL ? 'rtl' : 'ltr'}>
             {languages.map((lang) => (
               <DropdownMenuItem 
                 key={lang.code} 
@@ -88,7 +82,7 @@ export function Navbar() {
             <Button variant="ghost" size="icon" className="h-8 w-8 relative">
               <Bell className="h-4 w-4" />
               {notificationCount > 0 && (
-                <Badge className="absolute -top-1 -right-1 h-4 min-w-4 flex items-center justify-center text-[10px] px-1 bg-primary text-primary-foreground">
+                <Badge className="absolute -top-1 -right-1 h-4 min-w-4 flex items-center justify-center text-[10px] px-1">
                   {notificationCount}
                 </Badge>
               )}
@@ -139,7 +133,7 @@ export function Navbar() {
               </AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-52">
+          <DropdownMenuContent align={isRTL ? 'start' : 'end'} className={isRTL ? 'rtl' : 'ltr'}>
             <DropdownMenuItem asChild className="flex items-center gap-2 cursor-pointer">
               <Link to="/profile">
                 <UserRound className="h-4 w-4" />
