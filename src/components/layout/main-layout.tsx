@@ -1,6 +1,7 @@
 
 import React from "react";
 import { SidebarNav } from "./sidebar-nav";
+import { Navbar } from "./navbar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -27,14 +28,18 @@ export function MainLayout({ children }: MainLayoutProps) {
             <p className="text-xs text-muted-foreground">© 2025 Bloom Hub</p>
           </div>
         </div>
-        <main className="flex-1 p-6">{children}</main>
+        <div className="flex-1 flex flex-col">
+          <Navbar />
+          <main className="flex-1 p-6">{children}</main>
+        </div>
       </div>
     );
   }
 
   // For mobile view - show sidebar in a sheet
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex flex-col">
+      <Navbar />
       <div className="border-b bg-background p-4 flex items-center justify-between">
         <h2 className="text-xl font-bold text-kindergarten-purple">Bloom Hub</h2>
         <Sheet>
@@ -56,7 +61,7 @@ export function MainLayout({ children }: MainLayoutProps) {
           </SheetContent>
         </Sheet>
       </div>
-      <main className="p-4">{children}</main>
+      <main className="p-4 flex-1">{children}</main>
     </div>
   );
 }
