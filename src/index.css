@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -89,8 +90,20 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* RTL specific styles */
+  .rtl {
+    direction: rtl;
+    text-align: right;
+  }
+  
+  .ltr {
+    direction: ltr;
+    text-align: left;
+  }
 }
 
+/* Animation keyframes */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -102,17 +115,102 @@
   }
 }
 
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 .animate-fadeInUp {
   animation: fadeInUp 0.5s ease-out;
 }
 
+.animate-fadeInLeft {
+  animation: fadeInLeft 0.5s ease-out;
+}
+
+.animate-fadeInRight {
+  animation: fadeInRight 0.5s ease-out;
+}
+
+/* Scrolling pagination animation */
 .scrolling-pagination-item {
   opacity: 0;
   transform: translateY(20px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
 }
 
 .scrolling-pagination-item.visible {
   opacity: 1;
   transform: translateY(0);
-  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+/* RTL version of scrolling pagination */
+[dir="rtl"] .scrolling-pagination-item {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+[dir="rtl"] .scrolling-pagination-item.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Table styling */
+.table-header-cell {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: white;
+}
+
+/* Data table loading animation */
+.data-loading::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(to right, transparent, hsl(var(--primary)), transparent);
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* RTL data table loading animation */
+[dir="rtl"] .data-loading::after {
+  animation: loading-rtl 1.5s infinite;
+}
+
+@keyframes loading-rtl {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
 }

@@ -6,8 +6,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from 'next-themes';
 
-// Import pages - fix casing issue by importing lowercase index
-import Index from "./pages/index";
+// Import pages - making sure we use lowercase index
+import IndexPage from "./pages/index";
 import KindergartensPage from "./pages/kindergartens";
 import RolesPage from "./pages/roles";
 import ChildrenPage from "./pages/children";
@@ -32,7 +32,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<IndexPage />} />
             <Route path="/kindergartens" element={<KindergartensPage />} />
             <Route path="/roles" element={<RolesPage />} />
             <Route path="/children" element={<ChildrenPage />} />

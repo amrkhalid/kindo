@@ -1,20 +1,31 @@
 
 import * as React from "react"
-
 import { cn } from "@/lib/utils"
+import { useTranslation } from 'react-i18next';
+
+const TableContext = React.createContext<{ isRTL: boolean }>({ isRTL: false });
+
+const useTableContext = () => React.useContext(TableContext);
 
 const Table = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement>
->(({ className, ...props }, ref) => (
-  <div className="relative w-full overflow-auto">
-    <table
-      ref={ref}
-      className={cn("w-full caption-bottom text-sm", className)}
-      {...props}
-    />
-  </div>
-))
+>(({ className, ...props }, ref) => {
+  const { i18n } = useTranslation();
+  const isRTL = i18n.dir() === 'rtl';
+  
+  return (
+    <TableContext.Provider value={{ isRTL }}>
+      <div className="relative w-full overflow-auto">
+        <table
+          ref={ref}
+          className={cn("w-full caption-bottom text-sm", isRTL ? "rtl" : "ltr", className)}
+          {...props}
+        />
+      </div>
+    </TableContext.Provider>
+  )
+})
 Table.displayName = "Table"
 
 const TableHeader = React.forwardRef<
@@ -70,28 +81,41 @@ TableRow.displayName = "TableRow"
 const TableHead = React.forwardRef<
   HTMLTableCellElement,
   React.ThHTMLAttributes<HTMLTableCellElement>
->(({ className, ...props }, ref) => (
-  <th
-    ref={ref}
-    className={cn(
-      "h-10 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0",
-      className
-    )}
-    {...props}
-  />
-))
+>(({ className, ...props }, ref) => {
+  const { isRTL } = useTableContext();
+  
+  return (
+    <th
+      ref={ref}
+      className={cn(
+        "h-10 px-4 align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0",
+        isRTL ? "text-right" : "text-left",
+        className
+      )}
+      {...props}
+    />
+  )
+})
 TableHead.displayName = "TableHead"
 
 const TableCell = React.forwardRef<
   HTMLTableCellElement,
   React.TdHTMLAttributes<HTMLTableCellElement>
->(({ className, ...props }, ref) => (
-  <td
-    ref={ref}
-    className={cn("p-2 align-middle [&:has([role=checkbox])]:pr-0", className)}
-    {...props}
-  />
-))
+>(({ className, ...props }, ref) => {
+  const { isRTL } = useTableContext();
+  
+  return (
+    <td
+      ref={ref}
+      className={cn(
+        "p-2 align-middle [&:has([role=checkbox])]:pr-0", 
+        isRTL ? "text-right" : "text-left",
+        className
+      )}
+      {...props}
+    />
+  )
+})
 TableCell.displayName = "TableCell"
 
 const TableCaption = React.forwardRef<

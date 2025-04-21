@@ -1,32 +1,43 @@
+
 import * as React from "react"
 import * as ToggleGroupPrimitive from "@radix-ui/react-toggle-group"
 import { type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 import { toggleVariants } from "@/components/ui/toggle"
+import { useTranslation } from "react-i18next"
 
 const ToggleGroupContext = React.createContext<
-  VariantProps<typeof toggleVariants>
+  VariantProps<typeof toggleVariants> & { isRTL: boolean }
 >({
   size: "default",
   variant: "default",
+  isRTL: false,
 })
 
 const ToggleGroup = React.forwardRef<
   React.ElementRef<typeof ToggleGroupPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Root> &
     VariantProps<typeof toggleVariants>
->(({ className, variant, size, children, ...props }, ref) => (
-  <ToggleGroupPrimitive.Root
-    ref={ref}
-    className={cn("flex items-center justify-center gap-1", className)}
-    {...props}
-  >
-    <ToggleGroupContext.Provider value={{ variant, size }}>
-      {children}
-    </ToggleGroupContext.Provider>
-  </ToggleGroupPrimitive.Root>
-))
+>(({ className, variant, size, children, ...props }, ref) => {
+  const { i18n } = useTranslation();
+  const isRTL = i18n.dir() === 'rtl';
+  
+  return (
+    <ToggleGroupPrimitive.Root
+      ref={ref}
+      className={cn("flex items-center justify-center gap-1", 
+        isRTL ? "flex-row-reverse rtl" : "ltr", 
+        className
+      )}
+      {...props}
+    >
+      <ToggleGroupContext.Provider value={{ variant, size, isRTL }}>
+        {children}
+      </ToggleGroupContext.Provider>
+    </ToggleGroupPrimitive.Root>
+  )
+})
 
 ToggleGroup.displayName = ToggleGroupPrimitive.Root.displayName
 
