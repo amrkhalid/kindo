@@ -1,15 +1,44 @@
-
 {
+  "login": {
+    "welcome": "ברוך הבא בחזרה",
+    "username": "שם משתמש",
+    "usernamePlaceholder": "הכנס שם משתמש",
+    "password": "סיסמה",
+    "passwordPlaceholder": "הכנס סיסמה",
+    "signIn": "התחבר",
+    "allFieldsRequired": "כל השדות נדרשים",
+    "invalidCredentials": "שם משתמש או סיסמה לא נכונים",
+    "forgotPassword": "שכחת סיסמה?",
+    "rememberMe": "זכור אותי"
+  },
   "navbar": {
-    "time": "זמן נוכחי",
+    "time": "{{date, DD/MM/YYYY}} {{time, HH:mm}}",
     "notifications": "התראות",
-    "profile": "הפרופיל שלי",
-    "settings": "הגדרות"
+    "profile": "פרופיל",
+    "settings": "הגדרות",
+    "dashboard": "לוח בקרה",
+    "kindergartens": "גני ילדים",
+    "children": "ילדים",
+    "groups": "קבוצות",
+    "roles": "תפקידים",
+    "financial": "כספים",
+    "auditLogs": "יומני ביקורת",
+    "logout": "התנתק"
   },
   "common": {
-    "copyright": "© 2025 בלום האב",
-    "appName": "בלום האב",
-    "appDescription": "ניהול גן ילדים"
+    "appName": "קינדו",
+    "appDescription": "ניהול גני ילדים",
+    "loading": "טוען...",
+    "save": "שמור",
+    "cancel": "בטל",
+    "delete": "מחק",
+    "edit": "ערוך",
+    "add": "הוסף",
+    "search": "חיפוש",
+    "noResults": "אין תוצאות",
+    "required": "נדרש",
+    "optional": "אופציונלי",
+    "dir": "rtl"
   },
   "profile": {
     "title": "הפרופיל שלי",
@@ -36,5 +65,22 @@
     "enableNotifications": "הפעל התראות",
     "emailNotifications": "התראות דוא\"ל",
     "save": "שמור שינויים"
+  },
+  "navigation": {
+    "dashboard": "לוח בקרה",
+    "kindergartens": "גני ילדים",
+    "roles": "תפקידים",
+    "children": "ילדים",
+    "groups": "קבוצות",
+    "financial": "כספים",
+    "auditLogs": "יומן ביקורת"
+  },
+  "auth": {
+    "login": "התחברות",
+    "loginDescription": "ברוך שובך! אנא הזן את פרטיך",
+    "username": "שם משתמש",
+    "password": "סיסמה",
+    "usernamePlaceholder": "הזן את שם המשתמש שלך",
+    "passwordPlaceholder": "הזן את הסיסמה שלך"
   }
 }

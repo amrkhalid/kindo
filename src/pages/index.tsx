@@ -1,115 +1,141 @@
-
 import React from "react";
-import { MainLayout } from "@/components/layout/main-layout";
 import { StatsCard } from "@/components/dashboard/stats-card";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { School, Users, FileText, ClipboardList } from "lucide-react";
-import { kindergartens, children, groups, payments, auditLogs } from "@/lib/data";
+import { School, Users, FileText, TrendingUp, Calendar } from "lucide-react";
+import { kindergartens, children, groups, payments } from "@/lib/data";
+import { useTranslation } from "react-i18next";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { cn } from "@/lib/utils";
 
 const Index = () => {
+  const { t, i18n } = useTranslation();
+  
+  // List of available languages with their directions
+  const languages = [
+    { code: 'en', label: 'English', dir: 'ltr' },
+    { code: 'ar', label: 'العربية', dir: 'rtl' },
+    { code: 'he', label: 'עברית', dir: 'rtl' }
+  ];
+
+  const isRTL = languages.find(lang => lang.code === i18n.language)?.dir === 'rtl';
+
   // Calculate stats
   const activeKindergartens = kindergartens.filter(k => k.isActive).length;
   const totalChildren = children.length;
   const totalGroups = groups.length;
   const totalPayments = payments.reduce((sum, payment) => sum + payment.amount, 0);
-  
-  // Recent logs
-  const recentLogs = [...auditLogs]
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 5);
+
+  // Sample data for charts - replace with actual data
+  const monthlyData = [
+    { name: 'Jan', children: 65, payments: 4000 },
+    { name: 'Feb', children: 72, payments: 4500 },
+    { name: 'Mar', children: 85, payments: 5100 },
+    { name: 'Apr', children: 90, payments: 5400 },
+    { name: 'May', children: 95, payments: 5800 },
+    { name: 'Jun', children: 102, payments: 6200 },
+  ];
+
+  const recentKindergartens = [
+    { name: "Sunshine Kids", date: "2024-03-15", location: "Downtown" },
+    { name: "Little Stars", date: "2024-03-14", location: "West Side" },
+    { name: "Happy Learners", date: "2024-03-13", location: "North District" },
+    { name: "Bright Minds", date: "2024-03-12", location: "East End" },
+  ];
 
   return (
-    <MainLayout>
-      <div className="space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold">Kindergarten Bloom Hub</h1>
-          <p className="text-muted-foreground">Welcome to your kindergarten management dashboard</p>
-        </div>
-        
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <StatsCard
-            title="Active Kindergartens"
-            value={activeKindergartens}
-            icon={<School className="h-4 w-4 text-muted-foreground" />}
-            className="bg-kindergarten-green/20"
-          />
-          <StatsCard
-            title="Total Children"
-            value={totalChildren}
-            icon={<Users className="h-4 w-4 text-muted-foreground" />}
-            className="bg-kindergarten-blue/20"
-          />
-          <StatsCard
-            title="Groups"
-            value={totalGroups}
-            icon={<Users className="h-4 w-4 text-muted-foreground" />}
-            className="bg-kindergarten-yellow/20"
-          />
-          <StatsCard
-            title="Total Payments"
-            value={`$${totalPayments.toLocaleString()}`}
-            icon={<FileText className="h-4 w-4 text-muted-foreground" />}
-            className="bg-kindergarten-pink/20"
-          />
-        </div>
-        
-        <div className="grid gap-4 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
-              <CardDescription>Latest actions in the system</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {recentLogs.map((log) => (
-                  <div key={log.id} className="flex items-start space-x-4 p-2 rounded-md border animate-fadeInUp">
-                    <div className="rounded-full p-2 bg-primary/10">
-                      <ClipboardList className="h-4 w-4 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-medium">{log.action} by {log.fullName}</p>
-                      <p className="text-sm text-muted-foreground">{log.message}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {new Date(log.createdAt).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Kindergartens</CardTitle>
-              <CardDescription>Latest kindergartens added to the system</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {kindergartens
-                  .slice()
-                  .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                  .slice(0, 5)
-                  .map((kindergarten) => (
-                    <div key={kindergarten.id} className="flex items-start space-x-4 p-2 rounded-md border animate-fadeInUp">
-                      <div className="rounded-full p-2 bg-kindergarten-green/20">
-                        <School className="h-4 w-4 text-primary" />
-                      </div>
-                      <div>
-                        <p className="font-medium">{kindergarten.name}</p>
-                        <p className="text-sm text-muted-foreground">{kindergarten.address}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {kindergarten.isActive ? "Active" : "Inactive"} • Added {new Date(kindergarten.createdAt).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+    <div className={cn("space-y-6", isRTL ? "rtl" : "ltr")}>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <StatsCard
+          title="Active Kindergartens"
+          value={activeKindergartens}
+          icon={<School className="h-5 w-5 text-white" />}
+          className="bg-[#1A5F5E] border-[#1A5F5E]/20 hover:bg-[#1A5F5E]/90 transition-colors shadow-lg"
+          color="white"
+        />
+        <StatsCard
+          title="Total Children"
+          value={totalChildren}
+          icon={<Users className="h-5 w-5 text-white" />}
+          className="bg-[#165690] border-[#165690]/20 hover:bg-[#165690]/90 transition-colors shadow-lg"
+          color="white"
+        />
+        <StatsCard
+          title="Groups"
+          value={totalGroups}
+          icon={<Users className="h-5 w-5 text-white" />}
+          className="bg-[#CC9400] border-[#CC9400]/20 hover:bg-[#CC9400]/90 transition-colors shadow-lg"
+          color="white"
+        />
+        <StatsCard
+          title="Total Payments"
+          value={`$${totalPayments.toLocaleString()}`}
+          icon={<FileText className="h-5 w-5 text-white" />}
+          className="bg-[#2F742C] border-[#2F742C]/20 hover:bg-[#2F742C]/90 transition-colors shadow-lg"
+          color="white"
+        />
       </div>
-    </MainLayout>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Children Growth Chart */}
+        <Card className="border-gray-200 bg-white">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-gray-900 flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-[#165690]" />
+              Children Growth Trend
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={monthlyData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Area 
+                    type="monotone" 
+                    dataKey="children" 
+                    stroke="#165690" 
+                    fill="#165690" 
+                    fillOpacity={0.2} 
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Recent Kindergarten Additions */}
+        <Card className="border-gray-200 bg-white">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-gray-900 flex items-center gap-2">
+              <School className="h-5 w-5 text-[#1A5F5E]" />
+              Recent Kindergarten Additions
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {recentKindergartens.map((k, index) => (
+                <div
+                  key={index}
+                  className="flex items-start gap-4 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
+                >
+                  <div className="p-2 rounded-full bg-[#1A5F5E]/10">
+                    <Calendar className="h-4 w-4 text-[#1A5F5E]" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{k.name}</p>
+                    <p className="text-xs text-gray-500">
+                      Added on {new Date(k.date).toLocaleDateString()} • {k.location}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 };
 

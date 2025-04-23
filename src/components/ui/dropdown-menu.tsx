@@ -1,10 +1,15 @@
-
 import * as React from "react"
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu"
 import { Check, ChevronRight, Circle } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { useTranslation } from "react-i18next"
+
+const languages = [
+  { code: 'en', label: 'English', dir: 'ltr' },
+  { code: 'ar', label: 'العربية', dir: 'rtl' },
+  { code: 'he', label: 'עברית', dir: 'rtl' }
+];
 
 const DropdownMenu = DropdownMenuPrimitive.Root
 
@@ -25,7 +30,8 @@ const DropdownMenuSubTrigger = React.forwardRef<
   }
 >(({ className, inset, children, ...props }, ref) => {
   const { i18n } = useTranslation();
-  const isRTL = i18n.dir() === 'rtl';
+  const currentLanguage = languages.find(lang => lang.code === i18n.language);
+  const isRTL = currentLanguage?.dir === 'rtl';
   
   return (
     <DropdownMenuPrimitive.SubTrigger
@@ -71,7 +77,8 @@ const DropdownMenuContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content>
 >(({ className, sideOffset = 4, ...props }, ref) => {
   const { i18n } = useTranslation();
-  const isRTL = i18n.dir() === 'rtl';
+  const currentLanguage = languages.find(lang => lang.code === i18n.language);
+  const isRTL = currentLanguage?.dir === 'rtl';
   
   return (
     <DropdownMenuPrimitive.Portal>
@@ -97,7 +104,8 @@ const DropdownMenuItem = React.forwardRef<
   }
 >(({ className, inset, ...props }, ref) => {
   const { i18n } = useTranslation();
-  const isRTL = i18n.dir() === 'rtl';
+  const currentLanguage = languages.find(lang => lang.code === i18n.language);
+  const isRTL = currentLanguage?.dir === 'rtl';
   
   return (
     <DropdownMenuPrimitive.Item
@@ -119,7 +127,8 @@ const DropdownMenuCheckboxItem = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.CheckboxItem>
 >(({ className, children, checked, ...props }, ref) => {
   const { i18n } = useTranslation();
-  const isRTL = i18n.dir() === 'rtl';
+  const currentLanguage = languages.find(lang => lang.code === i18n.language);
+  const isRTL = currentLanguage?.dir === 'rtl';
   
   return (
     <DropdownMenuPrimitive.CheckboxItem
@@ -152,7 +161,8 @@ const DropdownMenuRadioItem = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.RadioItem>
 >(({ className, children, ...props }, ref) => {
   const { i18n } = useTranslation();
-  const isRTL = i18n.dir() === 'rtl';
+  const currentLanguage = languages.find(lang => lang.code === i18n.language);
+  const isRTL = currentLanguage?.dir === 'rtl';
   
   return (
     <DropdownMenuPrimitive.RadioItem
@@ -185,7 +195,8 @@ const DropdownMenuLabel = React.forwardRef<
   }
 >(({ className, inset, ...props }, ref) => {
   const { i18n } = useTranslation();
-  const isRTL = i18n.dir() === 'rtl';
+  const currentLanguage = languages.find(lang => lang.code === i18n.language);
+  const isRTL = currentLanguage?.dir === 'rtl';
   
   return (
     <DropdownMenuPrimitive.Label
@@ -219,7 +230,8 @@ const DropdownMenuShortcut = ({
   ...props
 }: React.HTMLAttributes<HTMLSpanElement>) => {
   const { i18n } = useTranslation();
-  const isRTL = i18n.dir() === 'rtl';
+  const currentLanguage = languages.find(lang => lang.code === i18n.language);
+  const isRTL = currentLanguage?.dir === 'rtl';
   
   return (
     <span

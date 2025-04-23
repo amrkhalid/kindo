@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -16,7 +15,6 @@ interface AddPaymentDialogProps {
 }
 
 const paymentMethods = ["Credit Card", "Cash", "Bank Transfer", "Check"];
-const paymentStatuses = ["paid", "pending", "overdue"];
 
 export function AddPaymentDialog({
   open,
@@ -31,7 +29,6 @@ export function AddPaymentDialog({
     amount: "",
     paymentMethod: "",
     paymentDate: "",
-    status: "pending" as "paid" | "pending" | "overdue",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -55,7 +52,6 @@ export function AddPaymentDialog({
       amount: parseFloat(form.amount),
       paymentMethod: form.paymentMethod,
       paymentDate: form.paymentDate,
-      status: form.status,
       createdAt: new Date().toISOString(),
     };
 
@@ -72,7 +68,6 @@ export function AddPaymentDialog({
       amount: "",
       paymentMethod: "",
       paymentDate: "",
-      status: "pending",
     });
     onOpenChange(false);
   };
@@ -148,25 +143,6 @@ export function AddPaymentDialog({
               value={form.paymentDate}
               onChange={(e) => setForm({ ...form, paymentDate: e.target.value })}
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="status">Status</Label>
-            <Select
-              value={form.status}
-              onValueChange={(value: "paid" | "pending" | "overdue") => 
-                setForm({ ...form, status: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                {paymentStatuses.map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {status.charAt(0).toUpperCase() + status.slice(1)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
           <DialogFooter>
             <Button type="submit">Add Payment</Button>

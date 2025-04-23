@@ -1,4 +1,3 @@
-
 export type Role = 'manager' | 'staff';
 
 export interface User {
@@ -17,9 +16,9 @@ export interface Kindergarten {
   address: string;
   phoneNumber: string;
   isActive: boolean;
-  joinDate: string;
-  createdBy: string;
+  planIds: string[];
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface Child {

@@ -1,4 +1,6 @@
 import type { Config } from "tailwindcss";
+import plugin from "tailwindcss/plugin";
+import tailwindAnimate from "tailwindcss-animate";
 
 export default {
   darkMode: ["class"],
@@ -18,6 +20,11 @@ export default {
       }
     },
     extend: {
+      fontFamily: {
+        sans: ['Roboto', 'system-ui', 'sans-serif'],
+        cairo: ['Cairo', 'sans-serif'],
+        horev: ['Horev CLM Heavy', 'sans-serif'],
+      },
       colors: {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
@@ -127,5 +134,5 @@ export default {
       }
     }
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [tailwindAnimate],
 } satisfies Config;

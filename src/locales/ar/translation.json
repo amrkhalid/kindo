@@ -1,15 +1,35 @@
-
 {
   "navbar": {
-    "time": "الوقت الحالي",
-    "notifications": "إشعارات",
+    "time": "{{date, DD/MM/YYYY}} {{time, HH:mm}}",
+    "notifications": "الإشعارات",
     "profile": "الملف الشخصي",
-    "settings": "الإعدادات"
+    "settings": "الإعدادات",
+    "dashboard": "لوحة التحكم",
+    "kindergartens": "رياض الأطفال",
+    "children": "الأطفال",
+    "groups": "المجموعات",
+    "roles": "الأدوار",
+    "financial": "المالية",
+    "auditLogs": "سجلات التدقيق",
+    "logout": "تسجيل الخروج"
   },
   "common": {
     "copyright": "© 2025 بلوم هاب",
-    "appName": "بلوم هاب",
-    "appDescription": "إدارة رياض الأطفال"
+    "appName": "كيندو",
+    "appDescription": "إدارة رياض الأطفال",
+    "active": "نشط",
+    "inactive": "غير نشط",
+    "dir": "rtl",
+    "loading": "جاري التحميل...",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "add": "إضافة",
+    "search": "بحث",
+    "noResults": "لا توجد نتائج",
+    "required": "مطلوب",
+    "optional": "اختياري"
   },
   "profile": {
     "title": "الملف الشخصي",
@@ -36,5 +56,105 @@
     "enableNotifications": "تمكين الإشعارات",
     "emailNotifications": "إشعارات البريد الإلكتروني",
     "save": "حفظ التغييرات"
+  },
+  "Dashboard":{
+    "title": "لوحة التحكم",
+    "welcome": "مرحبًا بك ",
+    "overview": "نظرة عامة",
+    "statistics": "الإحصائيات",
+    "recentActivities": "الأنشطة الأخيرة",
+    "quickActions": "إجراءات سريعة",
+    "viewAll": "عرض الكل",
+     "Recent Activities": "الأنشطة الأخيرة",
+    "Total Members": "إجمالي الأعضاء",
+     "Total Teachers": "إجمالي المعلمين",
+    "Total Students": "إجمالي الطلاب",
+    "Total Parents": "إجمالي أولياء الأمور",
+    "Total Staffs": "إجمالي الموظفين",
+     "Total Subjects": "إجمالي المواد الدراسية",
+    "Total Events": "إجمالي الفعاليات",
+    "Total Assignments": "إجمالي الواجبات"
+  },
+  "Login": {
+    "title": "تسجيل الدخول",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "rememberMe": "تذكرني",   
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "login": "تسجيل الدخول",
+    "register": "إنشاء حساب",
+    "or": "او",
+    "loginWith": "تسجيل الدخول بواسطة",
+    "registerWith": "انشاء حساب بواسطة",
+    "welcome": "مرحباً بعودتك",
+    "username": "اسم المستخدم",
+    "usernamePlaceholder": "أدخل اسم المستخدم",
+    "passwordPlaceholder": "أدخل كلمة المرور",
+    "signIn": "تسجيل الدخول",
+    "allFieldsRequired": "جميع الحقول مطلوبة",
+    "invalidCredentials": "اسم المستخدم أو كلمة المرور غير صحيحة"
+  },
+  "kindergartens": {
+    "title": "رياض الأطفال",
+    "description": "إدارة رياض الأطفال",
+    "add": "إضافة روضة أطفال",
+    "edit": "تعديل روضة الأطفال",
+    "delete": "حذف روضة الأطفال",
+    "name": "الاسم",
+    "address": "العنوان",
+    "phoneNumber": "رقم الهاتف",
+    "isActive": "الحالة",
+    "joinDate": "تاريخ الانضمام",
+    "createdBy": "تم الإنشاء بواسطة",
+    "addSuccess": "تمت إضافة روضة الأطفال بنجاح",
+    "addError": "خطأ في إضافة روضة الأطفال",
+    "editSuccess": "تم تحديث روضة الأطفال بنجاح",
+    "editError": "خطأ في تحديث روضة الأطفال",
+    "deleteSuccess": "تم حذف روضة الأطفال بنجاح",
+    "deleteError": "خطأ في حذف روضة الأطفال",
+    "deleteTitle": "حذف روضة الأطفال",
+    "deleteDescription": "هل أنت متأكد من حذف روضة الأطفال؟",
+    "namePlaceholder": "أدخل اسم روضة الأطفال",
+    "addressPlaceholder": "أدخل عنوان روضة الأطفال",
+    "phoneNumberPlaceholder": "أدخل رقم الهاتف",
+    "isActivePlaceholder": "حدد حالة روضة الأطفال",
+    "selectPlans": "اختر خطة",
+    "plans": "الخطة",
+    "addDescription": "ادخل بيانات روضة الأطفال",
+    "No results found": "لا توجد نتائج"
+  },
+  "table": {
+    "search": "بحث...",
+    "noData": "لا توجد بيانات",
+    "loadingMore": "عرض المزيد...",
+    "of": "من",
+    "results": "نتائج",
+    "headers": {
+      "kindergartens": {
+        "name": "الاسم",
+        "address": "العنوان",
+        "phoneNumber": "رقم الهاتف",
+        "isActive": "الحالة",
+        "joinDate": "تاريخ الانضمام",
+        "createdBy": "تم الإنشاء بواسطة"
+      }
+    }
+  },
+  "navigation": {
+    "dashboard": "لوحة التحكم",
+    "kindergartens": "رياض الأطفال",
+    "roles": "الأدوار",
+    "children": "الأطفال",
+    "groups": "المجموعات",
+    "financial": "المالية",
+    "auditLogs": "سجلات التدقيق"
+  },
+  "auth": {
+    "login": "تسجيل الدخول",
+    "loginDescription": "مرحباً بعودتك! الرجاء إدخال بياناتك",
+    "username": "اسم المستخدم",
+    "password": "كلمة المرور",
+    "usernamePlaceholder": "أدخل اسم المستخدم",
+    "passwordPlaceholder": "أدخل كلمة المرور"
   }
 }

@@ -1,0 +1,22 @@
+export const APP = {
+  NAME: 'Kinder Garden Bloom Hub',
+  VERSION: '1.0.0',
+  DEFAULT_LANGUAGE: 'en',
+  SUPPORTED_LANGUAGES: ['en', 'ar', 'he'] as const,
+  ROUTES: {
+    LOGIN: '/login',
+    DASHBOARD: '/',
+    KINDERGARTENS: '/kindergartens',
+    CHILDREN: '/children',
+    GROUPS: '/groups',
+    PLANS: '/plans',
+    FEATURES: '/features',
+    ROLES: '/roles',
+    FINANCIAL: '/financial',
+    AUDIT_LOGS: '/audit-logs',
+    NOTIFICATIONS: '/notifications',
+    PROFILE: '/profile',
+    SETTINGS: '/settings',
+    ACTIVITIES: '/activities',
+  },
+} as const; 

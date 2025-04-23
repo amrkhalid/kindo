@@ -1,5 +1,4 @@
-
-import React, { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Table,
   TableBody,
@@ -9,65 +8,133 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { ShimmerEffect } from "@/components/ui/shimmer-effect";
-import { Search } from "lucide-react";
+import { Search, Loader2, Edit, Trash2, MoreVertical, Plus, Check } from "lucide-react";
 import { useTranslation } from 'react-i18next';
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Checkbox } from "@/components/ui/checkbox";
 
-interface Column {
-  key: string;
+interface Column<T> {
+  key: keyof T;
   title: string;
-  render?: (value: any, row: any) => React.ReactNode;
+  render?: (value: unknown, row: T) => React.ReactNode;
 }
 
-interface DataTableProps {
-  columns: Column[];
-  data: any[];
-  title: string;
+interface DataTableProps<T> {
+  columns: Column<T>[];
+  data: T[];
+  title?: string;
   onAdd?: () => void;
+  onEdit?: (row: T) => void;
+  onDelete?: (row: T) => void;
+  onAssign?: (row: T) => void;
+  searchable?: boolean;
+  pagination?: boolean;
+  pageSize?: number;
+  onRowClick?: (row: T) => void;
+  onSelectionChange?: (items: T[]) => void;
+  isLoading?: boolean;
 }
 
-export const DataTable = ({ columns, data, title, onAdd }: DataTableProps) => {
-  const { i18n } = useTranslation();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filteredData, setFilteredData] = useState<any[]>(data || []);
-  const [displayedItems, setDisplayedItems] = useState(10);
-  const [sortConfig, setSortConfig] = useState<{key: string, direction: 'asc' | 'desc'} | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const tableBodyRef = useRef<HTMLTableSectionElement>(null);
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
-  const isRTL = i18n.dir() === 'rtl';
+const ROWS_PER_PAGE = 15;
+const SEARCH_DEBOUNCE_MS = 300;
 
-  // Simulate loading state
+export function DataTable<T>({ columns, data, title, onAdd, onEdit, onDelete, onAssign, searchable = true, pagination = false, pageSize = 10, onRowClick, onSelectionChange, isLoading = false }: DataTableProps<T>) {
+  const { t } = useTranslation();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [filteredData, setFilteredData] = useState<T[]>([]);
+  const [displayedItems, setDisplayedItems] = useState(ROWS_PER_PAGE);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof T | null;
+    direction: 'asc' | 'desc';
+  }>({ key: null, direction: 'asc' });
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [selectedRows, setSelectedRows] = useState<T[]>([]);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const searchTimeoutRef = useRef<NodeJS.Timeout>();
+  const isRTL = t('dir') === 'rtl';
+
+  const getFontFamily = () => {
+    switch (t('lang')) {
+      case 'en':
+        return 'font-[Roboto]';
+      case 'he':
+        return 'font-[Horev CLM Heavy]';
+      default:
+        return 'font-[Cairo]';
+    }
+  };
+
+  // Debounce search term
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1000);
-    return () => clearTimeout(timer);
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    searchTimeoutRef.current = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, SEARCH_DEBOUNCE_MS);
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchTerm]);
+
+  // Memoized filter function
+  const filterData = useCallback((data: T[], searchTerm: string) => {
+    if (!searchTerm) return data;
+
+    return data.filter((item) =>
+      Object.entries(item).some(([key, value]) => {
+        if (value === null || value === undefined) return false;
+        if (typeof value === 'object') return false;
+        return String(value).toLowerCase().includes(searchTerm.toLowerCase());
+      })
+    );
   }, []);
+
+  // Initialize filtered data
+  useEffect(() => {
+    if (Array.isArray(data)) {
+      setFilteredData(data);
+      setDisplayedItems(ROWS_PER_PAGE);
+    }
+  }, [data]);
 
   // Filter and sort data
   useEffect(() => {
-    // Ensure data is an array before proceeding
     if (!Array.isArray(data)) {
       console.error("DataTable: data prop is not an array", data);
       setFilteredData([]);
       return;
     }
-    
+
     let result = [...data];
-    
-    if (searchTerm) {
-      result = result.filter((item) => 
-        Object.keys(item).some((key) => 
-          String(item[key]).toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      );
+
+    // Apply search filter
+    if (debouncedSearchTerm) {
+      result = filterData(result, debouncedSearchTerm);
     }
-    
-    if (sortConfig) {
+
+    // Apply sorting
+    if (sortConfig.key) {
       result = [...result].sort((a, b) => {
         const aValue = a[sortConfig.key];
         const bValue = b[sortConfig.key];
-        
+
+        if (aValue === undefined || bValue === undefined) return 0;
+        if (aValue === null || bValue === null) return 0;
+
         if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
         if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
         return 0;
@@ -75,24 +142,20 @@ export const DataTable = ({ columns, data, title, onAdd }: DataTableProps) => {
     }
 
     setFilteredData(result);
-    setDisplayedItems(Math.min(10, result.length));
-  }, [data, sortConfig, searchTerm]);
-
-  // Debug log data to console
-  useEffect(() => {
-    console.log("DataTable: data prop received", data);
-    console.log("DataTable: filteredData state", filteredData);
-  }, [data, filteredData]);
+    setDisplayedItems(ROWS_PER_PAGE);
+  }, [data, sortConfig, debouncedSearchTerm, filterData]);
 
   // Setup intersection observer for infinite scroll
   useEffect(() => {
     if (filteredData.length <= displayedItems) return;
-    
-    observerRef.current = new IntersectionObserver(
+
+    const scrollObserver = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && displayedItems < filteredData.length) {
+          setIsLoadingMore(true);
           setTimeout(() => {
-            setDisplayedItems((prev) => Math.min(prev + 10, filteredData.length));
+            setDisplayedItems((prev) => Math.min(prev + ROWS_PER_PAGE, filteredData.length));
+            setIsLoadingMore(false);
           }, 300);
         }
       },
@@ -100,114 +163,243 @@ export const DataTable = ({ columns, data, title, onAdd }: DataTableProps) => {
     );
 
     if (bottomRef.current) {
-      observerRef.current.observe(bottomRef.current);
+      scrollObserver.observe(bottomRef.current);
     }
 
     return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-      }
+      scrollObserver.disconnect();
     };
   }, [displayedItems, filteredData.length]);
 
-  // Add animation classes to newly visible items
-  useEffect(() => {
-    const rows = document.querySelectorAll('.scrolling-pagination-item:not(.visible)');
-    
-    setTimeout(() => {
-      rows.forEach(row => {
-        row.classList.add('visible');
-      });
-    }, 50);
-  }, [displayedItems]);
-
-  const handleSort = (key: string) => {
-    let direction: 'asc' | 'desc' = 'asc';
-    
-    if (sortConfig && sortConfig.key === key) {
-      direction = sortConfig.direction === 'asc' ? 'desc' : 'asc';
-    }
-    
-    setSortConfig({ key, direction });
+  const handleSort = (key: keyof T) => {
+    setSortConfig((prev) => ({
+      key,
+      direction:
+        prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc',
+    }));
   };
 
-  const getSortIcon = (columnKey: string) => {
+  const getSortIcon = (columnKey: keyof T) => {
     if (!sortConfig || sortConfig.key !== columnKey) return null;
     return sortConfig.direction === 'asc' ? '↑' : '↓';
   };
 
-  if (isLoading) {
-    return (
-      <div className="space-y-4 p-4 bg-white rounded-lg shadow-lg">
-        <ShimmerEffect className="h-8 w-64 mb-4" />
-        <div className="space-y-2">
-          {[...Array(5)].map((_, idx) => (
-            <ShimmerEffect key={idx} className="h-12 w-full" />
-          ))}
-        </div>
-      </div>
-    );
-  }
+  const renderCellValue = (value: unknown) => {
+    if (value === null || value === undefined) return '';
+    if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+    return String(value);
+  };
+
+  const handleRowSelect = (row: T) => {
+    setSelectedRows((prev) => {
+      const isSelected = prev.some((r) => r === row);
+      const newSelection = isSelected
+        ? prev.filter((r) => r !== row)
+        : [...prev, row];
+      onSelectionChange?.(newSelection);
+      return newSelection;
+    });
+  };
+
+  const handleSelectAll = () => {
+    setSelectedRows((prev) => {
+      const newSelection = prev.length === filteredData.length ? [] : [...filteredData];
+      onSelectionChange?.(newSelection);
+      return newSelection;
+    });
+  };
+
+  const isRowSelected = (row: T) => selectedRows.includes(row);
 
   return (
-    <div className={`space-y-4 p-4 bg-white rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl ${isRTL ? 'rtl' : 'ltr'}`}>
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-        <h2 className="text-xl font-semibold text-primary">{title}</h2>
-        
-        <div className="relative w-full md:w-64">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input
-            placeholder="Search all columns..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 w-full bg-background/50 border-muted focus:border-primary transition-colors"
-          />
-        </div>
+    <div className={cn(
+      "space-y-4",
+      isRTL ? 'rtl' : 'ltr',
+      getFontFamily()
+    )}>
+      <div className={cn(
+        "flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6",
+        isRTL ? "flex-row-reverse" : "flex-row"
+      )}>
+        {searchable && (
+          <div className="relative w-full md:w-64">
+            <Search className={cn(
+              "absolute top-1/2 transform -translate-y-1/2 text-[#1A5F5E] h-4 w-4",
+              isRTL ? "right-3" : "left-3"
+            )} />
+            <Input
+              placeholder={t('table.search')}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className={cn(
+                "w-full border-[#1A5F5E]/20 focus:border-[#1A5F5E] transition-colors",
+                isRTL ? "pr-10" : "pl-10",
+                getFontFamily()
+              )}
+            />
+          </div>
+        )}
+
+        {onAdd && (
+          <Button
+            onClick={onAdd}
+            className={cn(
+              "bg-[#1A5F5E] hover:bg-[#1A5F5E]/90",
+              getFontFamily()
+            )}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            {t('common.add')}
+          </Button>
+        )}
       </div>
 
-      <div className="rounded-md border border-muted/20 overflow-hidden">
-        <Table>
+      <div className="relative">
+        {isLoading && (
+          <div className={cn(
+            "absolute inset-0 bg-white/50 backdrop-blur-sm z-10 flex items-center justify-center",
+            getFontFamily()
+          )}>
+            <Loader2 className="h-6 w-6 animate-spin text-[#1A5F5E]" />
+          </div>
+        )}
+
+        <Table className={cn(
+          "w-full",
+          isRTL ? "text-right" : "text-left",
+          getFontFamily()
+        )}>
           <TableHeader>
-            <TableRow className="bg-muted/5 hover:bg-muted/10">
+            <TableRow className="bg-[#1A5F5E] hover:bg-[#1A5F5E]/90">
+              {onSelectionChange && (
+                <TableHead className={cn("w-[50px]", getFontFamily())}>
+                  <Checkbox
+                    checked={selectedRows.length === filteredData.length && filteredData.length > 0}
+                    onCheckedChange={handleSelectAll}
+                    className="border-white"
+                  />
+                </TableHead>
+              )}
               {columns.map((column) => (
-                <TableHead 
-                  key={column.key} 
-                  className={`${isRTL ? 'text-right' : 'text-left'} py-4`}
+                <TableHead
+                  key={String(column.key)}
+                  className={cn(
+                    "py-4 text-white font-medium",
+                    isRTL ? "text-right" : "text-left",
+                    getFontFamily()
+                  )}
                 >
-                  <div 
-                    className="flex items-center gap-2 justify-between cursor-pointer hover:text-primary transition-colors" 
+                  <div
+                    className={cn(
+                      "flex items-center gap-2 cursor-pointer hover:text-white/90 transition-colors",
+                      isRTL ? "flex-row-reverse" : "flex-row"
+                    )}
                     onClick={() => handleSort(column.key)}
                   >
                     <span>{column.title}</span>
-                    <span>{getSortIcon(column.key)}</span>
+                    <span className="text-white/90">{getSortIcon(column.key)}</span>
                   </div>
                 </TableHead>
               ))}
+              {(onEdit || onDelete || onAssign) && (
+                <TableHead className={cn("w-[50px]", getFontFamily())} />
+              )}
             </TableRow>
           </TableHeader>
-          <TableBody ref={tableBodyRef}>
+          <TableBody>
             {filteredData.length > 0 ? (
               filteredData.slice(0, displayedItems).map((row, rowIndex) => (
-                <TableRow 
-                  key={row.id || rowIndex}
-                  className={`scrolling-pagination-item transition-all duration-200 hover:bg-muted/5 ${rowIndex < displayedItems - 10 ? 'visible' : ''}`}
+                <TableRow
+                  key={rowIndex}
+                  className={cn(
+                    "hover:bg-[#1A5F5E]/5",
+                    rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50",
+                    isRowSelected(row) ? "bg-[#1A5F5E]/10" : "",
+                    getFontFamily()
+                  )}
+                  onClick={() => onRowClick?.(row)}
                 >
+                  {onSelectionChange && (
+                    <TableCell className={cn("w-[50px]", getFontFamily())}>
+                      <Checkbox
+                        checked={isRowSelected(row)}
+                        onCheckedChange={() => handleRowSelect(row)}
+                        className="border-[#1A5F5E]"
+                      />
+                    </TableCell>
+                  )}
                   {columns.map((column) => (
-                    <TableCell 
-                      key={`${row.id || rowIndex}-${column.key}`}
-                      className={`${isRTL ? 'text-right' : 'text-left'} py-3`}
+                    <TableCell
+                      key={`${rowIndex}-${String(column.key)}`}
+                      className={cn(
+                        "py-3 text-gray-700",
+                        isRTL ? "text-right" : "text-left",
+                        getFontFamily()
+                      )}
                     >
-                      {column.render
-                        ? column.render(row[column.key], row)
-                        : row[column.key]}
+                      <div className={cn(
+                        "flex items-center",
+                        isRTL ? "flex-row-reverse" : "flex-row"
+                      )}>
+                        {column.render
+                          ? column.render(row[column.key], row)
+                          : renderCellValue(row[column.key])}
+                      </div>
                     </TableCell>
                   ))}
+
+                  {(onEdit || onDelete || onAssign) && (
+                    <TableCell className={cn("w-[50px]", getFontFamily())}>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            className={cn("h-8 w-8 p-0", getFontFamily())}
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {onEdit && (
+                            <DropdownMenuItem
+                              onClick={() => onEdit(row)}
+                              className={cn("cursor-pointer", getFontFamily())}
+                            >
+                              <Edit className="mr-2 h-4 w-4" />
+                              {t('common.edit')}
+                            </DropdownMenuItem>
+                          )}
+                          {onDelete && (
+                            <DropdownMenuItem
+                              onClick={() => onDelete(row)}
+                              className={cn("cursor-pointer text-red-600 focus:text-red-600", getFontFamily())}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              {t('common.delete')}
+                            </DropdownMenuItem>
+                          )}
+                          {onAssign && (
+                            <DropdownMenuItem
+                              onClick={() => onAssign(row)}
+                              className={cn("cursor-pointer", getFontFamily())}
+                            >
+                              <Check className="mr-2 h-4 w-4" />
+                              {t('common.assign')}
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="text-center py-8 text-muted-foreground">
-                  No data available
+                <TableCell
+                  colSpan={columns.length + ((onEdit || onDelete || onAssign) ? 1 : 0) + (onSelectionChange ? 1 : 0)}
+                  className={cn("text-center py-8 text-gray-500", getFontFamily())}
+                >
+                  {data.length === 0 ? t('table.noData') : t('table.noResults')}
                 </TableCell>
               </TableRow>
             )}
@@ -215,20 +407,21 @@ export const DataTable = ({ columns, data, title, onAdd }: DataTableProps) => {
         </Table>
 
         {filteredData.length > displayedItems && (
-          <div 
-            ref={bottomRef} 
-            className="py-4 text-center text-sm text-muted-foreground bg-muted/5"
+          <div
+            ref={bottomRef}
+            className={cn(
+              "py-4 text-center text-sm",
+              "flex items-center justify-center gap-2",
+              "transition-all duration-300",
+              isLoadingMore ? "opacity-100 scale-100" : "opacity-50 scale-95",
+              getFontFamily()
+            )}
           >
-            Loading more...
-          </div>
-        )}
-
-        {filteredData.length === 0 && data.length > 0 && (
-          <div className="p-8 text-center text-muted-foreground">
-            No results found for "{searchTerm}".
+            <Loader2 className="h-4 w-4 animate-spin text-[#1A5F5E]" />
+            <span className="text-[#1A5F5E]">{t('table.loadingMore')} ({displayedItems} {t('table.of')} {filteredData.length} {t('table.results')})</span>
           </div>
         )}
       </div>
     </div>
   );
-};
+}

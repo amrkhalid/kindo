@@ -1,6 +1,4 @@
-
 import React from "react";
-import { MainLayout } from "@/components/layout/main-layout";
 import { 
   Card, 
   CardContent, 
@@ -10,9 +8,19 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
+import { cn } from "@/lib/utils";
 
 export default function NotificationsPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  
+  // List of available languages with their directions
+  const languages = [
+    { code: 'en', label: 'English', dir: 'ltr' },
+    { code: 'ar', label: 'العربية', dir: 'rtl' },
+    { code: 'he', label: 'עברית', dir: 'rtl' }
+  ];
+
+  const isRTL = languages.find(lang => lang.code === i18n.language)?.dir === 'rtl';
   
   // Sample notifications data
   const notifications = [
@@ -40,45 +48,39 @@ export default function NotificationsPage() {
   ];
 
   return (
-    <MainLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">{t('notifications.title')}</h1>
-          <Button variant="outline" size="sm">
-            {t('notifications.markAllRead')}
-          </Button>
-        </div>
-
-        <div className="space-y-2">
-          <h2 className="text-sm font-medium text-muted-foreground">{t('notifications.new')}</h2>
-          {notifications.filter(n => !n.isRead).map(notification => (
-            <Card key={notification.id} className="mb-3">
-              <CardHeader className="p-4 pb-2">
-                <CardTitle className="text-base">{notification.title}</CardTitle>
-                <CardDescription className="text-xs">{notification.time}</CardDescription>
-              </CardHeader>
-              <CardContent className="p-4 pt-0">
-                <p className="text-sm">{notification.message}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        <div className="space-y-2">
-          <h2 className="text-sm font-medium text-muted-foreground">{t('notifications.earlier')}</h2>
-          {notifications.filter(n => n.isRead).map(notification => (
-            <Card key={notification.id} className="mb-3 bg-muted/30">
-              <CardHeader className="p-4 pb-2">
-                <CardTitle className="text-base">{notification.title}</CardTitle>
-                <CardDescription className="text-xs">{notification.time}</CardDescription>
-              </CardHeader>
-              <CardContent className="p-4 pt-0">
-                <p className="text-sm">{notification.message}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+    <div className={cn("space-y-4", isRTL ? "rtl" : "ltr")}>
+      <div className={cn(
+        "border-b pb-4",
+        isRTL ? "text-right" : "text-left"
+      )}>
+        <h1 className="text-3xl font-bold text-[#1A5F5E]">{t('notifications.title')}</h1>
+        <p className="text-sm text-muted-foreground">{t('notifications.description')}</p>
       </div>
-    </MainLayout>
+
+      <div className="grid gap-4">
+        {notifications.map((notification) => (
+          <Card key={notification.id} className={cn(
+            "transition-colors hover:bg-gray-50",
+            !notification.isRead && "border-l-4 border-l-[#1A5F5E]"
+          )}>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">{notification.title}</CardTitle>
+                <span className="text-sm text-muted-foreground">{notification.time}</span>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-gray-600">{notification.message}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <div className="flex justify-center mt-4">
+        <Button variant="outline" className="w-full max-w-sm">
+          {t('notifications.loadMore')}
+        </Button>
+      </div>
+    </div>
   );
 }

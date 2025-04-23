@@ -1,83 +1,288 @@
-
 import React, { useState } from "react";
-import { MainLayout } from "@/components/layout/main-layout";
 import { DataTable } from "@/components/ui/data-table";
-import { groups as initialGroups, children, users } from "@/lib/data";
-import { AddGroupDialog } from "@/components/dialogs/add-group-dialog";
-import { Group, Child } from "@/types";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from 'react-i18next';
+import { Card } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
+import { GroupDialog } from '@/components/dialogs/group-dialog';
+import { DeleteDialog } from '@/components/dialogs/delete-dialog';
+import type { Child } from '@/types/child';
+import type { Column } from '@/types/data-table';
 
-const GroupsPage = () => {
+export interface GroupData {
+  id: string;
+  name: string;
+  description: string;
+  capacity: number;
+  children: Child[];
+  staffName: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Mock data for initial groups
+const initialGroups: GroupData[] = [
+  {
+    id: "1",
+    name: "Group A",
+    description: "Description for Group A",
+    capacity: 20,
+    children: [],
+    staffName: "John Doe",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: "2",
+    name: "Group B",
+    description: "Description for Group B",
+    capacity: 15,
+    children: [],
+    staffName: "Jane Smith",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+];
+
+export default function GroupsPage() {
   const { toast } = useToast();
-  const [groups, setGroups] = useState<Group[]>(initialGroups);
+  const [groups, setGroups] = useState<GroupData[]>(initialGroups);
+  const [selectedGroup, setSelectedGroup] = useState<GroupData | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const { t, i18n } = useTranslation();
   
-  // Extract staff names from users data
-  const staffMembers = users
-    .filter(user => user.role === "staff")
-    .map(user => user.username);
+  // List of available languages with their directions
+  const languages = [
+    { code: 'en', label: 'English', dir: 'ltr' },
+    { code: 'ar', label: 'العربية', dir: 'rtl' },
+    { code: 'he', label: 'עברית', dir: 'rtl' }
+  ];
 
-  const columns = [
+  const isRTL = languages.find(lang => lang.code === i18n.language)?.dir === 'rtl';
+
+  const columns: Column<GroupData>[] = [
     {
-      key: "name",
-      title: "Group Name",
-    },
-    {
-      key: "staffName",
-      title: "Staff Member",
-    },
-    {
-      key: "children",
-      title: "Children",
-      render: (children: Child[]) => (
-        <div className="max-w-[200px] truncate">
-          {children.map(child => `${child.firstName} ${child.lastName}`).join(", ")}
+      key: 'name',
+      title: t('table.headers.groups.name'),
+      render: (value: string) => (
+        <div className={cn(
+          "font-medium text-[#1A5F5E]",
+          isRTL ? "text-right" : "text-left"
+        )}>
+          {value}
         </div>
       ),
     },
     {
-      key: "childCount",
-      title: "Child Count",
-      render: (_: any, row: Group) => row.children.length,
+      key: 'description',
+      title: t('table.headers.groups.description'),
+      render: (value: string) => (
+        <div className={cn(
+          "text-gray-600",
+          isRTL ? "text-right" : "text-left"
+        )}>
+          {value}
+        </div>
+      ),
     },
     {
-      key: "createdAt",
-      title: "Created At",
-      render: (value: string) => new Date(value).toLocaleDateString(),
+      key: 'capacity',
+      title: t('table.headers.groups.capacity'),
+      render: (value: number) => (
+        <div className={cn(
+          "text-gray-600",
+          isRTL ? "text-right" : "text-left"
+        )}>
+          {value}
+        </div>
+      ),
+    },
+    {
+      key: 'staffName',
+      title: t('table.headers.groups.staffName'),
+      render: (value: string) => (
+        <div className={cn(
+          "text-gray-600",
+          isRTL ? "text-right" : "text-left"
+        )}>
+          {value}
+        </div>
+      ),
+    },
+    {
+      key: 'children',
+      title: t('table.headers.groups.children'),
+      render: (value: Child[]) => (
+        <div className={cn(
+          "text-gray-600",
+          isRTL ? "text-right" : "text-left"
+        )}>
+          {value.length}
+        </div>
+      ),
     },
   ];
 
-  const handleAddGroup = (newGroup: Group) => {
-    setGroups([...groups, newGroup]);
-    toast({
-      title: "Group added",
-      description: `${newGroup.name} group has been created successfully`,
-    });
+  const handleAdd = async (data: Omit<GroupData, "id" | "createdAt" | "updatedAt" | "children">) => {
+    try {
+      setIsLoading(true);
+      // TODO: Replace with actual API call
+      const newGroup: GroupData = {
+        ...data,
+        id: crypto.randomUUID(),
+        children: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      setGroups((prev) => [...prev, newGroup]);
+      setIsAddDialogOpen(false);
+      toast({
+        title: t('common.success'),
+        description: t('groups.addSuccess'),
+        variant: 'default',
+      });
+    } catch (error) {
+      toast({
+        title: t('common.error'),
+        description: t('groups.addError'),
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleEdit = (group: GroupData) => {
+    setSelectedGroup(group);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleEditSubmit = async (data: Omit<GroupData, "id" | "createdAt" | "updatedAt" | "children">) => {
+    if (!selectedGroup) return;
+    
+    try {
+      setIsLoading(true);
+      // TODO: Replace with actual API call
+      const updatedGroup: GroupData = {
+        ...selectedGroup,
+        ...data,
+        updatedAt: new Date().toISOString(),
+      };
+      setGroups((prev) =>
+        prev.map((group) =>
+          group.id === selectedGroup.id ? updatedGroup : group
+        )
+      );
+      setIsEditDialogOpen(false);
+      setSelectedGroup(null);
+      toast({
+        title: t('common.success'),
+        description: t('groups.editSuccess'),
+        variant: 'default',
+      });
+    } catch (error) {
+      toast({
+        title: t('common.error'),
+        description: t('groups.editError'),
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!selectedGroup) return;
+    
+    try {
+      setIsLoading(true);
+      // TODO: Replace with actual API call
+      setGroups((prev) =>
+        prev.filter((group) => group.id !== selectedGroup.id)
+      );
+      setIsDeleteDialogOpen(false);
+      setSelectedGroup(null);
+      toast({
+        title: t('common.success'),
+        description: t('groups.deleteSuccess'),
+        variant: 'default',
+      });
+    } catch (error) {
+      toast({
+        title: t('common.error'),
+        description: t('groups.deleteError'),
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <MainLayout>
-      <div className="space-y-4">
-        <h1 className="text-3xl font-bold">Groups</h1>
-        <p className="text-muted-foreground">Manage children groups and assignments</p>
+    <div className={cn("space-y-4", isRTL ? "rtl" : "ltr")}>
+      <div className={cn(
+        "flex items-center justify-between border-b pb-4",
+        isRTL ? "flex-row-reverse" : "flex-row"
+      )}>
+        <div>
+          <h1 className="text-3xl font-bold text-[#1A5F5E]">{t('groups.title')}</h1>
+          <p className="text-sm text-muted-foreground">{t('groups.description')}</p>
+        </div>
+        <Button
+          onClick={() => setIsAddDialogOpen(true)}
+          className="bg-[#1A5F5E] hover:bg-[#1A5F5E]/90"
+        >
+          <Plus className={cn(
+            "h-4 w-4",
+            isRTL ? "ml-2" : "mr-2"
+          )} />
+          {t('groups.add')}
+        </Button>
+      </div>
 
+      <Card className="p-6">
         <DataTable
           columns={columns}
           data={groups}
-          title="All Groups"
-          onAdd={() => setIsAddDialogOpen(true)}
+          searchable
+          pagination
+          pageSize={10}
+          onEdit={handleEdit}
+          onDelete={(group) => {
+            setSelectedGroup(group);
+            setIsDeleteDialogOpen(true);
+          }}
         />
+      </Card>
 
-        <AddGroupDialog
-          open={isAddDialogOpen}
-          onOpenChange={setIsAddDialogOpen}
-          onAddGroup={handleAddGroup}
-          availableChildren={children}
-          staffMembers={staffMembers}
-        />
-      </div>
-    </MainLayout>
+      <GroupDialog
+        open={isAddDialogOpen}
+        onOpenChange={setIsAddDialogOpen}
+        onSubmit={handleAdd}
+        isLoading={isLoading}
+      />
+
+      <GroupDialog
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        onSubmit={handleEditSubmit}
+        defaultValues={selectedGroup}
+        isLoading={isLoading}
+      />
+
+      <DeleteDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={handleDelete}
+        isLoading={isLoading}
+        title={t('groups.deleteTitle')}
+        description={t('groups.deleteDescription')}
+      />
+    </div>
   );
-};
-
-export default GroupsPage;
+}

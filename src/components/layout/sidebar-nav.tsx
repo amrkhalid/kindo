@@ -1,4 +1,3 @@
-
 import { cn } from "@/lib/utils";
 import { Link, useLocation } from "react-router-dom";
 import { 
@@ -7,8 +6,13 @@ import {
   School, 
   FileText, 
   ClipboardList, 
-  UserCog
+  UserCog,
+  Package,
+  Settings,
+  Calendar
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { APP } from "@/constants/app";
 
 interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
   className?: string;
@@ -18,47 +22,74 @@ interface NavItem {
   title: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
+  translationKey: string;
 }
 
 export function SidebarNav({ className, ...props }: SidebarNavProps) {
   const location = useLocation();
   const pathname = location.pathname;
+  const { t } = useTranslation();
 
   const navItems: NavItem[] = [
     {
-      title: "Dashboard",
+      title: t("navigation.dashboard"),
       href: "/",
       icon: Home,
+      translationKey: "dashboard"
     },
     {
-      title: "Kindergartens",
+      title: t("navigation.kindergartens"),
       href: "/kindergartens",
       icon: School,
+      translationKey: "kindergartens"
     },
     {
-      title: "Roles",
+      title: t("navigation.roles"),
       href: "/roles",
       icon: UserCog,
+      translationKey: "roles"
     },
     {
-      title: "Children",
+      title: t("navigation.children"),
       href: "/children",
       icon: Users,
+      translationKey: "children"
     },
     {
-      title: "Groups",
+      title: t("navigation.groups"),
       href: "/groups",
       icon: Users,
+      translationKey: "groups"
     },
     {
-      title: "Financial",
+      title: t("navigation.financial"),
       href: "/financial",
       icon: FileText,
+      translationKey: "financial"
     },
     {
-      title: "Audit Logs",
+      title: t("navigation.auditLogs"),
       href: "/audit-logs",
       icon: ClipboardList,
+      translationKey: "auditLogs"
+    },
+    {
+      title: t("navigation.plans"),
+      href: "/plans",
+      icon: Package,
+      translationKey: "plans"
+    },
+    {
+      title: t("navigation.features"),
+      href: "/features",
+      icon: Settings,
+      translationKey: "features"
+    },
+    {
+      title: 'Activities',
+      href: APP.ROUTES.ACTIVITIES,
+      icon: Calendar,
+      translationKey: 'activities'
     },
   ];
 
@@ -71,13 +102,13 @@ export function SidebarNav({ className, ...props }: SidebarNavProps) {
             key={item.href}
             to={item.href}
             className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent",
+              "flex items-center gap-3 rounded-lg px-3 py-2 text-base transition-all",
               isActive
-                ? "bg-kindergarten-purple/20 text-kindergarten-purple"
-                : "text-muted-foreground"
+                ? "bg-[#1A5F5E]/10 text-[#1A5F5E] font-medium hover:bg-[#1A5F5E]/15"
+                : "text-gray-500 hover:bg-gray-100"
             )}
           >
-            <item.icon className={cn("h-4 w-4", isActive ? "text-kindergarten-purple" : "")} />
+            <item.icon className={cn("h-5 w-5", isActive ? "text-[#1A5F5E]" : "text-gray-400")} />
             {item.title}
           </Link>
         );

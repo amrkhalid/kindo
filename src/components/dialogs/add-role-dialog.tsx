@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -49,6 +48,7 @@ export function AddRoleDialog({
     toast({
       title: "Role added",
       description: `${form.username} has been added as ${form.role}`,
+      variant: "success"
     });
     
     // Reset form and close dialog
