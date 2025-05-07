@@ -254,7 +254,7 @@ export function DataTable<T>({ columns, data, title, onAdd, onEdit, onDelete, on
         )}
       </div>
 
-      <div className="relative">
+      <div className="relative overflow-x-auto">
         {isLoading && (
           <div className={cn(
             "absolute inset-0 bg-white/50 backdrop-blur-sm z-10 flex items-center justify-center",

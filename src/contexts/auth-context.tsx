@@ -31,7 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(true);
       const response = await authService.login(username, password);
       setUser(response.user);
-      navigate('/dashboard');
+      navigate('/');
     } catch (error) {
       console.error('Login failed:', error);
       throw error;

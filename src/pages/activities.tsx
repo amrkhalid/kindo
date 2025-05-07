@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Pencil, Trash2, MapPin, Clock } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -24,6 +27,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Activity } from '@/types/activity';
 import { format } from 'date-fns';
+import { PageHeader } from '@/components/ui/page-header';
+import { useTranslation } from 'react-i18next';
 
 const activityFormSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -81,6 +86,7 @@ export function ActivitiesPage() {
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const form = useForm<ActivityFormValues>({
     resolver: zodResolver(activityFormSchema),
@@ -146,80 +152,94 @@ export function ActivitiesPage() {
   };
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Activities Calendar</h1>
-        <Button onClick={handleAddActivity}>Add Activity</Button>
-      </div>
+    <div className="w-full min-h-screen py-8 px-0">
+      <PageHeader
+        title={t('activities.title')}
+        description={t('activities.description')}
+        isRTL={true}
+      >
+        <Button
+          onClick={handleAddActivity}
+          className="bg-[#1A5F5E] hover:bg-[#1A5F5E]/90 px-6 py-2 rounded-lg shadow self-start md:self-center"
+        >
+          + {t('activities.add')}
+        </Button>
+      </PageHeader>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-8 px-4 md:px-8 mt-10">
         <div className="w-full">
-          <Calendar
-            mode="single"
-            selected={new Date()}
-            className="rounded-md border w-full p-4"
-            classNames={{
-              months: "space-y-4 mx-auto",
-              month: "space-y-4",
-              caption: "flex justify-center pt-1 relative items-center text-lg font-semibold",
-              caption_label: "text-xl font-semibold",
-              nav: "space-x-1 flex items-center",
-              nav_button: "h-9 w-9 bg-transparent p-0 opacity-50 hover:opacity-100",
-              nav_button_previous: "absolute left-1",
-              nav_button_next: "absolute right-1",
-              table: "w-full border-collapse space-y-1",
-              head_row: "flex justify-between",
-              head_cell: "text-muted-foreground rounded-md w-12 font-normal text-base",
-              row: "flex w-full mt-2 justify-between",
-              cell: "text-center text-base p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-              day: "h-12 w-12 p-0 font-normal aria-selected:opacity-100 hover:bg-accent hover:text-accent-foreground",
-              day_range_end: "day-range-end",
-              day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-              day_today: "bg-accent text-accent-foreground",
-              day_outside: "day-outside text-muted-foreground opacity-50",
-              day_disabled: "text-muted-foreground opacity-50",
-              day_hidden: "invisible",
-            }}
-          />
+          <Card className="p-4 md:p-6">
+            <Calendar
+              mode="single"
+              selected={new Date()}
+              className="rounded-md border w-full p-4"
+              classNames={{
+                months: "space-y-4 mx-auto",
+                month: "space-y-4",
+                caption: "flex justify-center pt-1 relative items-center text-lg font-semibold",
+                caption_label: "text-xl font-semibold",
+                nav: "space-x-1 flex items-center",
+                nav_button: "h-9 w-9 bg-transparent p-0 opacity-50 hover:opacity-100",
+                nav_button_previous: "absolute left-1",
+                nav_button_next: "absolute right-1",
+                table: "w-full border-collapse space-y-1",
+                head_row: "flex justify-between",
+                head_cell: "text-muted-foreground rounded-md w-12 font-normal text-base",
+                row: "flex w-full mt-2 justify-between",
+                cell: "text-center text-base p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                day: "h-12 w-12 p-0 font-normal aria-selected:opacity-100 hover:bg-accent hover:text-accent-foreground",
+                day_range_end: "day-range-end",
+                day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+                day_today: "bg-accent text-accent-foreground",
+                day_outside: "day-outside text-muted-foreground opacity-50",
+                day_disabled: "text-muted-foreground opacity-50",
+                day_hidden: "invisible",
+              }}
+            />
+          </Card>
         </div>
 
         <div className="w-full">
-          <div className="space-y-4">
-            {activities.map((activity) => (
-              <div
-                key={activity.id}
-                className="p-4 rounded-lg border bg-card text-card-foreground shadow-sm"
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-semibold">{activity.name}</h3>
-                  <div className="space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEdit(activity)}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDelete(activity.id!)}
-                    >
-                      Delete
-                    </Button>
+          <Card className="p-4 md:p-6">
+            <div className="space-y-6">
+              {activities.map((activity) => (
+                <div
+                  key={activity.id}
+                  className="p-5 rounded-xl border bg-white shadow-md hover:shadow-lg transition-shadow group relative"
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-semibold text-xl text-[#1A5F5E] group-hover:underline">{activity.name}</h3>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEdit(activity)}
+                        className="hover:bg-[#1A5F5E]/10"
+                        aria-label="Edit"
+                      >
+                        <Pencil className="h-4 w-4 text-[#1A5F5E]" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(activity.id!)}
+                        className="hover:bg-red-100"
+                        aria-label="Delete"
+                      >
+                        <Trash2 className="h-4 w-4 text-red-600" />
+                      </Button>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">{activity.description}</p>
+                  <div className="flex flex-wrap gap-3 text-sm items-center">
+                    <Badge className="bg-blue-100 text-blue-800 flex items-center gap-1"><MapPin className="h-4 w-4" /> {activity.location}</Badge>
+                    <Badge className="bg-green-100 text-green-800 flex items-center gap-1"><Clock className="h-4 w-4" /> {t('activities.startTime')}: {format(new Date(activity.start_time), 'PPp')}</Badge>
+                    <Badge className="bg-yellow-100 text-yellow-800 flex items-center gap-1"><Clock className="h-4 w-4" /> {t('activities.endTime')}: {format(new Date(activity.end_time), 'PPp')}</Badge>
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground mb-2">
-                  {activity.description}
-                </p>
-                <div className="text-sm">
-                  <p>Location: {activity.location}</p>
-                  <p>Start: {format(new Date(activity.start_time), 'PPp')}</p>
-                  <p>End: {format(new Date(activity.end_time), 'PPp')}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </Card>
         </div>
       </div>
 
@@ -227,7 +247,7 @@ export function ActivitiesPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {selectedActivity ? 'Edit Activity' : 'Add Activity'}
+              {selectedActivity ? t('activities.dialogTitleEdit') : t('activities.dialogTitleAdd')}
             </DialogTitle>
           </DialogHeader>
           <Form {...form}>
@@ -237,7 +257,7 @@ export function ActivitiesPage() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>{t('activities.name')}</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -250,7 +270,7 @@ export function ActivitiesPage() {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel>{t('activities.descriptionLabel')}</FormLabel>
                     <FormControl>
                       <Textarea {...field} />
                     </FormControl>
@@ -263,7 +283,7 @@ export function ActivitiesPage() {
                 name="location"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Location</FormLabel>
+                    <FormLabel>{t('activities.location')}</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -276,7 +296,7 @@ export function ActivitiesPage() {
                 name="start_time"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Start Time</FormLabel>
+                    <FormLabel>{t('activities.startTime')}</FormLabel>
                     <FormControl>
                       <Input type="datetime-local" {...field} />
                     </FormControl>
@@ -289,7 +309,7 @@ export function ActivitiesPage() {
                 name="end_time"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>End Time</FormLabel>
+                    <FormLabel>{t('activities.endTime')}</FormLabel>
                     <FormControl>
                       <Input type="datetime-local" {...field} />
                     </FormControl>
@@ -303,10 +323,10 @@ export function ActivitiesPage() {
                   variant="outline"
                   onClick={() => setIsDialogOpen(false)}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </Button>
                 <Button type="submit">
-                  {selectedActivity ? 'Update' : 'Create'}
+                  {selectedActivity ? t('common.save') : t('common.add')}
                 </Button>
               </div>
             </form>

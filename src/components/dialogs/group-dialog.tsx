@@ -19,25 +19,18 @@ import type { Child } from '@/types/child';
 export interface Group {
   id: string;
   name: string;
-  description: string;
-  capacity: number;
-  children: Child[];
-  staffName: string;
   createdAt: string;
   updatedAt: string;
 }
 
 const groupSchema = z.object({
   name: z.string().min(1, 'Group name is required'),
-  description: z.string(),
-  capacity: z.coerce.number().min(1, 'Capacity must be at least 1'),
-  staffName: z.string().min(1, 'Staff name is required'),
 });
 
 interface GroupDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: Omit<Group, 'id' | 'createdAt' | 'updatedAt' | 'children'>) => void;
+  onSubmit: (data: Omit<Group, 'id' | 'createdAt' | 'updatedAt'>) => void;
   defaultValues?: Group | null;
   isLoading?: boolean;
 }
@@ -50,22 +43,16 @@ export function GroupDialog({
   isLoading = false,
 }: GroupDialogProps) {
   const { t } = useTranslation();
-  const form = useForm<Omit<Group, 'id' | 'createdAt' | 'updatedAt' | 'children'>>({
+  const form = useForm<Omit<Group, 'id' | 'createdAt' | 'updatedAt'>>({
     resolver: zodResolver(groupSchema),
     defaultValues: defaultValues ? {
       name: defaultValues.name,
-      description: defaultValues.description,
-      capacity: defaultValues.capacity,
-      staffName: defaultValues.staffName,
     } : {
       name: '',
-      description: '',
-      capacity: 15,
-      staffName: '',
     },
   });
 
-  const handleSubmit = (data: Omit<Group, 'id' | 'createdAt' | 'updatedAt' | 'children'>) => {
+  const handleSubmit = (data: Omit<Group, 'id' | 'createdAt' | 'updatedAt'>) => {
     onSubmit(data);
   };
 
@@ -86,45 +73,6 @@ export function GroupDialog({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>{t('table.headers.groups.name')}</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('table.headers.groups.description')}</FormLabel>
-                <FormControl>
-                  <Textarea {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="capacity"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('table.headers.groups.capacity')}</FormLabel>
-                <FormControl>
-                  <Input type="number" min={1} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="staffName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('table.headers.groups.staffName')}</FormLabel>
                 <FormControl>
                   <Input {...field} />
                 </FormControl>

@@ -18,6 +18,7 @@ import NotificationsPage from '@/pages/notifications';
 import ProfilePage from '@/pages/profile';
 import SettingsPage from '@/pages/settings';
 import { ActivitiesPage } from '@/pages/activities';
+import SystemUsersPage from '@/pages/system-users';
 
 export function AppRoutes() {
   return (
@@ -41,6 +42,7 @@ export function AppRoutes() {
         <Route path={APP.ROUTES.PROFILE} element={<ProfilePage />} />
         <Route path={APP.ROUTES.SETTINGS} element={<SettingsPage />} />
         <Route path={APP.ROUTES.ACTIVITIES} element={<ActivitiesPage />} />
+        <Route path={APP.ROUTES.SYSTEM_USERS} element={<SystemUsersPage />} />
       </Route>
 
       {/* Catch all route */}

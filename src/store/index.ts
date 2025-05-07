@@ -1,9 +1,17 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, combineReducers } from '@reduxjs/toolkit';
+import dashboardReducer from './slices/dashboardSlice';
+
+const rootReducer = combineReducers({
+  dashboard: dashboardReducer,
+  // Add other reducers here as needed
+});
 
 export const store = configureStore({
-  reducer: {
-    // Add other reducers here if needed
-  },
+  reducer: rootReducer,
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: false,
+    }),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

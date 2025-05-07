@@ -18,5 +18,6 @@ export const APP = {
     PROFILE: '/profile',
     SETTINGS: '/settings',
     ACTIVITIES: '/activities',
+    SYSTEM_USERS: '/system-users',
   },
 } as const; 

@@ -20,12 +20,14 @@ export const users: User[] = Array.from({ length: 50 }, (_, i) => ({
 export const kindergartens: Kindergarten[] = Array.from({ length: 50 }, (_, i) => ({
   id: `kg-${i + 1}`,
   name: `Kindergarten ${i + 1}`,
-  address: `${Math.floor(100 + Math.random() * 9900)} ${['Main St', 'Oak Ave', 'Park Rd', 'Cedar Ln', 'Maple Dr'][i % 5]}, City ${i + 1}`,
+  address: `${Math.floor(100 + Math.random() * 9900)} ${['Ramallah - ', 'Nablus -', 'Juresalem - ', 'Hebron - ', 'Tullkarm -'][i % 5]}, City ${i + 1}`,
   phoneNumber: `555-${Math.floor(1000 + Math.random() * 9000)}`,
   isActive: Math.random() > 0.2,
   joinDate: new Date(Date.now() - Math.floor(Math.random() * 365) * 24 * 60 * 60 * 1000).toISOString(),
   createdBy: users[Math.floor(Math.random() * users.length)].username,
-  createdAt: new Date(Date.now() - Math.floor(Math.random() * 365) * 24 * 60 * 60 * 1000).toISOString()
+  createdAt: new Date(Date.now() - Math.floor(Math.random() * 365) * 24 * 60 * 60 * 1000).toISOString(),
+  planIds: Array.from({ length: Math.floor(Math.random() * 5) + 1 }, (_, j) => `plan-${j + 1}`),
+  updatedAt: new Date(Date.now() - Math.floor(Math.random() * 365) * 24 * 60 * 60 * 1000).toISOString()
 }));
 
 // Generate 50 children

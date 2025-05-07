@@ -1,4 +1,3 @@
-
 import * as React from "react"
 import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react"
 
@@ -27,7 +26,7 @@ const PaginationContent = React.forwardRef<
     <ul
       ref={ref}
       className={cn(
-        "flex flex-row items-center gap-1",
+        "flex flex-row items-center gap-1 sm:gap-2",
         isRTL ? "flex-row-reverse rtl" : "",
         className
       )}
@@ -81,7 +80,7 @@ const PaginationPrevious = ({
     <PaginationLink
       aria-label="Go to previous page"
       size="default"
-      className={cn("gap-1", isRTL ? "pr-2.5" : "pl-2.5", className)}
+      className={cn("gap-1 sm:gap-2", isRTL ? "pr-2.5" : "pl-2.5", className)}
       {...props}
     >
       {isRTL ? (
@@ -111,7 +110,7 @@ const PaginationNext = ({
     <PaginationLink
       aria-label="Go to next page"
       size="default"
-      className={cn("gap-1", isRTL ? "pl-2.5" : "pr-2.5", className)}
+      className={cn("gap-1 sm:gap-2", isRTL ? "pl-2.5" : "pr-2.5", className)}
       {...props}
     >
       {isRTL ? (

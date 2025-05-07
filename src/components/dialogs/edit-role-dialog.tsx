@@ -1,76 +1,68 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Role as RoleType } from "@/types";
-import { useTranslation } from 'react-i18next';
+import { Role } from "@/types";
 
-interface AddRoleDialogProps {
+interface EditRoleDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddRole: (role: {
-    id: string;
-    username: string;
-    email: string;
-    identity: string;
-    role: RoleType;
-    joinDate: string;
-    createdAt: string;
-  }) => void;
+  onEditRole: (role: any) => void;
+  role: any;
 }
 
-export function AddRoleDialog({
+export function EditRoleDialog({
   open,
   onOpenChange,
-  onAddRole,
-}: AddRoleDialogProps) {
+  onEditRole,
+  role,
+}: EditRoleDialogProps) {
   const { toast } = useToast();
-  const { t } = useTranslation();
-  const [form, setForm] = useState<{
-    username: string;
-    email: string;
-    identity: string;
-    role: RoleType;
-  }>({
+  const [form, setForm] = useState({
     username: "",
     email: "",
     identity: "",
-    role: "staff",
+    role: "staff" as Role,
   });
+
+  useEffect(() => {
+    if (role) {
+      setForm({
+        username: role.username,
+        email: role.email,
+        identity: role.identity,
+        role: role.role,
+      });
+    }
+  }, [role]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.username || !form.email || !form.identity) {
       toast({
-        title: t('common.error'),
-        description: t('common.required'),
+        title: "Missing fields",
+        description: "Please fill all required fields",
         variant: "destructive",
       });
       return;
     }
 
-    const newRole = {
+    const updatedRole = {
+      ...role,
       ...form,
-      id: crypto.randomUUID(),
-      joinDate: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
-    onAddRole(newRole);
+    onEditRole(updatedRole);
     toast({
-      title: t('roles.addSuccess'),
-      description: `${form.username} ${t('roles.addDescription')}`,
+      title: "Role updated",
+      description: `${form.username}'s role has been updated`,
       variant: "success"
     });
-    setForm({
-      username: "",
-      email: "",
-      identity: "",
-      role: "staff",
-    });
+    
     onOpenChange(false);
   };
 
@@ -78,57 +70,57 @@ export function AddRoleDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{t('roles.addStaffRoleTitle')}</DialogTitle>
+          <DialogTitle>Edit Staff Role</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="username">{t('roles.username')}</Label>
+            <Label htmlFor="username">Username</Label>
             <Input
               id="username"
               value={form.username}
               onChange={(e) => setForm({ ...form, username: e.target.value })}
-              placeholder={t('roles.usernamePlaceholder')}
+              placeholder="Username"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email">{t('roles.email')}</Label>
+            <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
-              placeholder={t('roles.emailPlaceholder')}
+              placeholder="Email address"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="identity">{t('roles.idNumber')}</Label>
+            <Label htmlFor="identity">ID Number</Label>
             <Input
               id="identity"
               value={form.identity}
               onChange={(e) => setForm({ ...form, identity: e.target.value })}
-              placeholder={t('roles.idNumberPlaceholder')}
+              placeholder="Identity number"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="role">{t('roles.role')}</Label>
+            <Label htmlFor="role">Role</Label>
             <Select
               value={form.role}
-              onValueChange={(value: RoleType) => setForm({ ...form, role: value })}
+              onValueChange={(value: Role) => setForm({ ...form, role: value })}
             >
               <SelectTrigger>
-                <SelectValue placeholder={t('roles.rolePlaceholder')} />
+                <SelectValue placeholder="Select a role" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="manager">{t('roles.manager', 'Manager')}</SelectItem>
-                <SelectItem value="staff">{t('roles.staff', 'Staff')}</SelectItem>
+                <SelectItem value="manager">Manager</SelectItem>
+                <SelectItem value="staff">Staff</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <DialogFooter>
-            <Button type="submit">{t('roles.addRole')}</Button>
+            <Button type="submit">Update Role</Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
   );
-}
+} 

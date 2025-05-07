@@ -16,6 +16,7 @@ import { childrenService } from '@/services/children.service';
 import { Child } from '@/types/child';
 import { format } from 'date-fns';
 import { useRTL } from "@/hooks/use-rtl";
+import { PageHeader } from '@/components/ui/page-header';
 
 const mockGroups: Group[] = [
   {
@@ -23,7 +24,7 @@ const mockGroups: Group[] = [
     name: 'Group 1',
     description: 'Description 1',
     capacity: 20,
-    staffName: 'John Doe',
+    staffName: 'Test Name',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     children: [],
@@ -34,7 +35,7 @@ const ChildrenPage: React.FC = () => {
   const { t } = useTranslation();
   const { toast } = useToast();
   const { isRTL } = useRTL();
-  
+
   const columns: Column<Child>[] = [
     {
       key: "firstName",
@@ -110,7 +111,6 @@ const ChildrenPage: React.FC = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     loadChildren();
@@ -118,7 +118,6 @@ const ChildrenPage: React.FC = () => {
 
   const loadChildren = async () => {
     try {
-      setIsLoading(true);
       const data = await childrenService.getAllChildren();
       setChildren(data);
     } catch (error) {
@@ -127,14 +126,11 @@ const ChildrenPage: React.FC = () => {
         title: t('common.error'),
         description: t('children.loadError'),
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleAdd = async (data: Omit<Child, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
-      setIsLoading(true);
       const newChild = await childrenService.createChild({
         firstName: data.firstName,
         lastName: data.lastName,
@@ -155,16 +151,13 @@ const ChildrenPage: React.FC = () => {
         title: t('common.error'),
         description: t('children.addError'),
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleEdit = async (data: Omit<Child, 'id' | 'createdAt' | 'updatedAt'>) => {
     if (!selectedChildren.length) return;
-    
+
     try {
-      setIsLoading(true);
       const updatedChildren = await Promise.all(
         selectedChildren.map((child) => childrenService.updateChild(child.id, {
           firstName: data.firstName,
@@ -192,8 +185,6 @@ const ChildrenPage: React.FC = () => {
         title: t('common.error'),
         description: t('children.editError'),
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -201,7 +192,6 @@ const ChildrenPage: React.FC = () => {
     if (!selectedChildren.length) return;
 
     try {
-      setIsLoading(true);
       await Promise.all(
         selectedChildren.map((child) => childrenService.deleteChild(child.id))
       );
@@ -220,14 +210,11 @@ const ChildrenPage: React.FC = () => {
         title: t('common.error'),
         description: t('children.deleteError'),
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleAssign = async (group: Group) => {
     try {
-      setIsLoading(true);
       const updatedChildren = await Promise.all(
         selectedChildren.map((child) => childrenService.updateChild(child.id, {
           groupId: group.id,
@@ -250,27 +237,29 @@ const ChildrenPage: React.FC = () => {
         title: t('common.error'),
         description: t('children.assignError'),
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
   return (
     <div className={cn("w-full px-6 py-6", isRTL ? "rtl" : "ltr")}>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">{t('children.title')}</h1>
-        <Button onClick={() => setIsAddDialogOpen(true)}>
+      <PageHeader
+        title={t('children.title')}
+        description={t('children.description')}
+        isRTL={isRTL}
+      >
+        <Button
+          onClick={() => setIsAddDialogOpen(true)}
+          className="bg-[#1A5F5E] hover:bg-[#1A5F5E]/90"
+        >
           <Plus className="w-4 h-4 mr-2" />
           {t('children.add')}
         </Button>
-      </div>
+      </PageHeader>
 
-      <Card className="w-full p-6 shadow-sm overflow-hidden">
+      <Card className="w-full p-6 shadow-sm overflow-hidden mt-6">
         <DataTable<Child>
           columns={columns}
           data={children}
-          isLoading={isLoading}
-          onAdd={() => setIsAddDialogOpen(true)}
           onEdit={(child) => {
             setSelectedChildren([child]);
             setIsEditDialogOpen(true);
@@ -290,7 +279,6 @@ const ChildrenPage: React.FC = () => {
         open={isAddDialogOpen}
         onOpenChange={setIsAddDialogOpen}
         onSubmit={handleAdd}
-        isLoading={isLoading}
       />
 
       <ChildDialog
@@ -298,14 +286,12 @@ const ChildrenPage: React.FC = () => {
         open={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
         onSubmit={handleEdit}
-        isLoading={isLoading}
       />
 
       <DeleteDialog
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
         onConfirm={handleDelete}
-        isLoading={isLoading}
         title={t('children.delete')}
         description={t('children.deleteConfirmation', { count: selectedChildren.length })}
       />
@@ -314,7 +300,6 @@ const ChildrenPage: React.FC = () => {
         open={isAssignDialogOpen}
         onOpenChange={setIsAssignDialogOpen}
         onSubmit={handleAssign}
-        isLoading={isLoading}
         groups={mockGroups}
         children={selectedChildren}
       />

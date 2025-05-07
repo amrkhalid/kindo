@@ -48,7 +48,7 @@ export default function NotificationsPage() {
   ];
 
   return (
-    <div className={cn("space-y-4", isRTL ? "rtl" : "ltr")}>
+    <div className={cn("space-y-4 p-4 sm:p-6", isRTL ? "rtl" : "ltr")}>
       <div className={cn(
         "border-b pb-4",
         isRTL ? "text-right" : "text-left"

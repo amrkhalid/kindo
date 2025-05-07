@@ -1,118 +1,142 @@
 import { cn } from "@/lib/utils";
 import { Link, useLocation } from "react-router-dom";
-import { 
-  Home, 
-  Users, 
-  School, 
-  FileText, 
-  ClipboardList, 
+import {
+  Home,
+  Users,
+  School,
+  FileText,
+  ClipboardList,
   UserCog,
   Package,
   Settings,
-  Calendar
+  Calendar,
+  Code,
+  LayoutDashboard,
+  Wrench,
+  Baby
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { APP } from "@/constants/app";
+import { Separator } from "@/components/ui/separator";
 
 interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
   className?: string;
+  isCollapsed?: boolean;
 }
 
-interface NavItem {
-  title: string;
-  href: string;
-  icon: React.ComponentType<{ className?: string }>;
-  translationKey: string;
-}
-
-export function SidebarNav({ className, ...props }: SidebarNavProps) {
+export function SidebarNav({ className, isCollapsed, ...props }: SidebarNavProps) {
+  const { t, i18n } = useTranslation();
   const location = useLocation();
-  const pathname = location.pathname;
-  const { t } = useTranslation();
+  const isRTL = i18n.dir() === 'rtl';
 
-  const navItems: NavItem[] = [
+  const navItems = [
     {
-      title: t("navigation.dashboard"),
-      href: "/",
-      icon: Home,
-      translationKey: "dashboard"
+      title: t('nav.dashboard'),
+      href: '/',
+      icon: LayoutDashboard,
     },
     {
-      title: t("navigation.kindergartens"),
-      href: "/kindergartens",
+      title: t('nav.kindergartens'),
+      href: '/kindergartens',
       icon: School,
-      translationKey: "kindergartens"
     },
     {
-      title: t("navigation.roles"),
-      href: "/roles",
-      icon: UserCog,
-      translationKey: "roles"
+      title: t('nav.children'),
+      href: '/children',
+      icon: Baby,
     },
     {
-      title: t("navigation.children"),
-      href: "/children",
+      title: t('nav.groups'),
+      href: '/groups',
       icon: Users,
-      translationKey: "children"
     },
     {
-      title: t("navigation.groups"),
-      href: "/groups",
-      icon: Users,
-      translationKey: "groups"
-    },
-    {
-      title: t("navigation.financial"),
-      href: "/financial",
-      icon: FileText,
-      translationKey: "financial"
-    },
-    {
-      title: t("navigation.auditLogs"),
-      href: "/audit-logs",
-      icon: ClipboardList,
-      translationKey: "auditLogs"
-    },
-    {
-      title: t("navigation.plans"),
-      href: "/plans",
-      icon: Package,
-      translationKey: "plans"
-    },
-    {
-      title: t("navigation.features"),
-      href: "/features",
-      icon: Settings,
-      translationKey: "features"
-    },
-    {
-      title: 'Activities',
-      href: APP.ROUTES.ACTIVITIES,
+      title: t('nav.activities'),
+      href: '/activities',
       icon: Calendar,
-      translationKey: 'activities'
+    },
+    {
+      title: t('nav.financial'),
+      href: '/financial',
+      icon: FileText,
     },
   ];
 
-  return (
-    <nav className={cn("flex flex-col space-y-1", className)} {...props}>
-      {navItems.map((item) => {
-        const isActive = pathname === item.href;
-        return (
-          <Link
-            key={item.href}
-            to={item.href}
-            className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2 text-base transition-all",
-              isActive
-                ? "bg-[#1A5F5E]/10 text-[#1A5F5E] font-medium hover:bg-[#1A5F5E]/15"
-                : "text-gray-500 hover:bg-gray-100"
-            )}
-          >
-            <item.icon className={cn("h-5 w-5", isActive ? "text-[#1A5F5E]" : "text-gray-400")} />
+  const adminItems = [
+    {
+      title: t('nav.plans'),
+      href: '/plans',
+      icon: Package,
+    },
+    {
+      title: t('nav.features'),
+      href: '/features',
+      icon: Code,
+    },
+    {
+      title: t('nav.roles'),
+      href: '/roles',
+      icon: UserCog,
+    },
+    {
+      title: t('nav.systemUsers'),
+      href: '/system-users',
+      icon: Wrench,
+    },
+  ];
+
+  const renderNavItem = (item: typeof navItems[0]) => {
+    const isActive = location.pathname === item.href;
+    const Icon = item.icon;
+
+    return (
+      <Link
+        key={item.href}
+        to={item.href}
+        className={cn(
+          "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent",
+          isActive ? "bg-accent text-accent-foreground" : "text-muted-foreground",
+          isCollapsed && "justify-center px-2",
+          isRTL && "flex-row-reverse"
+        )}
+      >
+        <Icon className={cn(
+          "h-4 w-4",
+          isCollapsed && "mx-auto"
+        )} />
+        {!isCollapsed && (
+          <span className={cn(
+            "truncate",
+            isRTL && "text-right"
+          )}>
             {item.title}
-          </Link>
-        );
-      })}
+          </span>
+        )}
+      </Link>
+    );
+  };
+
+  return (
+    <nav className={cn(
+      "flex flex-col gap-2",
+      className
+    )} {...props}>
+      <div className="flex flex-col gap-2">
+        {navItems.map(renderNavItem)}
+      </div>
+
+      <Separator className="my-2" />
+
+      <div className="flex flex-col gap-2">
+        <div className={cn(
+          "px-3 text-xs font-semibold text-muted-foreground",
+          isCollapsed && "text-center",
+          isRTL && "text-right"
+        )}>
+          {t('nav.admin')}
+        </div>
+        {adminItems.map(renderNavItem)}
+      </div>
     </nav>
   );
 }

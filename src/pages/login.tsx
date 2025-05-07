@@ -53,6 +53,7 @@ export default function LoginPage() {
 
     // For now, we'll just check for any username/password
     if (formData.username && formData.password) {
+
       navigate(APP.ROUTES.DASHBOARD);
     } else {
       setError(t('login.invalidCredentials'));
@@ -95,7 +96,7 @@ export default function LoginPage() {
           <div className="flex flex-col items-center">
             <img src={kendoLogo} alt="Kendo" className="h-12 w-auto mb-4" />
             <CardTitle className="text-2xl font-bold text-center">
-              {t('login.welcome')}
+              {t('login.title')}
             </CardTitle>
           </div>
         </CardHeader>

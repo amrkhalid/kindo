@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 
 export default function AuditLogsPage() {
   const { t, i18n } = useTranslation();
-  
+
   // List of available languages with their directions
   const languages = [
     { code: 'en', label: 'English', dir: 'ltr' },
@@ -22,7 +22,7 @@ export default function AuditLogsPage() {
     {
       id: "1",
       action: "LOGIN",
-      user: "John Doe",
+      user: "Test Name",
       timestamp: new Date().toISOString(),
       details: "User logged in successfully",
       ip: "192.168.1.1"
@@ -30,7 +30,7 @@ export default function AuditLogsPage() {
     {
       id: "2",
       action: "UPDATE",
-      user: "Jane Smith",
+      user: "Test Name2",
       timestamp: new Date().toISOString(),
       details: "Updated kindergarten details",
       ip: "192.168.1.2"
@@ -82,13 +82,6 @@ export default function AuditLogsPage() {
         <div className="text-sm">{value}</div>
       ),
     },
-    {
-      key: 'ip',
-      title: t('auditLogs.ip'),
-      render: (value: string) => (
-        <div className="text-sm text-gray-600">{value}</div>
-      ),
-    }
   ];
 
   return (

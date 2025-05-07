@@ -1,7 +1,7 @@
 export interface Column<T> {
-  key: keyof T;
+  key: string;
   title: string;
-  render?: (value: unknown) => React.ReactNode;
+  render: (value: unknown, item?: T) => React.ReactNode;
 }
 
 export interface DataTableProps<T> {

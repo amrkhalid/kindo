@@ -14,10 +14,6 @@ import type { Column } from '@/types/data-table';
 export interface GroupData {
   id: string;
   name: string;
-  description: string;
-  capacity: number;
-  children: Child[];
-  staffName: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -27,20 +23,12 @@ const initialGroups: GroupData[] = [
   {
     id: "1",
     name: "Group A",
-    description: "Description for Group A",
-    capacity: 20,
-    children: [],
-    staffName: "John Doe",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
   {
     id: "2",
     name: "Group B",
-    description: "Description for Group B",
-    capacity: 15,
-    children: [],
-    staffName: "Jane Smith",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -55,7 +43,7 @@ export default function GroupsPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { t, i18n } = useTranslation();
-  
+
   // List of available languages with their directions
   const languages = [
     { code: 'en', label: 'English', dir: 'ltr' },
@@ -78,64 +66,15 @@ export default function GroupsPage() {
         </div>
       ),
     },
-    {
-      key: 'description',
-      title: t('table.headers.groups.description'),
-      render: (value: string) => (
-        <div className={cn(
-          "text-gray-600",
-          isRTL ? "text-right" : "text-left"
-        )}>
-          {value}
-        </div>
-      ),
-    },
-    {
-      key: 'capacity',
-      title: t('table.headers.groups.capacity'),
-      render: (value: number) => (
-        <div className={cn(
-          "text-gray-600",
-          isRTL ? "text-right" : "text-left"
-        )}>
-          {value}
-        </div>
-      ),
-    },
-    {
-      key: 'staffName',
-      title: t('table.headers.groups.staffName'),
-      render: (value: string) => (
-        <div className={cn(
-          "text-gray-600",
-          isRTL ? "text-right" : "text-left"
-        )}>
-          {value}
-        </div>
-      ),
-    },
-    {
-      key: 'children',
-      title: t('table.headers.groups.children'),
-      render: (value: Child[]) => (
-        <div className={cn(
-          "text-gray-600",
-          isRTL ? "text-right" : "text-left"
-        )}>
-          {value.length}
-        </div>
-      ),
-    },
   ];
 
-  const handleAdd = async (data: Omit<GroupData, "id" | "createdAt" | "updatedAt" | "children">) => {
+  const handleAdd = async (data: Omit<GroupData, "id" | "createdAt" | "updatedAt">) => {
     try {
       setIsLoading(true);
       // TODO: Replace with actual API call
       const newGroup: GroupData = {
         ...data,
         id: crypto.randomUUID(),
-        children: [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -162,9 +101,9 @@ export default function GroupsPage() {
     setIsEditDialogOpen(true);
   };
 
-  const handleEditSubmit = async (data: Omit<GroupData, "id" | "createdAt" | "updatedAt" | "children">) => {
+  const handleEditSubmit = async (data: Omit<GroupData, "id" | "createdAt" | "updatedAt">) => {
     if (!selectedGroup) return;
-    
+
     try {
       setIsLoading(true);
       // TODO: Replace with actual API call
@@ -198,7 +137,7 @@ export default function GroupsPage() {
 
   const handleDelete = async () => {
     if (!selectedGroup) return;
-    
+
     try {
       setIsLoading(true);
       // TODO: Replace with actual API call

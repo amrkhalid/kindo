@@ -1,4 +1,3 @@
-
 import * as React from "react"
 import { cn } from "@/lib/utils"
 import { useTranslation } from 'react-i18next';
@@ -16,7 +15,7 @@ const Table = React.forwardRef<
   
   return (
     <TableContext.Provider value={{ isRTL }}>
-      <div className="relative w-full overflow-auto">
+      <div className="relative w-full overflow-x-auto">
         <table
           ref={ref}
           className={cn("w-full caption-bottom text-sm", isRTL ? "rtl" : "ltr", className)}

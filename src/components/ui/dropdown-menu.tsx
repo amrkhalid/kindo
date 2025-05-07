@@ -46,9 +46,9 @@ const DropdownMenuSubTrigger = React.forwardRef<
     >
       {children}
       {isRTL ? (
-        <ChevronRight className="mr-auto h-4 w-4 rotate-180" />
-      ) : (
         <ChevronRight className="ml-auto h-4 w-4" />
+      ) : (
+        <ChevronRight className="ml-auto h-4 w-4 rotate-180" />
       )}
     </DropdownMenuPrimitive.SubTrigger>
   )

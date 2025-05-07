@@ -95,6 +95,137 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 182 52% 32%;
   }
+
+  /* Base responsive styles */
+  html {
+    @apply text-base;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Responsive typography */
+  h1 {
+    @apply text-2xl sm:text-3xl md:text-4xl font-bold;
+  }
+
+  h2 {
+    @apply text-xl sm:text-2xl md:text-3xl font-semibold;
+  }
+
+  h3 {
+    @apply text-lg sm:text-xl md:text-2xl font-medium;
+  }
+
+  p {
+    @apply text-sm sm:text-base;
+  }
+
+  /* RTL/LTR specific styles */
+  .rtl {
+    direction: rtl;
+    text-align: right;
+  }
+  
+  .ltr {
+    direction: ltr;
+    text-align: left;
+  }
+
+  /* Responsive container padding */
+  .container {
+    @apply px-4 sm:px-6 lg:px-8 mx-auto;
+  }
+
+  /* Responsive grid system */
+  .grid-responsive {
+    @apply grid gap-4 sm:gap-6 md:gap-8;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  }
+
+  /* Responsive spacing utilities */
+  .space-y-responsive {
+    @apply space-y-4 sm:space-y-6 md:space-y-8;
+  }
+
+  .space-x-responsive {
+    @apply space-x-4 sm:space-x-6 md:space-x-8;
+  }
+
+  /* Responsive margins and padding */
+  .m-responsive {
+    @apply m-4 sm:m-6 md:m-8;
+  }
+
+  .p-responsive {
+    @apply p-4 sm:p-6 md:p-8;
+  }
+
+  /* Responsive flex layouts */
+  .flex-responsive {
+    @apply flex flex-col sm:flex-row;
+  }
+
+  /* Responsive table styles */
+  .table-responsive {
+    @apply w-full overflow-x-auto;
+  }
+
+  /* Responsive form elements */
+  .form-group {
+    @apply space-y-2 sm:space-y-3;
+  }
+
+  .form-control {
+    @apply w-full px-3 py-2 text-sm sm:text-base;
+  }
+
+  /* Responsive button styles */
+  .btn-responsive {
+    @apply px-4 py-2 text-sm sm:text-base;
+  }
+
+  /* Responsive card styles */
+  .card-responsive {
+    @apply p-4 sm:p-6 md:p-8;
+  }
+
+  /* Responsive navigation */
+  .nav-responsive {
+    @apply flex flex-col sm:flex-row items-center gap-4;
+  }
+
+  /* Responsive sidebar */
+  .sidebar-responsive {
+    @apply w-full sm:w-64 md:w-72 lg:w-80;
+  }
+
+  /* Responsive modal */
+  .modal-responsive {
+    @apply w-[95%] sm:w-[80%] md:w-[70%] lg:w-[60%];
+  }
+
+  /* Responsive images */
+  img {
+    @apply max-w-full h-auto;
+  }
+
+  /* Responsive iframe/video */
+  .media-responsive {
+    @apply relative w-full;
+    padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+  }
+
+  .media-responsive iframe,
+  .media-responsive video {
+    @apply absolute top-0 left-0 w-full h-full;
+  }
 }
 
 @layer base {
@@ -104,17 +235,6 @@
 
   body {
     @apply bg-background text-foreground;
-  }
-  
-  /* RTL specific styles */
-  .rtl {
-    direction: rtl;
-    text-align: right;
-  }
-  
-  .ltr {
-    direction: ltr;
-    text-align: left;
   }
 }
 

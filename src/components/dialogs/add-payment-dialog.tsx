@@ -5,16 +5,33 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Child } from "@/types";
+import { Child } from "@/types/child";
+import { useTranslation } from 'react-i18next';
+
+interface PaymentRequest {
+  id: string;
+  child_id: string;
+  parent_id: string;
+  amount_paid: number;
+  payment_method: string;
+  payment_date: string;
+  notes: string;
+  createdAt: string;
+}
 
 interface AddPaymentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddPayment: (payment: any) => void;
+  onAddPayment: (payment: PaymentRequest) => void;
   children: Child[];
 }
 
-const paymentMethods = ["Credit Card", "Cash", "Bank Transfer", "Check"];
+const paymentMethods = [
+  { value: "credit_card", labelKey: "financial.creditCard" },
+  { value: "cash", labelKey: "financial.cash" },
+  { value: "bank_transfer", labelKey: "financial.bankTransfer" },
+  { value: "check", labelKey: "financial.check" }
+];
 
 export function AddPaymentDialog({
   open,
@@ -23,51 +40,57 @@ export function AddPaymentDialog({
   children,
 }: AddPaymentDialogProps) {
   const { toast } = useToast();
-  const [form, setForm] = useState({
-    childId: "",
-    parentEmail: "",
-    amount: "",
-    paymentMethod: "",
-    paymentDate: "",
+  const { t } = useTranslation();
+  const [form, setForm] = useState<{
+    child_id: string;
+    parent_id: string;
+    amount_paid: string;
+    payment_method: string;
+    payment_date: string;
+    notes: string;
+  }>({
+    child_id: "",
+    parent_id: "",
+    amount_paid: "",
+    payment_method: "",
+    payment_date: "",
+    notes: ""
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.childId || !form.parentEmail || !form.amount || !form.paymentMethod || !form.paymentDate) {
+    if (!form.child_id || !form.parent_id || !form.amount_paid || !form.payment_method || !form.payment_date) {
       toast({
-        title: "Missing fields",
-        description: "Please fill all required fields",
+        title: t('common.error'),
+        description: t('common.required'),
         variant: "destructive",
       });
       return;
     }
 
-    const selectedChild = children.find(child => child.id === form.childId);
-    const childName = selectedChild ? `${selectedChild.firstName} ${selectedChild.lastName}` : "";
-
     const newPayment = {
       id: crypto.randomUUID(),
-      childName,
-      parentEmail: form.parentEmail,
-      amount: parseFloat(form.amount),
-      paymentMethod: form.paymentMethod,
-      paymentDate: form.paymentDate,
+      child_id: form.child_id,
+      parent_id: form.parent_id,
+      amount_paid: parseFloat(form.amount_paid),
+      payment_method: form.payment_method,
+      payment_date: form.payment_date,
+      notes: form.notes,
       createdAt: new Date().toISOString(),
     };
 
     onAddPayment(newPayment);
     toast({
-      title: "Payment added",
-      description: `Payment of ${form.amount} added for ${childName}`,
+      title: t('financial.addSuccess'),
+      description: t('financial.addTransaction'),
     });
-    
-    // Reset form and close dialog
     setForm({
-      childId: "",
-      parentEmail: "",
-      amount: "",
-      paymentMethod: "",
-      paymentDate: "",
+      child_id: "",
+      parent_id: "",
+      amount_paid: "",
+      payment_method: "",
+      payment_date: "",
+      notes: ""
     });
     onOpenChange(false);
   };
@@ -76,17 +99,17 @@ export function AddPaymentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add New Payment</DialogTitle>
+          <DialogTitle>{t('financial.addTransaction')}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="childId">Child</Label>
+            <Label htmlFor="child_id">{t('financial.childName')}</Label>
             <Select
-              value={form.childId}
-              onValueChange={(value) => setForm({ ...form, childId: value })}
+              value={form.child_id}
+              onValueChange={(value) => setForm({ ...form, child_id: value })}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select a child" />
+                <SelectValue placeholder={t('financial.childNamePlaceholder')} />
               </SelectTrigger>
               <SelectContent>
                 {children.map((child) => (
@@ -98,54 +121,62 @@ export function AddPaymentDialog({
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="parentEmail">Parent Email</Label>
+            <Label htmlFor="parent_id">{t('financial.parentEmail')}</Label>
             <Input
-              id="parentEmail"
-              type="email"
-              value={form.parentEmail}
-              onChange={(e) => setForm({ ...form, parentEmail: e.target.value })}
-              placeholder="Parent email address"
+              id="parent_id"
+              value={form.parent_id}
+              onChange={(e) => setForm({ ...form, parent_id: e.target.value })}
+              placeholder={t('financial.parentEmailPlaceholder')}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="amount">Amount</Label>
+            <Label htmlFor="amount_paid">{t('financial.amount')}</Label>
             <Input
-              id="amount"
+              id="amount_paid"
               type="number"
-              value={form.amount}
-              onChange={(e) => setForm({ ...form, amount: e.target.value })}
-              placeholder="Payment amount"
+              value={form.amount_paid}
+              onChange={(e) => setForm({ ...form, amount_paid: e.target.value })}
+              placeholder={t('financial.amountPlaceholder')}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="paymentMethod">Payment Method</Label>
+            <Label htmlFor="payment_method">{t('financial.paymentMethod')}</Label>
             <Select
-              value={form.paymentMethod}
-              onValueChange={(value) => setForm({ ...form, paymentMethod: value })}
+              value={form.payment_method}
+              onValueChange={(value) => setForm({ ...form, payment_method: value })}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select payment method" />
+                <SelectValue placeholder={t('financial.paymentMethodPlaceholder')} />
               </SelectTrigger>
               <SelectContent>
                 {paymentMethods.map((method) => (
-                  <SelectItem key={method} value={method}>
-                    {method}
+                  <SelectItem key={method.value} value={method.value}>
+                    {t(method.labelKey)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="paymentDate">Payment Date</Label>
+            <Label htmlFor="payment_date">{t('financial.paymentDate')}</Label>
             <Input
-              id="paymentDate"
+              id="payment_date"
               type="date"
-              value={form.paymentDate}
-              onChange={(e) => setForm({ ...form, paymentDate: e.target.value })}
+              value={form.payment_date}
+              onChange={(e) => setForm({ ...form, payment_date: e.target.value })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="notes">{t('financial.notes')}</Label>
+            <Input
+              id="notes"
+              value={form.notes}
+              onChange={(e) => setForm({ ...form, notes: e.target.value })}
+              placeholder={t('financial.notesPlaceholder')}
             />
           </div>
           <DialogFooter>
-            <Button type="submit">Add Payment</Button>
+            <Button type="submit">{t('financial.addTransaction')}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
