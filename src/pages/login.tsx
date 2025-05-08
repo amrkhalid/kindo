@@ -14,6 +14,7 @@ import {
 import { Globe } from "lucide-react";
 import { APP } from '@/constants/app';
 import kendoLogo from '@/assets/kindo-logo.png';
+import { login } from '@/api/auth';
 
 // List of available languages with their directions
 const languages = [
@@ -41,21 +42,28 @@ export default function LoginPage() {
   const currentLanguage = languages.find(lang => lang.code === i18n.language);
   const isRTL = currentLanguage?.dir === 'rtl';
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
-
-    // Basic validation
+  
     if (!formData.username || !formData.password) {
       setError(t('login.allFieldsRequired'));
       return;
     }
-
-    // For now, we'll just check for any username/password
-    if (formData.username && formData.password) {
-
-      navigate(APP.ROUTES.DASHBOARD);
-    } else {
+  
+    try {
+      const response = await login(formData);
+      const token = response?.data?.token;
+  
+      if (token) {
+        localStorage.setItem('token', token);
+  
+        navigate(APP.ROUTES.DASHBOARD);
+      } else {
+        setError(t('login.invalidCredentials'));
+      }
+    } catch (err: any) {
+      console.error('Login Error:', err);
       setError(t('login.invalidCredentials'));
     }
   };
