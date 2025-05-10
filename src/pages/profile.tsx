@@ -6,29 +6,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
-import { PageHeader } from '@/components/ui/page-header';
-import { getUserProfile } from '@/api/profile';
+import { PageHeader } from "@/components/ui/page-header";
+import { getUserProfile, updateUserProfile } from "@/api/profile";
 
 export default function ProfilePage() {
   const { t, i18n } = useTranslation();
 
   const [profile, setProfile] = useState({
-    id: '',
-    id_no: '',
-    username: '',
-    email: '',
-    first_name: '',
-    second_name: '',
-    third_name: '',
-    last_name: '',
-    gender: '',
-    phone_number: '',
-    address: '',
-    is_active: false,
+    id: "",
+    id_no: "",
+    username: "",
+    email: "",
+    first_name: "",
+    last_name: "",
+    phone_number: "",
     is_superuser: false,
-    created_at: '',
-    updated_at: '',
+    created_at: "",
   });
+
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     async function fetchProfile() {
@@ -42,20 +38,47 @@ export default function ProfilePage() {
     fetchProfile();
   }, []);
 
-  // List of available languages with their directions
-  const languages = [
-    { code: 'en', label: 'English', dir: 'ltr' },
-    { code: 'ar', label: 'العربية', dir: 'rtl' },
-    { code: 'he', label: 'עברית', dir: 'rtl' }
-  ];
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setProfile((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
 
-  const isRTL = languages.find(lang => lang.code === i18n.language)?.dir === 'rtl';
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      const updatedData = {
+        phone_number: profile.phone_number,
+        first_name: profile.first_name,
+        last_name: profile.last_name,
+        email: profile.email,
+      };
+      const response = await updateUserProfile(updatedData);
+      setProfile(response.data);
+      console.log("Profile updated successfully");
+    } catch (error) {
+      console.error("Failed to update profile", error);
+      console.log("Failed to update profile");
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const languages = [
+    { code: "en", label: "English", dir: "ltr" },
+    { code: "ar", label: "العربية", dir: "rtl" },
+    { code: "he", label: "עברית", dir: "rtl" },
+  ];
+  const isRTL =
+    languages.find((lang) => lang.code === i18n.language)?.dir === "rtl";
 
   return (
     <div className={cn("space-y-4 p-4 sm:p-6", isRTL ? "rtl" : "ltr")}>
       <PageHeader
-        title={t('profile.title')}
-        description={t('profile.description')}
+        title={t("profile.title")}
+        description={t("profile.description")}
         isRTL={isRTL}
       />
 
@@ -66,11 +89,14 @@ export default function ProfilePage() {
               <Avatar className="w-24 h-24">
                 <AvatarImage src="" />
                 <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
-                  {profile.first_name?.charAt(0)}{profile.last_name?.charAt(0)}
+                  {profile.first_name?.charAt(0)}
+                  {profile.last_name?.charAt(0)}
                 </AvatarFallback>
               </Avatar>
             </div>
-            <CardTitle>{profile.first_name} {profile.last_name}</CardTitle>
+            <CardTitle>
+              {profile.first_name} {profile.last_name}
+            </CardTitle>
             <p className="text-sm text-muted-foreground">
               {profile.is_superuser ? "Administrator" : "User"}
             </p>
@@ -93,31 +119,55 @@ export default function ProfilePage() {
 
         <Card className="flex-1">
           <CardHeader>
-            <CardTitle>{t('profile.personalInfo')}</CardTitle>
+            <CardTitle>{t("profile.personalInfo")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <form className="space-y-4">
+            <form className="space-y-4" onSubmit={handleSave}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName">{t('profile.firstName')}</Label>
-                  <Input id="firstName" value={profile.first_name} disabled />
+                  <Label htmlFor="first_name">{t("profile.firstName")}</Label>
+                  <Input
+                    id="first_name"
+                    name="first_name"
+                    value={profile.first_name}
+                    onChange={handleChange}
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName">{t('profile.lastName')}</Label>
-                  <Input id="lastName" value={profile.last_name} disabled />
+                  <Label htmlFor="last_name">{t("profile.lastName")}</Label>
+                  <Input
+                    id="last_name"
+                    name="last_name"
+                    value={profile.last_name}
+                    onChange={handleChange}
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">{t('profile.email')}</Label>
-                  <Input id="email" type="email" value={profile.email} disabled  />
+                  <Label htmlFor="email">{t("profile.email")}</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    value={profile.email}
+                    onChange={handleChange}
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">{t('profile.phone')}</Label>
-                  <Input id="phone" value={profile.phone_number} disabled  />
+                  <Label htmlFor="phone">{t("profile.phone")}</Label>
+                  <Input
+                    id="phone"
+                    name="phone_number"
+                    value={profile.phone_number}
+                    onChange={handleChange}
+                  />
                 </div>
               </div>
               <div className="flex justify-end">
-                <Button className="bg-[#1A5F5E] hover:bg-[#1A5F5E]/90">
-                  {t('profile.save')}
+                <Button
+                  type="submit"
+                  className="bg-[#1A5F5E] hover:bg-[#1A5F5E]/90"
+                  disabled={loading}
+                >
+                  {loading ? t("profile.saving") : t("profile.save")}
                 </Button>
               </div>
             </form>
