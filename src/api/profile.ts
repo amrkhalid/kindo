@@ -21,3 +21,8 @@ interface GetUserProfileResponse {
 export const getUserProfile = () => {
   return axios.get<GetUserProfileResponse>("/profile", {});
 };
+
+export const updateUserProfile = (data: Partial<GetUserProfileResponse>) => {
+    return axios.patch<GetUserProfileResponse>("/profile/update-profile", data);
+  };
+  
