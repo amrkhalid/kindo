@@ -29,9 +29,9 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { SidebarNav } from "./sidebar-nav";
 import kendoLogo from "@/assets/kindo-logo.png";
 import { cn } from "@/lib/utils";
-import { logout } from "@/api/auth";
 import { APP } from '@/constants/app';
 import { useNavigate } from 'react-router-dom';
+import { logout } from '@/api/Auth/auth';
 
 
 interface NavbarProps {
@@ -234,7 +234,7 @@ export function Navbar({ children }: NavbarProps) {
                 <UserRound className="mr-2 h-4 w-4" />
                 <span>Profile</span>
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate(APP.ROUTES.SETTINGS)}>
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Settings</span>
               </DropdownMenuItem>

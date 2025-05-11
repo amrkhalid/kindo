@@ -1,4 +1,4 @@
-import axios from "./axiosInstance";
+import axios from "../axiosInstance";
 
 interface GetUserProfileResponse {
   id: string;
