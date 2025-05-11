@@ -28,10 +28,21 @@ interface LoginResponse {
   user: User;
 }
 
+interface DeviceInformation {
+  device_type?: string;
+  device_name?: string;
+  token: string;
+}
+
+interface LogoutRequest {
+  platform: string;
+  device_information: DeviceInformation;
+}
 
 export const login = (data: LoginRequest) =>
   axios.post<LoginResponse>("/auth/login/web", data);
 
 export const getMe = () => axios.get("/users/me");
 
-export const logout = () => axios.post("/auth/logout");
+export const logout = (data: LogoutRequest) =>
+  axios.post("/auth/logout", data);
