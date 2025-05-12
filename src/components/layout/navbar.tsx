@@ -31,7 +31,7 @@ import kendoLogo from "@/assets/kindo-logo.png";
 import { cn } from "@/lib/utils";
 import { APP } from '@/constants/app';
 import { useNavigate } from 'react-router-dom';
-import { logout } from '@/api/Auth/auth';
+import { logout } from '@/api/Auth/Logout';
 
 
 interface NavbarProps {
