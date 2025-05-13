@@ -5,22 +5,20 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { kindergartens as initialKindergartens } from "@/lib/data";
 import { Badge } from "@/components/ui/badge";
-import { AddKindergartenDialog } from "@/components/dialogs/add-kindergarten-dialog";
-import { getMyKG, MyKGItem,GetMyKGResponse, Kindergarten } from "@/api/Profile/myKG";
+import { getMyKG, Kindergarten, Plan } from "@/api/Profile/myKG";
 import { useToast } from "@/hooks/use-toast";
 import { KindergartenDialog } from '@/components/dialogs/kindergarten-dialog';
 import { DeleteDialog } from '@/components/dialogs/delete-dialog';
 import { Column } from '@/types/data-table';
 import { toast } from 'sonner';
-import { Plan } from '@/types/plan';
+import { createKindergarten, CreateKindergartenRequest, deleteKindergarten, updateKindergarten } from "@/api/Kindergarten/Kindergartens/kindergartenApis";
 
 
 const KindergartensPage = () => {
   const { t, i18n } = useTranslation();
   const { toast } = useToast();
-  const [kindergartens, setKindergartens] = useState<MyKGItem[]>([]);
+  const [kindergartens, setKindergartens] = useState<Kindergarten[]>([]);
   const [selectedKindergarten, setSelectedKindergarten] = useState<Kindergarten | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -34,27 +32,37 @@ const KindergartensPage = () => {
     { code: 'he', label: 'עברית', dir: 'rtl' }
   ];
 
+  // Mock plans data - replace with actual API call
+const mockPlans: Plan[] = [
+  {
+    _id: "67f954f665d12a811dcc15ca",
+    name: "Basic Plan",
+    startDate: new Date().toISOString(),
+    endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    cost: 99.99,
+    discount: 0,
+    enable: true,
+    buildIn: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    __v:0
+  },
+  {
+    _id: "67f954f665d12a811dcc15ca",
+    name: "Premium Plan",
+    startDate: new Date().toISOString(),
+    endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    cost: 199.99,
+    discount: 10,
+    enable: true,
+    buildIn: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    __v:0
+  },
+  ];
+
   const isRTL = languages.find(lang => lang.code === i18n.language)?.dir === 'rtl';
-
-  useEffect(() => {
-    async function fetchMyKG() {
-      try {
-        const response = await getMyKG();
-        const kindergartens = response.data.data;
-        console.log(kindergartens);
-        setKindergartens(kindergartens);
-      } catch (error) {
-        console.error("Failed to fetch my KG", error);
-      }
-    }
-    fetchMyKG();
-  }, []);
-  
-  
-
-    const kindergartenData = kindergartens.map(kg => kg.kindergartenId);
-    console.log("KG",kindergartenData);
-
 
   const columns: Column<Kindergarten>[] = [
     {
@@ -114,98 +122,113 @@ const KindergartensPage = () => {
         </div>
       ),
     },
-    {
-      key: 'createdBy',
-      title: t('table.headers.kindergartens.createdBy'),
-      render: (value: string) => (
-        <div className={cn(
-          "text-gray-600",
-          isRTL ? "text-right" : "text-left"
-        )}>
-          {value}
-        </div>
-      ),
-    },
   ];
-  
-  // const handleAddKindergarten = async (data: Omit<Kindergarten, 'id' | 'isActive' | 'createdAt' | 'updatedAt'>) => {
-  //   try {
-  //     setIsLoading(true);
-  //     // TODO: Replace with actual API call
-  //     const newKindergarten: Kindergarten = {
-  //       ...data,
-  //       id: crypto.randomUUID(),
-  //       isActive: true,
-  //       createdAt: new Date().toISOString(),
-  //       updatedAt: new Date().toISOString(),
-  //     };
-  //     setKindergartens([...kindergartens, newKindergarten]);
-  //     setIsAddDialogOpen(false);
-  //     toast({
-  //       title: t('common.success'),
-  //       description: t('kindergartens.addSuccess'),
-  //     });
-  //   } catch (error) {
-  //     toast({
-  //       title: t('common.error'),
-  //       description: t('kindergartens.addError'),
-  //       variant: 'destructive',
-  //     });
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
 
-  // const handleEdit = async (data: Omit<Kindergarten, 'id' | 'createdAt' | 'updatedAt'>) => {
-  //   if (!selectedKindergarten) return;
-  //   try {
-  //     setIsLoading(true);
-  //     // TODO: Replace with actual API call
-  //     const updatedKindergartens = kindergartens.map((k) =>
-  //       k.id === selectedKindergarten.id ? { ...data, id: selectedKindergarten.id, createdAt: selectedKindergarten.createdAt, updatedAt: new Date().toISOString() } : k
-  //     );
-  //     setKindergartens(updatedKindergartens);
-  //     setIsEditDialogOpen(false);
-  //     setSelectedKindergarten(null);
-  //     toast({
-  //       title: t('common.success'),
-  //       description: t('kindergartens.editSuccess'),
-  //     });
-  //   } catch (error) {
-  //     toast({
-  //       title: t('common.error'),
-  //       description: t('kindergartens.editError'),
-  //       variant: 'destructive',
-  //     });
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
-
-  // const handleDelete = async () => {
-  //   if (!selectedKindergarten) return;
-  //   try {
-  //     setIsLoading(true);
-  //     // TODO: Replace with actual API call
-  //     const updatedKindergartens = kindergartens.filter((k) => k.id !== selectedKindergarten.id);
-  //     setKindergartens(updatedKindergartens);
-  //     setIsDeleteDialogOpen(false);
-  //     setSelectedKindergarten(null);
-  //     toast({
-  //       title: t('common.success'),
-  //       description: t('kindergartens.deleteSuccess'),
-  //     });
-  //   } catch (error) {
-  //     toast({
-  //       title: t('common.error'),
-  //       description: t('kindergartens.deleteError'),
-  //       variant: 'destructive',
-  //     });
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
+  useEffect(() => {
+    async function fetchMyKG() {
+      try {
+        const response = await getMyKG();
+        setKindergartens(response);
+      } catch (error) {
+        console.error("Failed to fetch my KG", error);
+      }
+    }
+    fetchMyKG();
+  }, []);
   
+  
+  const handleAddKindergarten = async (data: CreateKindergartenRequest) => {
+    setIsLoading(true);
+    try {
+      const { data: responseData } = await createKindergarten(data);
+      const newKG: Kindergarten = { ...responseData, __v: 0 };
+  
+      setKindergartens(prev => [...prev, newKG]);
+      setIsAddDialogOpen(false);
+      toast({
+        title: t('common.success'),
+        description: t('kindergartens.addSuccess'),
+      });
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: t('common.error'),
+        description: t('kindergartens.addError'),
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleEdit = async (data: CreateKindergartenRequest) => {
+    if (!selectedKindergarten) return;
+  
+    try {
+      setIsLoading(true);
+  
+      const response = await updateKindergarten(selectedKindergarten._id, data);
+      const updatedKG: Kindergarten = response.data.result;
+      console.log(response.data.message);
+
+      setKindergartens(prev =>
+        prev.map(k => (k._id === updatedKG._id ? updatedKG : k))
+      );
+
+      window.location.reload();
+      setIsEditDialogOpen(false);
+      setSelectedKindergarten(null);
+  
+      toast({
+        title: t('common.success'),
+        description: t('kindergartens.editSuccess'),
+      });
+    } catch (error) {
+      console.error("Edit failed", error);
+      toast({
+        title: t('common.error'),
+        description: t('kindergartens.editError'),
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!selectedKindergarten) return;
+  
+    try {
+      setIsLoading(true);
+  
+      await deleteKindergarten(selectedKindergarten._id);
+  
+      const updatedKindergartens = kindergartens.filter(
+        (k) => k._id !== selectedKindergarten._id
+      );
+      setKindergartens(updatedKindergartens);
+  
+      window.location.reload();
+      setIsDeleteDialogOpen(false);
+      setSelectedKindergarten(null);
+  
+      toast({
+        title: t('common.success'),
+        description: t('kindergartens.deleteSuccess'),
+      });
+    } catch (error) {
+      console.error("Delete failed", error);
+      toast({
+        title: t('common.error'),
+        description: t('kindergartens.deleteError'),
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+   
   return (
     <div className={cn("space-y-4", isRTL ? "rtl" : "ltr")}>
       <div className={cn(
@@ -228,7 +251,7 @@ const KindergartensPage = () => {
       <Card className="p-6">
       <DataTable 
           columns={columns}
-          data={kindergartenData}
+          data={kindergartens}
           searchable
           title={t('kindergartens.title')}
           onEdit={(kindergarten) => {
@@ -242,7 +265,7 @@ const KindergartensPage = () => {
         />
       </Card>
       
-      {/* <KindergartenDialog
+      <KindergartenDialog
         open={isAddDialogOpen}
         onOpenChange={setIsAddDialogOpen}
         onSubmit={handleAddKindergarten}
@@ -271,7 +294,7 @@ const KindergartensPage = () => {
         }}
         onConfirm={handleDelete}
         isLoading={isLoading}
-      /> */}
+      />
     </div>
   );
 };
