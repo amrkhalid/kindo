@@ -1,52 +1,73 @@
-import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { DataTable } from '@/components/ui/data-table';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Plus, Pencil, Trash2, Key, MoreVertical } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { DataTable } from "@/components/ui/data-table";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Plus, Pencil, Trash2, Key, MoreVertical } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { DeleteDialog } from '@/components/dialogs/delete-dialog';
-import { PageHeader } from '@/components/ui/page-header';
-import { sampleSystemUsers } from '@/lib/sample-data/system-users';
+} from "@/components/ui/select";
+import { DeleteDialog } from "@/components/dialogs/delete-dialog";
+import { PageHeader } from "@/components/ui/page-header";
+import { sampleSystemUsers } from "@/lib/sample-data/system-users";
+import { getUsers } from "@/api/User/user";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
+
+// interface SystemUser {
+//   id: string;
+//   id_no: string;
+//   username: string;
+//   email: string;
+//   first_name: string;
+//   second_name: string;
+//   third_name: string;
+//   last_name: string;
+//   gender: 'male' | 'female';
+//   password: string;
+//   phone_number: string;
+//   address: string;
+//   status: 'active' | 'inactive';
+// }
 
 interface SystemUser {
   id: string;
   id_no: string;
   username: string;
   email: string;
-  first_name: string;
-  second_name: string;
-  third_name: string;
-  last_name: string;
-  gender: 'male' | 'female';
-  password: string;
-  phone_number: string;
-  address: string;
-  status: 'active' | 'inactive';
+  first_name?: string;
+  second_name?: string;
+  third_name?: string;
+  last_name?: string;
+  gender?: "male" | "female";
+  phone_number?: string;
+  address?: string;
+  is_active: boolean;
+  is_superuser: boolean;
+  created_at: string;
+  updated_at: string;
+  password?: string;
+  status?: "active" | "inactive";
 }
 
 const SystemUsersPage: React.FC = () => {
@@ -55,45 +76,69 @@ const SystemUsersPage: React.FC = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] = useState(false);
+  const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] =
+    useState(false);
   const [selectedUser, setSelectedUser] = useState<SystemUser | null>(null);
-  const [users, setUsers] = useState<SystemUser[]>(sampleSystemUsers);
-  const [newPassword, setNewPassword] = useState('');
+  // const [users, setUsers] = useState<SystemUser[]>(sampleSystemUsers);
+  const [users, setUsers] = useState<SystemUser[]>([]);
+  const [newPassword, setNewPassword] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  const [formData, setFormData] = useState<Omit<SystemUser, 'id'>>({
-    id_no: '',
-    username: '',
-    email: '',
-    first_name: '',
-    second_name: '',
-    third_name: '',
-    last_name: '',
-    gender: 'male',
-    password: '',
-    phone_number: '',
-    address: '',
-    status: 'active',
+  // const [formData, setFormData] = useState<Omit<SystemUser, 'id'>>({
+  //   id_no: '',
+  //   username: '',
+  //   email: '',
+  //   first_name: '',
+  //   second_name: '',
+  //   third_name: '',
+  //   last_name: '',
+  //   gender: 'male',
+  //   password: '',
+  //   phone_number: '',
+  //   address: '',
+  //   status: 'active',
+  // });
+
+  const [formData, setFormData] = useState<Omit<SystemUser, "id">>({
+    id_no: "",
+    username: "",
+    email: "",
+    first_name: "",
+    second_name: "",
+    third_name: "",
+    last_name: "",
+    gender: "male",
+    password: "",
+    phone_number: "",
+    address: "",
+    status: "active",
+    is_active: true,
+    is_superuser: false,
+    created_at: "",
+    updated_at: "",
   });
+  const [limit, setLimit] = useState(10);
+  const [page, setPage] = useState(1);
 
-  // List of available languages with their directions
   const languages = [
-    { code: 'en', label: 'English', dir: 'ltr' },
-    { code: 'ar', label: 'العربية', dir: 'rtl' },
-    { code: 'he', label: 'עברית', dir: 'rtl' }
+    { code: "en", label: "English", dir: "ltr" },
+    { code: "ar", label: "العربية", dir: "rtl" },
+    { code: "he", label: "עברית", dir: "rtl" },
   ];
 
-  const isRTL = languages.find(lang => lang.code === i18n.language)?.dir === 'rtl';
+  const isRTL =
+    languages.find((lang) => lang.code === i18n.language)?.dir === "rtl";
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleGenderChange = (value: 'male' | 'female') => {
+  const handleGenderChange = (value: "male" | "female") => {
     setFormData((prev) => ({ ...prev, gender: value }));
   };
 
-  const handleStatusChange = (value: 'active' | 'inactive') => {
+  const handleStatusChange = (value: "active" | "inactive") => {
     setFormData((prev) => ({ ...prev, status: value }));
   };
 
@@ -104,60 +149,62 @@ const SystemUsersPage: React.FC = () => {
     };
     setUsers([...users, newUser]);
     toast({
-      title: t('systemUsers.addSuccess'),
-      variant: 'success'
+      title: t("systemUsers.addSuccess"),
+      variant: "success",
     });
     setIsAddDialogOpen(false);
-    setFormData({
-      id_no: '',
-      username: '',
-      email: '',
-      first_name: '',
-      second_name: '',
-      third_name: '',
-      last_name: '',
-      gender: 'male',
-      password: '',
-      phone_number: '',
-      address: '',
-      status: 'active',
-    });
+    // setFormData({
+    //   id_no: '',
+    //   username: '',
+    //   email: '',
+    //   first_name: '',
+    //   second_name: '',
+    //   third_name: '',
+    //   last_name: '',
+    //   gender: 'male',
+    //   password: '',
+    //   phone_number: '',
+    //   address: '',
+    //   status: 'active',
+    // });
   };
 
   const handleEditUser = () => {
     if (selectedUser) {
-      setUsers(users.map(user => 
-        user.id === selectedUser.id ? { ...user, ...formData } : user
-      ));
+      setUsers(
+        users.map((user) =>
+          user.id === selectedUser.id ? { ...user, ...formData } : user
+        )
+      );
       toast({
-        title: t('systemUsers.editSuccess'),
-        variant: 'success'
+        title: t("systemUsers.editSuccess"),
+        variant: "success",
       });
       setIsEditDialogOpen(false);
       setSelectedUser(null);
       setFormData({
-        id_no: '',
-        username: '',
-        email: '',
-        first_name: '',
-        second_name: '',
-        third_name: '',
-        last_name: '',
-        gender: 'male',
-        password: '',
-        phone_number: '',
-        address: '',
-        status: 'active',
+        id_no: "",
+        username: "",
+        email: "",
+        first_name: "",
+        second_name: "",
+        third_name: "",
+        last_name: "",
+        gender: "male",
+        password: "",
+        phone_number: "",
+        address: "",
+        status: "active",
       });
     }
   };
 
   const handleDeleteUser = () => {
     if (selectedUser) {
-      setUsers(users.filter(user => user.id !== selectedUser.id));
+      setUsers(users.filter((user) => user.id !== selectedUser.id));
       toast({
-        title: t('systemUsers.deleteSuccess'),
-        variant: 'success'
+        title: t("systemUsers.deleteSuccess"),
+        variant: "success",
       });
       setIsDeleteDialogOpen(false);
       setSelectedUser(null);
@@ -166,117 +213,143 @@ const SystemUsersPage: React.FC = () => {
 
   const handleResetPassword = () => {
     if (selectedUser && newPassword) {
-      setUsers(users.map(user => 
-        user.id === selectedUser.id ? { ...user, password: newPassword } : user
-      ));
+      setUsers(
+        users.map((user) =>
+          user.id === selectedUser.id
+            ? { ...user, password: newPassword }
+            : user
+        )
+      );
       toast({
-        title: t('systemUsers.passwordResetSuccess'),
-        variant: 'success'
+        title: t("systemUsers.passwordResetSuccess"),
+        variant: "success",
       });
       setIsResetPasswordDialogOpen(false);
       setSelectedUser(null);
-      setNewPassword('');
+      setNewPassword("");
     }
   };
+
+  useEffect(() => {
+    setLoading(true);
+    getUsers(limit, page)
+      .then((res) => {
+        setUsers(res.data.data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching users:", err);
+        setLoading(false);
+      });
+  }, [limit, page]);
 
   const getFullName = (user: SystemUser) => {
     const names = [
       user.first_name,
       user.second_name,
       user.third_name,
-      user.last_name
+      user.last_name,
     ].filter(Boolean);
-    return names.join(' ');
+    return names.join(" ");
   };
 
   const columns = [
     {
-      key: 'id_no' as keyof SystemUser,
-      title: t('table.headers.systemUsers.idNo'),
+      key: "id_no" as keyof SystemUser,
+      title: t("table.headers.systemUsers.idNo"),
       render: (value: string) => (
-        <div className={cn(
-          "font-medium text-[#1A5F5E]",
-          isRTL ? "text-right" : "text-left"
-        )}>
+        <div
+          className={cn(
+            "font-medium text-[#1A5F5E]",
+            isRTL ? "text-right" : "text-left"
+          )}
+        >
           {value}
         </div>
       ),
     },
     {
-      key: 'username' as keyof SystemUser,
-      title: t('table.headers.systemUsers.username'),
+      key: "username" as keyof SystemUser,
+      title: t("table.headers.systemUsers.username"),
       render: (value: string) => (
-        <div className={cn(
-          "font-medium text-[#1A5F5E]",
-          isRTL ? "text-right" : "text-left"
-        )}>
+        <div
+          className={cn(
+            "font-medium text-[#1A5F5E]",
+            isRTL ? "text-right" : "text-left"
+          )}
+        >
           {value}
         </div>
       ),
     },
     {
-      key: 'email' as keyof SystemUser,
-      title: t('table.headers.systemUsers.email'),
+      key: "email" as keyof SystemUser,
+      title: t("table.headers.systemUsers.email"),
       render: (value: string) => (
-        <div className={cn(
-          "text-gray-600",
-          isRTL ? "text-right" : "text-left"
-        )}>
+        <div
+          className={cn("text-gray-600", isRTL ? "text-right" : "text-left")}
+        >
           {value}
         </div>
       ),
     },
     {
-      key: 'first_name' as keyof SystemUser,
-      title: t('table.headers.systemUsers.fullName'),
+      key: "first_name" as keyof SystemUser,
+      title: t("table.headers.systemUsers.fullName"),
       render: (_: string, user: SystemUser) => (
-        <div className={cn(
-          "text-gray-600",
-          isRTL ? "text-right" : "text-left"
-        )}>
+        <div
+          className={cn("text-gray-600", isRTL ? "text-right" : "text-left")}
+        >
           {getFullName(user)}
         </div>
       ),
     },
     {
-      key: 'gender' as keyof SystemUser,
-      title: t('table.headers.systemUsers.gender'),
-      render: (value: 'male' | 'female') => (
-        <Badge className={cn(
-          value === "male" ? "bg-blue-100 text-blue-800" : "bg-pink-100 text-pink-800",
-          isRTL ? "ml-2" : "mr-2"
-        )}>
+      key: "gender" as keyof SystemUser,
+      title: t("table.headers.systemUsers.gender"),
+      render: (value: "male" | "female") => (
+        <Badge
+          className={cn(
+            value === "male"
+              ? "bg-blue-100 text-blue-800"
+              : "bg-pink-100 text-pink-800",
+            isRTL ? "ml-2" : "mr-2"
+          )}
+        >
           {value}
         </Badge>
       ),
     },
     {
-      key: 'phone_number' as keyof SystemUser,
-      title: t('table.headers.systemUsers.phoneNumber'),
+      key: "phone_number" as keyof SystemUser,
+      title: t("table.headers.systemUsers.phoneNumber"),
       render: (value: string) => (
-        <div className={cn(
-          "text-gray-600",
-          isRTL ? "text-right" : "text-left"
-        )}>
+        <div
+          className={cn("text-gray-600", isRTL ? "text-right" : "text-left")}
+        >
           {value}
         </div>
       ),
     },
     {
-      key: 'status' as keyof SystemUser,
-      title: t('table.headers.systemUsers.status'),
-      render: (value: 'active' | 'inactive') => (
-        <Badge className={cn(
-          value === "active" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800",
-          isRTL ? "ml-2" : "mr-2"
-        )}>
+      key: "status" as keyof SystemUser,
+      title: t("table.headers.systemUsers.status"),
+      render: (value: "active" | "inactive") => (
+        <Badge
+          className={cn(
+            value === "active"
+              ? "bg-green-100 text-green-800"
+              : "bg-red-100 text-red-800",
+            isRTL ? "ml-2" : "mr-2"
+          )}
+        >
           {value}
         </Badge>
       ),
     },
     {
-      key: 'actions' as keyof SystemUser,
-      title: t('table.headers.systemUsers.actions'),
+      key: "actions" as keyof SystemUser,
+      title: t("table.headers.systemUsers.actions"),
       render: (_: string, user: SystemUser) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -285,7 +358,7 @@ const SystemUsersPage: React.FC = () => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => {
+            {/* <DropdownMenuItem onClick={() => {
               setSelectedUser(user);
               setFormData({
                 id_no: user.id_no,
@@ -305,20 +378,24 @@ const SystemUsersPage: React.FC = () => {
             }}>
               <Pencil className="h-4 w-4 mr-2" />
               {t('systemUsers.edit')}
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => {
-              setSelectedUser(user);
-              setIsResetPasswordDialogOpen(true);
-            }}>
+            </DropdownMenuItem> */}
+            <DropdownMenuItem
+              onClick={() => {
+                setSelectedUser(user);
+                setIsResetPasswordDialogOpen(true);
+              }}
+            >
               <Key className="h-4 w-4 mr-2" />
-              {t('systemUsers.resetPassword')}
+              {t("systemUsers.resetPassword")}
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => {
-              setSelectedUser(user);
-              setIsDeleteDialogOpen(true);
-            }}>
+            <DropdownMenuItem
+              onClick={() => {
+                setSelectedUser(user);
+                setIsDeleteDialogOpen(true);
+              }}
+            >
               <Trash2 className="h-4 w-4 mr-2" />
-              {t('systemUsers.delete')}
+              {t("systemUsers.delete")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -326,14 +403,13 @@ const SystemUsersPage: React.FC = () => {
     },
   ];
 
+  if (loading) return <div>{t("loading")}...</div>;
+
   return (
-    <div className={cn(
-      "space-y-4",
-      isRTL ? "rtl" : "ltr"
-    )}>
+    <div className={cn("space-y-4", isRTL ? "rtl" : "ltr")}>
       <PageHeader
-        title={t('navigation.systemUsers')}
-        description={t('systemUsers.description')}
+        title={t("navigation.systemUsers")}
+        description={t("systemUsers.description")}
         isRTL={isRTL}
       >
         <Button
@@ -341,7 +417,7 @@ const SystemUsersPage: React.FC = () => {
           className="bg-[#1A5F5E] hover:bg-[#1A5F5E]/90"
         >
           <Plus className="h-4 w-4 mr-2" />
-          {t('systemUsers.add')}
+          {t("systemUsers.add")}
         </Button>
       </PageHeader>
 
@@ -351,17 +427,50 @@ const SystemUsersPage: React.FC = () => {
           columns={columns}
           searchable
           pagination
-          pageSize={10}
+          pageSize={15}
         />
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex gap-2 items-center">
+            <label>{t("Rows per page")}:</label>
+            <select
+              value={limit}
+              onChange={(e) => {
+                setPage(1); // الرجوع للصفحة الأولى عند تغيير العدد
+                setLimit(Number(e.target.value));
+              }}
+              className="border rounded px-2 py-1"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
+
+          <div className="flex gap-2 py-5">
+            <Button
+              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+              disabled={page === 1}
+            >
+              {t("Previous")}
+            </Button>
+            <span className="py-2">
+              {t("Page")}: {page}
+            </span>
+            <Button onClick={() => setPage((prev) => prev + 1)}>
+              {t("Next")}
+            </Button>
+          </div>
+        </div>
       </Card>
 
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader className="pb-4">
             <DialogTitle>{t('systemUsers.add')}</DialogTitle>
           </DialogHeader>
           <form onSubmit={(e) => { e.preventDefault(); handleAddUser(); }} className="space-y-6">
-            {/* Personal Information */}
+
             <div className="space-y-4">
               <h3 className="text-base font-semibold text-[#1A5F5E] pb-1 border-b">{t('systemUsers.personalInfo')}</h3>
               <div className="grid grid-cols-2 gap-4">
@@ -436,7 +545,6 @@ const SystemUsersPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Contact Information */}
             <div className="space-y-4">
               <h3 className="text-base font-semibold text-[#1A5F5E] pb-1 border-b">{t('systemUsers.contactInfo')}</h3>
               <div className="grid grid-cols-2 gap-4">
@@ -477,7 +585,6 @@ const SystemUsersPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Account Information */}
             <div className="space-y-4">
               <h3 className="text-base font-semibold text-[#1A5F5E] pb-1 border-b">{t('systemUsers.accountInfo')}</h3>
               <div className="grid grid-cols-2 gap-4">
@@ -535,7 +642,6 @@ const SystemUsersPage: React.FC = () => {
             <DialogTitle>{t('systemUsers.edit')}</DialogTitle>
           </DialogHeader>
           <form onSubmit={(e) => { e.preventDefault(); handleEditUser(); }} className="space-y-6">
-            {/* Personal Information */}
             <div className="space-y-4">
               <h3 className="text-base font-semibold text-[#1A5F5E] pb-1 border-b">{t('systemUsers.personalInfo')}</h3>
               <div className="grid grid-cols-2 gap-4">
@@ -610,7 +716,6 @@ const SystemUsersPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Contact Information */}
             <div className="space-y-4">
               <h3 className="text-base font-semibold text-[#1A5F5E] pb-1 border-b">{t('systemUsers.contactInfo')}</h3>
               <div className="grid grid-cols-2 gap-4">
@@ -651,7 +756,6 @@ const SystemUsersPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Account Information */}
             <div className="space-y-4">
               <h3 className="text-base font-semibold text-[#1A5F5E] pb-1 border-b">{t('systemUsers.accountInfo')}</h3>
               <div className="grid grid-cols-2 gap-4">
@@ -726,4 +830,4 @@ const SystemUsersPage: React.FC = () => {
   );
 };
 
-export default SystemUsersPage; 
+export default SystemUsersPage;
