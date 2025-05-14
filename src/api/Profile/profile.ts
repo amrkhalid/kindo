@@ -1,4 +1,4 @@
-import axios from "./axiosInstance";
+import axios from "../axiosInstance";
 
 interface GetUserProfileResponse {
   id: string;
@@ -23,6 +23,6 @@ export const getUserProfile = () => {
 };
 
 export const updateUserProfile = (data: Partial<GetUserProfileResponse>) => {
-    return axios.patch<GetUserProfileResponse>("/profile/update-profile", data);
+    return axios.put<GetUserProfileResponse>("/profile/update-profile", data);
   };
   

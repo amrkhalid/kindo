@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/ui/page-header";
-import { getUserProfile, updateUserProfile } from "@/api/profile";
+import { getUserProfile, updateUserProfile } from "@/api/Profile/profile";
 
 export default function ProfilePage() {
   const { t, i18n } = useTranslation();
@@ -51,8 +51,8 @@ export default function ProfilePage() {
       setLoading(true);
       const updatedData = {
         phone_number: profile.phone_number,
-        first_name: profile.first_name,
-        last_name: profile.last_name,
+        // first_name: profile.first_name,
+        // last_name: profile.last_name,
         email: profile.email,
       };
       const response = await updateUserProfile(updatedData);
@@ -65,7 +65,7 @@ export default function ProfilePage() {
       setLoading(false);
     }
   };
-  
+
   const languages = [
     { code: "en", label: "English", dir: "ltr" },
     { code: "ar", label: "العربية", dir: "rtl" },
@@ -131,6 +131,7 @@ export default function ProfilePage() {
                     name="first_name"
                     value={profile.first_name}
                     onChange={handleChange}
+                    disabled
                   />
                 </div>
                 <div className="space-y-2">
@@ -140,6 +141,7 @@ export default function ProfilePage() {
                     name="last_name"
                     value={profile.last_name}
                     onChange={handleChange}
+                    disabled
                   />
                 </div>
                 <div className="space-y-2">

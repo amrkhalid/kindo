@@ -1,4 +1,4 @@
-import axios from "./axiosInstance";
+import axios from "../axiosInstance";
 
 interface LoginRequest {
   username: string;
@@ -27,11 +27,7 @@ interface LoginResponse {
   token: string;
   user: User;
 }
-
-
 export const login = (data: LoginRequest) =>
   axios.post<LoginResponse>("/auth/login/web", data);
 
 export const getMe = () => axios.get("/users/me");
-
-export const logout = () => axios.post("/auth/logout");

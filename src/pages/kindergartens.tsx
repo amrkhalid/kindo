@@ -1,53 +1,24 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { DataTable } from "@/components/ui/data-table";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { kindergartens as initialKindergartens } from "@/lib/data";
 import { Badge } from "@/components/ui/badge";
-import { AddKindergartenDialog } from "@/components/dialogs/add-kindergarten-dialog";
-import { Kindergarten } from "@/types";
+import { getMyKG, Kindergarten, Plan } from "@/api/Profile/myKG";
 import { useToast } from "@/hooks/use-toast";
 import { KindergartenDialog } from '@/components/dialogs/kindergarten-dialog';
 import { DeleteDialog } from '@/components/dialogs/delete-dialog';
 import { Column } from '@/types/data-table';
 import { toast } from 'sonner';
-import { Plan } from '@/types/plan';
+import { createKindergarten, CreateKindergartenRequest, deleteKindergarten, updateKindergarten } from "@/api/Kindergarten/Kindergartens/kindergartenApis";
 
-// Mock plans data - replace with actual API call
-const mockPlans: Plan[] = [
-  {
-    id: "1",
-    name: "Basic Plan",
-    startDate: new Date().toISOString(),
-    endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-    cost: 99.99,
-    discount: 0,
-    enable: true,
-    buildIn: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "2",
-    name: "Premium Plan",
-    startDate: new Date().toISOString(),
-    endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-    cost: 199.99,
-    discount: 10,
-    enable: true,
-    buildIn: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
 
 const KindergartensPage = () => {
   const { t, i18n } = useTranslation();
   const { toast } = useToast();
-  const [kindergartens, setKindergartens] = useState<Kindergarten[]>(initialKindergartens);
+  const [kindergartens, setKindergartens] = useState<Kindergarten[]>([]);
   const [selectedKindergarten, setSelectedKindergarten] = useState<Kindergarten | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -61,11 +32,41 @@ const KindergartensPage = () => {
     { code: 'he', label: 'עברית', dir: 'rtl' }
   ];
 
+  // Mock plans data - replace with actual API call
+const mockPlans: Plan[] = [
+  {
+    _id: "67f954f665d12a811dcc15ca",
+    name: "Basic Plan",
+    startDate: new Date().toISOString(),
+    endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    cost: 99.99,
+    discount: 0,
+    enable: true,
+    buildIn: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    __v:0
+  },
+  {
+    _id: "67f954f665d12a811dcc15ca",
+    name: "Premium Plan",
+    startDate: new Date().toISOString(),
+    endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    cost: 199.99,
+    discount: 10,
+    enable: true,
+    buildIn: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    __v:0
+  },
+  ];
+
   const isRTL = languages.find(lang => lang.code === i18n.language)?.dir === 'rtl';
 
   const columns: Column<Kindergarten>[] = [
     {
-      key: 'name' as keyof Kindergarten,
+      key: 'name',
       title: t('table.headers.kindergartens.name'),
       render: (value: string) => (
         <div className={cn(
@@ -77,7 +78,7 @@ const KindergartensPage = () => {
       ),
     },
     {
-      key: 'address' as keyof Kindergarten,
+      key: 'address',
       title: t('table.headers.kindergartens.address'),
       render: (value: string) => (
         <div className={cn(
@@ -89,7 +90,7 @@ const KindergartensPage = () => {
       ),
     },
     {
-      key: 'phoneNumber' as keyof Kindergarten,
+      key: 'phone_number',
       title: t('table.headers.kindergartens.phoneNumber'),
       render: (value: string) => (
         <div className={cn(
@@ -101,7 +102,7 @@ const KindergartensPage = () => {
       ),
     },
     {
-      key: 'isActive' as keyof Kindergarten,
+      key: 'is_active',
       title: t('table.headers.kindergartens.isActive'),
       render: (value: boolean) => (
         <Badge className={value ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
@@ -110,7 +111,7 @@ const KindergartensPage = () => {
       ),
     },
     {
-      key: 'joinDate' as keyof Kindergarten,
+      key: 'created_at',
       title: t('table.headers.kindergartens.joinDate'),
       render: (value: string) => (
         <div className={cn(
@@ -121,38 +122,35 @@ const KindergartensPage = () => {
         </div>
       ),
     },
-    {
-      key: 'createdBy' as keyof Kindergarten,
-      title: t('table.headers.kindergartens.createdBy'),
-      render: (value: string) => (
-        <div className={cn(
-          "text-gray-600",
-          isRTL ? "text-right" : "text-left"
-        )}>
-          {value}
-        </div>
-      ),
-    },
   ];
 
-  const handleAddKindergarten = async (data: Omit<Kindergarten, 'id' | 'isActive' | 'createdAt' | 'updatedAt'>) => {
+  useEffect(() => {
+    async function fetchMyKG() {
+      try {
+        const response = await getMyKG();
+        setKindergartens(response);
+      } catch (error) {
+        console.error("Failed to fetch my KG", error);
+      }
+    }
+    fetchMyKG();
+  }, []);
+  
+  
+  const handleAddKindergarten = async (data: CreateKindergartenRequest) => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      // TODO: Replace with actual API call
-      const newKindergarten: Kindergarten = {
-        ...data,
-        id: crypto.randomUUID(),
-        isActive: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      setKindergartens([...kindergartens, newKindergarten]);
+      const { data: responseData } = await createKindergarten(data);
+      const newKG: Kindergarten = { ...responseData, __v: 0 };
+  
+      setKindergartens(prev => [...prev, newKG]);
       setIsAddDialogOpen(false);
       toast({
         title: t('common.success'),
         description: t('kindergartens.addSuccess'),
       });
     } catch (error) {
+      console.error(error);
       toast({
         title: t('common.error'),
         description: t('kindergartens.addError'),
@@ -163,22 +161,30 @@ const KindergartensPage = () => {
     }
   };
 
-  const handleEdit = async (data: Omit<Kindergarten, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const handleEdit = async (data: CreateKindergartenRequest) => {
     if (!selectedKindergarten) return;
+  
     try {
       setIsLoading(true);
-      // TODO: Replace with actual API call
-      const updatedKindergartens = kindergartens.map((k) =>
-        k.id === selectedKindergarten.id ? { ...data, id: selectedKindergarten.id, createdAt: selectedKindergarten.createdAt, updatedAt: new Date().toISOString() } : k
+  
+      const response = await updateKindergarten(selectedKindergarten._id, data);
+      const updatedKG: Kindergarten = response.data.result;
+      console.log(response.data.message);
+
+      setKindergartens(prev =>
+        prev.map(k => (k._id === updatedKG._id ? updatedKG : k))
       );
-      setKindergartens(updatedKindergartens);
+
+      window.location.reload();
       setIsEditDialogOpen(false);
       setSelectedKindergarten(null);
+  
       toast({
         title: t('common.success'),
         description: t('kindergartens.editSuccess'),
       });
     } catch (error) {
+      console.error("Edit failed", error);
       toast({
         title: t('common.error'),
         description: t('kindergartens.editError'),
@@ -191,18 +197,27 @@ const KindergartensPage = () => {
 
   const handleDelete = async () => {
     if (!selectedKindergarten) return;
+  
     try {
       setIsLoading(true);
-      // TODO: Replace with actual API call
-      const updatedKindergartens = kindergartens.filter((k) => k.id !== selectedKindergarten.id);
+  
+      await deleteKindergarten(selectedKindergarten._id);
+  
+      const updatedKindergartens = kindergartens.filter(
+        (k) => k._id !== selectedKindergarten._id
+      );
       setKindergartens(updatedKindergartens);
+  
+      window.location.reload();
       setIsDeleteDialogOpen(false);
       setSelectedKindergarten(null);
+  
       toast({
         title: t('common.success'),
         description: t('kindergartens.deleteSuccess'),
       });
     } catch (error) {
+      console.error("Delete failed", error);
       toast({
         title: t('common.error'),
         description: t('kindergartens.deleteError'),
@@ -212,7 +227,8 @@ const KindergartensPage = () => {
       setIsLoading(false);
     }
   };
-
+  
+   
   return (
     <div className={cn("space-y-4", isRTL ? "rtl" : "ltr")}>
       <div className={cn(
@@ -233,7 +249,7 @@ const KindergartensPage = () => {
       </div>
 
       <Card className="p-6">
-        <DataTable
+      <DataTable 
           columns={columns}
           data={kindergartens}
           searchable
@@ -248,7 +264,7 @@ const KindergartensPage = () => {
           }}
         />
       </Card>
-
+      
       <KindergartenDialog
         open={isAddDialogOpen}
         onOpenChange={setIsAddDialogOpen}

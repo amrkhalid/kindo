@@ -14,7 +14,7 @@ import {
 import { Globe } from "lucide-react";
 import { APP } from '@/constants/app';
 import kendoLogo from '@/assets/kindo-logo.png';
-import { login } from '@/api/auth';
+import { login } from '@/api/Auth/Login';
 
 // List of available languages with their directions
 const languages = [

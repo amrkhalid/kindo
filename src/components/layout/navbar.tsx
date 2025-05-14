@@ -21,7 +21,6 @@ import {
   LogOut,
   ChevronRight
 } from "lucide-react";
-import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +29,10 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { SidebarNav } from "./sidebar-nav";
 import kendoLogo from "@/assets/kindo-logo.png";
 import { cn } from "@/lib/utils";
+import { APP } from '@/constants/app';
+import { useNavigate } from 'react-router-dom';
+import { logout } from '@/api/Auth/Logout';
+
 
 interface NavbarProps {
   children?: ReactNode;
@@ -51,6 +54,28 @@ export function Navbar({ children }: NavbarProps) {
   const [time, setTime] = useState('');
   const [date, setDate] = useState('');
   const [dayOfWeek, setDayOfWeek] = useState('');
+  const Token = localStorage.getItem("token");
+  const navigate = useNavigate();
+
+  const handleLogout = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const logoutData = {
+        platform: "web",
+        device_information: {
+          token: Token, 
+        },
+      };
+      const response = await logout(logoutData);
+      localStorage.removeItem("token");
+      console.log("logged out successfully");
+      navigate(APP.ROUTES.LOGIN);
+    } catch (error) {
+      console.error("Failed to log out", error);
+      console.log("Failed to log out");
+    }
+  };
+  
 
   useEffect(() => {
     const updateDateTime = () => {
@@ -209,12 +234,12 @@ export function Navbar({ children }: NavbarProps) {
                 <UserRound className="mr-2 h-4 w-4" />
                 <span>Profile</span>
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate(APP.ROUTES.SETTINGS)}>
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Settings</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Log out</span>
               </DropdownMenuItem>

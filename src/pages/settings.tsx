@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { PageHeader } from '@/components/ui/page-header';
 import { Eye, EyeOff } from 'lucide-react';
+import { resetPassword } from "@/api/Profile/reset-password";
 
 export default function SettingsPage() {
   const { t, i18n } = useTranslation();
@@ -16,9 +17,11 @@ export default function SettingsPage() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
+  const [error, setError] = useState(null);
+
   // List of available languages with their directions
   const languages = [
+
     { code: 'en', label: 'English', dir: 'ltr' },
     { code: 'ar', label: 'العربية', dir: 'rtl' },
     { code: 'he', label: 'עברית', dir: 'rtl' }
@@ -26,10 +29,29 @@ export default function SettingsPage() {
 
   const isRTL = languages.find(lang => lang.code === i18n.language)?.dir === 'rtl';
 
-  const handleChangePassword = (e: React.FormEvent) => {
+  const handleChangePassword = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Add password change logic here
+    setError(null);
+  
+    if (newPassword !== confirmPassword) {
+      setError(t('The new password and confirmation do not match.'));
+      return;
+    }
+  
+    console.log({ oldPassword: currentPassword, newPassword });
+  
+    try {
+      const response = await resetPassword({ oldPassword: currentPassword, newPassword });
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error: any) {
+      console.error(error);
+      const errorMessage = error?.response?.data?.error || t('Failed to change the password. Please try again.');
+      setError(errorMessage);
+    }
   };
+
 
   return (
     <div className={cn("space-y-4 p-4 sm:p-6", isRTL ? "rtl" : "ltr")}>
@@ -118,6 +140,11 @@ export default function SettingsPage() {
                   </Button>
                 </div>
               </div>
+              {error && (
+              <div className="text-sm text-red-500 bg-red-50 p-2 rounded">
+                {error}
+              </div>
+            )}
               <Button type="submit" className="w-full">
                 {t('settings.save')}
               </Button>
