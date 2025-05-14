@@ -44,7 +44,6 @@ export interface CreateUserInput {
   phone_number: string;
   address: string;
 }
-
 export const createUser = (data: CreateUserInput) => {
   return axios.post('/users', data);
 };
@@ -60,5 +59,18 @@ export const resetUserPassword = (id: string, newPassword: string) => {
   return axios.put(`/users/reset_user_password/${id}`, {
     newPassword,
   });
+};
+
+
+
+export interface UpdateUserInput {
+  email?: string;
+  phone_number?: string;
+  address?: string;
+  is_active?: boolean;
+}
+
+export const updateUser = (id: string, data: UpdateUserInput) => {
+  return axios.put(`/users/${id}`, data);
 };
 

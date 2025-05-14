@@ -31,6 +31,7 @@ import {
   createUser,
   deleteUser,
   resetUserPassword,
+  updateUser,
 } from "@/api/User/user";
 
 import {
@@ -144,47 +145,37 @@ const SystemUsersPage: React.FC = () => {
       });
     }
   };
-  const handleEditUser = () => {
-    if (selectedUser) {
-      setUsers(
-        users.map((user) =>
-          user.id === selectedUser.id ? { ...user, ...formData } : user
-        )
-      );
+
+  const handleEditUser = async () => {
+    if (!selectedUser) return;
+
+    try {
+      await updateUser(selectedUser.id, {
+        email: formData.email,
+        phone_number: formData.phone_number,
+        address: formData.address,
+        is_active: formData.is_active,
+      });
+
       toast({
         title: t("systemUsers.editSuccess"),
         variant: "success",
       });
+
       setIsEditDialogOpen(false);
       setSelectedUser(null);
-      setFormData({
-        id_no: "",
-        username: "",
-        email: "",
-        first_name: "",
-        second_name: "",
-        third_name: "",
-        last_name: "",
-        gender: "male",
-        password: "",
-        phone_number: "",
-        address: "",
-        status: "active",
+
+      const res = await getUsers(limit, page);
+      setUsers(res.data.data);
+    } catch (error: any) {
+      toast({
+        title: t("systemUsers.editError"),
+        description: error.response?.data?.message || "Failed to update user",
+        variant: "destructive",
       });
     }
   };
 
-  // const handleDeleteUser = () => {
-  //   if (selectedUser) {
-  //     setUsers(users.filter((user) => user.id !== selectedUser.id));
-  //     toast({
-  //       title: t("systemUsers.deleteSuccess"),
-  //       variant: "success",
-  //     });
-  //     setIsDeleteDialogOpen(false);
-  //     setSelectedUser(null);
-  //   }
-  // };
   const handleDeleteUser = async (userId: string) => {
     try {
       await deleteUser(userId);
@@ -373,27 +364,29 @@ const SystemUsersPage: React.FC = () => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            {/* <DropdownMenuItem onClick={() => {
-              setSelectedUser(user);
-              setFormData({
-                id_no: user.id_no,
-                username: user.username,
-                email: user.email,
-                first_name: user.first_name,
-                second_name: user.second_name,
-                third_name: user.third_name,
-                last_name: user.last_name,
-                gender: user.gender,
-                password: user.password,
-                phone_number: user.phone_number,
-                address: user.address,
-                status: user.status,
-              });
-              setIsEditDialogOpen(true);
-            }}>
+            <DropdownMenuItem
+              onClick={() => {
+                setSelectedUser(user);
+                setFormData({
+                  id_no: user.id_no,
+                  username: user.username,
+                  email: user.email,
+                  first_name: user.first_name,
+                  second_name: user.second_name,
+                  third_name: user.third_name,
+                  last_name: user.last_name,
+                  gender: user.gender,
+                  password: user.password,
+                  phone_number: user.phone_number,
+                  address: user.address,
+                  status: user.status,
+                });
+                setIsEditDialogOpen(true);
+              }}
+            >
               <Pencil className="h-4 w-4 mr-2" />
-              {t('systemUsers.edit')}
-            </DropdownMenuItem> */}
+              {t("systemUsers.edit")}
+            </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => {
                 setSelectedUser(user);
@@ -854,12 +847,17 @@ const SystemUsersPage: React.FC = () => {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="status" className="text-sm font-medium">
+                  <Label htmlFor="is_active" className="text-sm font-medium">
                     {t("systemUsers.status")}
                   </Label>
                   <Select
-                    value={formData.status}
-                    onValueChange={handleStatusChange}
+                    value={formData.is_active ? "active" : "inactive"}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        is_active: value === "active",
+                      }))
+                    }
                   >
                     <SelectTrigger className="h-9">
                       <SelectValue
