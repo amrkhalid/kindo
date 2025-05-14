@@ -1,5 +1,39 @@
 import axiosInstance from "@/api/axiosInstance";
-import { Kindergarten } from "@/api/Profile/myKG";
+
+export interface Kindergarten {
+  _id: string;
+  name: string;
+  address: string;
+  phone_number: string;
+  is_active: boolean;
+  plan_id: string;
+  created_at: string;
+  updated_at: string;
+  __v: number;
+}
+
+export interface Plan {
+  _id: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  cost: number;
+  discount: number;
+  enable: boolean;
+  buildIn: boolean;
+  created_at: string;
+  updated_at: string;
+  __v: number;
+}
+
+export interface Feature {
+  id: string;
+  name: string;
+  enable: boolean;
+  buildIn: boolean;
+  created_at: string;
+  updated_at: string;
+}
 
 export interface CreateKindergartenRequest {
     name: string;
