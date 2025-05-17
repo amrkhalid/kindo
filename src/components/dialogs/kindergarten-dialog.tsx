@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { MultiSelect } from "@/components/ui/multi-select";
-import { Kindergarten, Plan } from "@/api/Profile/myKG";
+import { Plan, Kindergarten } from "@/api/Kindergarten/Kindergartens/kindergartenApis";
 
 const kindergartenSchema = z.object({
   name: z.string().min(1, "Name is required"),

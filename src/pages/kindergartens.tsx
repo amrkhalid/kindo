@@ -6,13 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { getMyKG, Kindergarten, Plan } from "@/api/Profile/myKG";
+import { getMyKG } from "@/api/Profile/myKG";
 import { useToast } from "@/hooks/use-toast";
 import { KindergartenDialog } from '@/components/dialogs/kindergarten-dialog';
 import { DeleteDialog } from '@/components/dialogs/delete-dialog';
 import { Column } from '@/types/data-table';
 import { toast } from 'sonner';
-import { createKindergarten, CreateKindergartenRequest, deleteKindergarten, updateKindergarten } from "@/api/Kindergarten/Kindergartens/kindergartenApis";
+import { createKindergarten, CreateKindergartenRequest, deleteKindergarten, Kindergarten, Plan, updateKindergarten } from "@/api/Kindergarten/Kindergartens/kindergartenApis";
 
 
 const KindergartensPage = () => {
