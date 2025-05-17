@@ -11,7 +11,8 @@
     "roles": "الأدوار",
     "financial": "المالية",
     "auditLogs": "سجلات التدقيق",
-    "logout": "تسجيل الخروج"
+    "logout": "تسجيل الخروج",
+    "activities":"الأنشطة"
   },
   "common": {
     "copyright": "© 2025 كيندو",
@@ -471,6 +472,7 @@
     "addSuccess": "تمت إضافة المجموعة بنجاح",
     "addError": "خطأ في إضافة المجموعة",
     "editSuccess": "تم تحديث المجموعة بنجاح",
+    "editDescription": "تعديل المجموعات",
     "editError": "خطأ في تحديث المجموعة",
     "deleteSuccess": "تم حذف المجموعة بنجاح",
     "deleteError": "خطأ في حذف المجموعة",
@@ -522,7 +524,10 @@
     "groupPlaceholder": "اختر المجموعة",
     "assignToGroup": "تعيين إلى مجموعة",
     "assignSuccess": "تم تعيين الطفل إلى المجموعة بنجاح",
-    "assignError": "خطأ في تعيين الطفل إلى المجموعة"
+    "assignError": "خطأ في تعيين الطفل إلى المجموعة",
+    "addDescription":"أدخل طفل جديد"
+
+
   },
   "financial": {
     "title": "المالية",

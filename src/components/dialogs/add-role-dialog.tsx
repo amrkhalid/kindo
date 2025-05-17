@@ -78,45 +78,45 @@ export function AddRoleDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{t('roles.addStaffRoleTitle')}</DialogTitle>
+          <DialogTitle>{t('roles.modal.addStaffRoleTitle')}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="username">{t('roles.username')}</Label>
+            <Label htmlFor="username">{t('roles.modal.username')}</Label>
             <Input
               id="username"
               value={form.username}
               onChange={(e) => setForm({ ...form, username: e.target.value })}
-              placeholder={t('roles.usernamePlaceholder')}
+              placeholder={t('roles.modal.usernamePlaceholder')}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email">{t('roles.email')}</Label>
+            <Label htmlFor="email">{t('roles.modal.email')}</Label>
             <Input
               id="email"
               type="email"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
-              placeholder={t('roles.emailPlaceholder')}
+              placeholder={t('roles.modal.emailPlaceholder')}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="identity">{t('roles.idNumber')}</Label>
+            <Label htmlFor="identity">{t('roles.modal.idNumber')}</Label>
             <Input
               id="identity"
               value={form.identity}
               onChange={(e) => setForm({ ...form, identity: e.target.value })}
-              placeholder={t('roles.idNumberPlaceholder')}
+              placeholder={t('roles.modal.idNumberPlaceholder')}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="role">{t('roles.role')}</Label>
+            <Label htmlFor="role">{t('roles.modal.role')}</Label>
             <Select
               value={form.role}
               onValueChange={(value: RoleType) => setForm({ ...form, role: value })}
             >
               <SelectTrigger>
-                <SelectValue placeholder={t('roles.rolePlaceholder')} />
+                <SelectValue placeholder={t('roles.modal.rolePlaceholder')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="manager">{t('roles.manager', 'Manager')}</SelectItem>
@@ -125,7 +125,7 @@ export function AddRoleDialog({
             </Select>
           </div>
           <DialogFooter>
-            <Button type="submit">{t('roles.addRole')}</Button>
+            <Button type="submit">{t('roles.modal.addRole')}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

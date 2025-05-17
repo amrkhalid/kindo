@@ -11,7 +11,9 @@
     "roles": "Roles",
     "financial": "Financial",
     "auditLogs": "Audit Logs",
-    "logout": "Logout"
+    "logout": "Logout",
+    "features": "Features",
+    "activities":"Activities"
   },
   "common": {
     "copyright": "© 2025 Kendo",
@@ -326,8 +328,11 @@
   },
   "auditLogs": {
     "title": "Audit Logs",
+    "timestamp":"Timestamp",
+    "user": "User",
     "action": "Action",
     "fullName": "Full Name",
+    "details": "Details",
     "message": "Message",
     "description": "Description",
     "createdAt": "Created At",
@@ -363,6 +368,7 @@
     "isActivePlaceholder": "Set kindergarten status",
     "selectPlans": "Select Plan",
     "plans": "Plan",
+    "addDescription":"Enter kindergarten data",
     "No results found": "No results found"
   },
   "children": {
@@ -403,7 +409,9 @@
     "groupPlaceholder": "Select group",
     "assignToGroup": "Assign to Group",
     "assignSuccess": "Child assigned to group successfully",
-    "assignError": "Error assigning child to group"
+    "assignError": "Error assigning child to group",
+    "addDescription":"Enter a new child"
+
   },
   "groups": {
     "title": "Groups",
@@ -420,6 +428,7 @@
     "editSuccess": "Group updated successfully",
     "editError": "Error updating group",
     "deleteSuccess": "Group deleted successfully",
+    "editDescription": "Edit Groups",
     "deleteError": "Error deleting group",
     "deleteTitle": "Delete Group",
     "deleteDescription": "Are you sure you want to delete this group?",
@@ -431,7 +440,9 @@
     "selectGroupPlaceholder": "Choose a group",
     "selectedChildren": "Selected Children",
     "assignChildren": "Assign Children",
-    "assignChildrenDescription": "Select children to assign to this group"
+    "assignChildrenDescription": "Select children to assign to this group",
+    "addDescription": "Enter group data"
+
   },
   "roles": {
     "title": "Roles",
@@ -473,7 +484,8 @@
       "role": "Role",
       "usernamePlaceholder": "Enter username",
       "emailPlaceholder": "Email address",
-      "idNumberPlaceholder": "Identity number"
+      "idNumberPlaceholder": "Identity number",
+      "addRole": "Add Role"
     }
   },
   "financial": {
@@ -502,8 +514,10 @@
     "amountPlaceholder": "Enter amount",
     "paymentMethodPlaceholder": "Select payment method",
     "paymentDatePlaceholder": "Select payment date",
+    "notesPlaceholder": "Enter Notes",
     "statusPlaceholder": "Select status",
     "date": "Payment Date",
+    "notes": "Notes",
     "addTransaction": "Add Transaction"
   },
   "plans": {

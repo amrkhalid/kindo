@@ -30,58 +30,69 @@ export function SidebarNav({ className, isCollapsed, ...props }: SidebarNavProps
   const isRTL = i18n.dir() === 'rtl';
 
   const navItems = [
-    {
-      title: t('nav.dashboard'),
-      href: '/',
-      icon: LayoutDashboard,
-    },
-    {
-      title: t('nav.kindergartens'),
-      href: '/kindergartens',
-      icon: School,
-    },
-    {
-      title: t('nav.children'),
+        {
+      title: t('navbar.children'),
       href: '/children',
       icon: Baby,
     },
     {
-      title: t('nav.groups'),
+      title: t('navbar.roles'),
+      href: '/roles',
+      icon: UserCog,
+    },
+    
+    {
+      title: t('navbar.groups'),
       href: '/groups',
       icon: Users,
     },
-    {
-      title: t('nav.activities'),
-      href: '/activities',
-      icon: Calendar,
-    },
-    {
-      title: t('nav.financial'),
+        {
+      title: t('navbar.financial'),
       href: '/financial',
       icon: FileText,
     },
+
+
+    {
+      title: t('navbar.activities'),
+      href: '/activities',
+      icon: Calendar,
+    },
+
   ];
 
   const adminItems = [
+        {
+      title: t('navbar.dashboard'),
+      href: '/',
+      icon: LayoutDashboard,
+    },
+        {
+      title: t('navbar.kindergartens'),
+      href: '/kindergartens',
+      icon: School,
+    },
+       {
+      title: t('navigation.systemUsers'),
+      href: '/system-users',
+      icon: Wrench,
+    },
+
+      {
+      title: t('navbar.auditLogs'),
+      href: '/audit-logs',
+      icon: Wrench,
+    },
+
     {
-      title: t('nav.plans'),
+      title: t('navigation.plans'),
       href: '/plans',
       icon: Package,
     },
     {
-      title: t('nav.features'),
+      title: t('navbar.features'),
       href: '/features',
       icon: Code,
-    },
-    {
-      title: t('nav.roles'),
-      href: '/roles',
-      icon: UserCog,
-    },
-    {
-      title: t('nav.systemUsers'),
-      href: '/system-users',
-      icon: Wrench,
     },
   ];
 
@@ -121,11 +132,27 @@ export function SidebarNav({ className, isCollapsed, ...props }: SidebarNavProps
       "flex flex-col gap-2",
       className
     )} {...props}>
-      <div className="flex flex-col gap-2">
+
+      
+
+
+    <div className="flex flex-col gap-2">
+      
+        <div className={cn(
+          "px-3 text-xs font-semibold text-muted-foreground",
+          isCollapsed && "text-center",
+          isRTL && "text-right"
+        )}>
+          
+          {t('navigation.general')}
+          <Separator className="my-2" />
+        </div>
         {navItems.map(renderNavItem)}
       </div>
 
-      <Separator className="my-2" />
+      <div className="pt-5">
+
+      </div>
 
       <div className="flex flex-col gap-2">
         <div className={cn(
@@ -133,7 +160,8 @@ export function SidebarNav({ className, isCollapsed, ...props }: SidebarNavProps
           isCollapsed && "text-center",
           isRTL && "text-right"
         )}>
-          {t('nav.admin')}
+          {t('navigation.developerOptions')}
+          <Separator className="my-2" />
         </div>
         {adminItems.map(renderNavItem)}
       </div>
