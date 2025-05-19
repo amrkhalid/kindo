@@ -8,15 +8,13 @@ import { ChildDialog } from '@/components/dialogs/child-dialog';
 import { DeleteDialog } from '@/components/dialogs/delete-dialog';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { AssignChildrenDialog } from '@/components/dialogs/assign-children-dialog';
 import { Group } from '@/types/group';
 import { Column } from '@/types/data-table';
 import { Badge } from "@/components/ui/badge";
-import { childrenService } from '@/services/children.service';
-import { Child } from '@/types/child';
 import { format } from 'date-fns';
 import { useRTL } from "@/hooks/use-rtl";
 import { PageHeader } from '@/components/ui/page-header';
+import { Child, createChild, CreateChildRequest, deleteChild, getAllChildren } from '@/api/Kindergarten/Children/childrenApis';
 
 const mockGroups: Group[] = [
   {
@@ -35,10 +33,12 @@ const ChildrenPage: React.FC = () => {
   const { t } = useTranslation();
   const { toast } = useToast();
   const { isRTL } = useRTL();
+  const Kg_id = localStorage.getItem("selectedKG");
+
 
   const columns: Column<Child>[] = [
     {
-      key: "firstName",
+      key: "first_name",
       title: t('table.headers.children.firstName'),
       render: (value: string) => (
         <div className={cn(
@@ -50,7 +50,7 @@ const ChildrenPage: React.FC = () => {
       ),
     },
     {
-      key: "lastName",
+      key: "last_name",
       title: t('table.headers.children.lastName'),
       render: (value: string) => (
         <div className={cn(
@@ -62,15 +62,15 @@ const ChildrenPage: React.FC = () => {
       ),
     },
     {
-      key: "dateOfBirth",
+      key: "birth_date",
       title: t('table.headers.children.dateOfBirth'),
       render: (value: string) => (
         <div className={cn(
           "text-gray-600",
           isRTL ? "text-right" : "text-left"
         )}>
-          {format(new Date(value), "PPP")}
-        </div>
+          {new Date(value).toLocaleDateString()}
+          </div>
       ),
     },
     {
@@ -83,7 +83,7 @@ const ChildrenPage: React.FC = () => {
       ),
     },
     {
-      key: "parentId",
+      key: "mother_idno",
       title: t('table.headers.children.parentId'),
       render: (value: string) => (
         <div className={cn(
@@ -106,11 +106,10 @@ const ChildrenPage: React.FC = () => {
   ];
 
   const [children, setChildren] = useState<Child[]>([]);
-  const [selectedChildren, setSelectedChildren] = useState<Child[]>([]);
+  const [selectedChildren, setSelectedChildren] = useState<Child | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
 
   useEffect(() => {
     loadChildren();
@@ -118,8 +117,9 @@ const ChildrenPage: React.FC = () => {
 
   const loadChildren = async () => {
     try {
-      const data = await childrenService.getAllChildren();
+      const data = await getAllChildren(Kg_id);
       setChildren(data);
+      console.log("ch",data)
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -129,23 +129,23 @@ const ChildrenPage: React.FC = () => {
     }
   };
 
-  const handleAdd = async (data: Omit<Child, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const handleAdd = async (data: CreateChildRequest) => {
+    console.log(data);
+
     try {
-      const newChild = await childrenService.createChild({
-        firstName: data.firstName,
-        lastName: data.lastName,
-        dateOfBirth: data.dateOfBirth,
-        gender: data.gender,
-        parentId: data.parentId,
-        groupId: data.groupId,
-      });
-      setChildren((prev) => [...prev, newChild]);
+      const { data: responseData } = await createChild( Kg_id, data);
+      const newChild: Child = { ...responseData };
+
+      console.log(newChild);
+
+      setChildren(prev => [...prev, newChild]);
       setIsAddDialogOpen(false);
       toast({
         title: t('common.success'),
         description: t('children.addSuccess'),
       });
     } catch (error) {
+      console.error(error);
       toast({
         variant: 'destructive',
         title: t('common.error'),
@@ -154,52 +154,54 @@ const ChildrenPage: React.FC = () => {
     }
   };
 
-  const handleEdit = async (data: Omit<Child, 'id' | 'createdAt' | 'updatedAt'>) => {
-    if (!selectedChildren.length) return;
+  // const handleEdit = async (data: Omit<Child, 'id' | 'createdAt' | 'updatedAt'>) => {
+  //   if (!selectedChildren.length) return;
 
-    try {
-      const updatedChildren = await Promise.all(
-        selectedChildren.map((child) => childrenService.updateChild(child.id, {
-          firstName: data.firstName,
-          lastName: data.lastName,
-          dateOfBirth: data.dateOfBirth,
-          gender: data.gender,
-          parentId: data.parentId,
-          groupId: data.groupId,
-        }))
-      );
-      setChildren((prev) =>
-        prev.map((child) =>
-          updatedChildren.find((updated) => updated.id === child.id) || child
-        )
-      );
-      setIsEditDialogOpen(false);
-      setSelectedChildren([]);
-      toast({
-        title: t('common.success'),
-        description: t('children.editSuccess'),
-      });
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: t('common.error'),
-        description: t('children.editError'),
-      });
-    }
-  };
+  //   try {
+  //     const updatedChildren = await Promise.all(
+  //       selectedChildren.map((child) => childrenService.updateChild(child.id, {
+  //         firstName: data.firstName,
+  //         lastName: data.lastName,
+  //         dateOfBirth: data.dateOfBirth,
+  //         gender: data.gender,
+  //         parentId: data.parentId,
+  //         groupId: data.groupId,
+  //       }))
+  //     );
+  //     setChildren((prev) =>
+  //       prev.map((child) =>
+  //         updatedChildren.find((updated) => updated.id === child.id) || child
+  //       )
+  //     );
+  //     setIsEditDialogOpen(false);
+  //     setSelectedChildren([]);
+  //     toast({
+  //       title: t('common.success'),
+  //       description: t('children.editSuccess'),
+  //     });
+  //   } catch (error) {
+  //     toast({
+  //       variant: 'destructive',
+  //       title: t('common.error'),
+  //       description: t('children.editError'),
+  //     });
+  //   }
+  // };
 
   const handleDelete = async () => {
-    if (!selectedChildren.length) return;
+    if (!selectedChildren) return;
+
+    console.log("selected",selectedChildren.id);
 
     try {
-      await Promise.all(
-        selectedChildren.map((child) => childrenService.deleteChild(child.id))
+      await deleteChild(Kg_id,selectedChildren.id);
+      const updatedChildren = children.filter(
+        (k) => k.id !== selectedChildren.id
       );
-      setChildren((prev) =>
-        prev.filter((child) => !selectedChildren.some((selected) => selected.id === child.id))
-      );
+
+      setChildren(updatedChildren);
       setIsDeleteDialogOpen(false);
-      setSelectedChildren([]);
+      setSelectedChildren(null);
       toast({
         title: t('common.success'),
         description: t('children.deleteSuccess'),
@@ -209,33 +211,6 @@ const ChildrenPage: React.FC = () => {
         variant: 'destructive',
         title: t('common.error'),
         description: t('children.deleteError'),
-      });
-    }
-  };
-
-  const handleAssign = async (group: Group) => {
-    try {
-      const updatedChildren = await Promise.all(
-        selectedChildren.map((child) => childrenService.updateChild(child.id, {
-          groupId: group.id,
-        }))
-      );
-      setChildren((prev) =>
-        prev.map((child) =>
-          updatedChildren.find((updated) => updated.id === child.id) || child
-        )
-      );
-      setIsAssignDialogOpen(false);
-      setSelectedChildren([]);
-      toast({
-        title: t('common.success'),
-        description: t('children.assignSuccess'),
-      });
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: t('common.error'),
-        description: t('children.assignError'),
       });
     }
   };
@@ -257,35 +232,24 @@ const ChildrenPage: React.FC = () => {
       </PageHeader>
 
       <Card className="w-full p-6 shadow-sm overflow-hidden mt-6">
-        <DataTable<Child>
+        <DataTable
           columns={columns}
           data={children}
-          onEdit={(child) => {
-            setSelectedChildren([child]);
-            setIsEditDialogOpen(true);
-          }}
-          onDelete={(child) => {
-            setSelectedChildren([child]);
+          // onEdit={(child) => {
+          //   setSelectedChildren([child]);
+          //   setIsEditDialogOpen(true);
+          // }}
+          onDelete={(selectedChildren) => {
+            setSelectedChildren(selectedChildren);
             setIsDeleteDialogOpen(true);
-          }}
-          onAssign={(child) => {
-            setSelectedChildren([child]);
-            setIsAssignDialogOpen(true);
           }}
         />
       </Card>
 
-      <ChildDialog
+       <ChildDialog
         open={isAddDialogOpen}
         onOpenChange={setIsAddDialogOpen}
         onSubmit={handleAdd}
-      />
-
-      <ChildDialog
-        child={selectedChildren[0]}
-        open={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
-        onSubmit={handleEdit}
       />
 
       <DeleteDialog
@@ -293,16 +257,17 @@ const ChildrenPage: React.FC = () => {
         onOpenChange={setIsDeleteDialogOpen}
         onConfirm={handleDelete}
         title={t('children.delete')}
-        description={t('children.deleteConfirmation', { count: selectedChildren.length })}
+        description={t('children.deleteConfirmation')}
       />
 
-      <AssignChildrenDialog
-        open={isAssignDialogOpen}
-        onOpenChange={setIsAssignDialogOpen}
-        onSubmit={handleAssign}
-        groups={mockGroups}
-        children={selectedChildren}
+    {/* 
+      <ChildDialog
+        child={selectedChildren[0]}
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        onSubmit={handleEdit}
       />
+     */}
     </div>
   );
 };

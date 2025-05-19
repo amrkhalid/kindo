@@ -1,4 +1,4 @@
-import React, { useState, useEffect, ReactNode } from 'react';
+import React, { useState, useEffect, ReactNode } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubTrigger,
-  DropdownMenuSubContent
+  DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import {
   Bell,
@@ -19,9 +19,9 @@ import {
   Menu,
   School,
   LogOut,
-  ChevronRight
+  ChevronRight,
 } from "lucide-react";
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -29,31 +29,24 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { SidebarNav } from "./sidebar-nav";
 import kendoLogo from "@/assets/kindo-logo.png";
 import { cn } from "@/lib/utils";
-import { APP } from '@/constants/app';
-import { useNavigate } from 'react-router-dom';
-import { logout } from '@/api/Auth/Logout';
-
+import { APP } from "@/constants/app";
+import { useNavigate } from "react-router-dom";
+import { logout } from "@/api/Auth/Logout";
+import { Kindergarten } from "@/api/Kindergarten/Kindergartens/kindergartenApis";
+import { getMyKG } from "@/api/Profile/myKG";
 
 interface NavbarProps {
   children?: ReactNode;
 }
 
-// Mock data for kindergartens - replace with actual data from your API
-const kindergartens = [
-  { id: 1, name: "Kindergarten 1 " },
-  { id: 2, name: "Kindergarten 2" },
-  { id: 3, name: "Kindergarten 3" },
-  { id: 4, name: "Kindergarten 4" },
-  { id: 5, name: "Kindergarten 5" }
-];
-
 export function Navbar({ children }: NavbarProps) {
   const { t, i18n } = useTranslation();
   const isMobile = useIsMobile();
-  const isRTL = i18n.dir() === 'rtl';
-  const [time, setTime] = useState('');
-  const [date, setDate] = useState('');
-  const [dayOfWeek, setDayOfWeek] = useState('');
+  const isRTL = i18n.dir() === "rtl";
+  const [time, setTime] = useState("");
+  const [date, setDate] = useState("");
+  const [dayOfWeek, setDayOfWeek] = useState("");
+  const [kindergartens, setKindergartens] = useState<Kindergarten[]>([]);
   const Token = localStorage.getItem("token");
   const navigate = useNavigate();
 
@@ -63,7 +56,7 @@ export function Navbar({ children }: NavbarProps) {
       const logoutData = {
         platform: "web",
         device_information: {
-          token: Token, 
+          token: Token,
         },
       };
       const response = await logout(logoutData);
@@ -75,23 +68,35 @@ export function Navbar({ children }: NavbarProps) {
       console.log("Failed to log out");
     }
   };
-  
+
+  useEffect(() => {
+    async function fetchMyKG() {
+      try {
+        const response = await getMyKG();
+        setKindergartens(response);
+        console.log("kg", response);
+      } catch (error) {
+        console.error("Failed to fetch my KG", error);
+      }
+    }
+    fetchMyKG();
+  }, []);
 
   useEffect(() => {
     const updateDateTime = () => {
       const now = new Date();
-      const timeOptions: Intl.DateTimeFormatOptions = { 
-        hour: '2-digit', 
-        minute: '2-digit',
-        hour12: true 
+      const timeOptions: Intl.DateTimeFormatOptions = {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
       };
-      const dateOptions: Intl.DateTimeFormatOptions = { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric' 
+      const dateOptions: Intl.DateTimeFormatOptions = {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
       };
-      const dayOptions: Intl.DateTimeFormatOptions = { 
-        weekday: 'long' 
+      const dayOptions: Intl.DateTimeFormatOptions = {
+        weekday: "long",
       };
 
       setTime(now.toLocaleTimeString(i18n.language, timeOptions));
@@ -105,9 +110,9 @@ export function Navbar({ children }: NavbarProps) {
   }, [i18n.language]);
 
   const languages = [
-    { code: 'en', label: 'English', dir: 'ltr' },
-    { code: 'ar', label: 'العربية', dir: 'rtl' },
-    { code: 'he', label: 'עברית', dir: 'rtl' }
+    { code: "en", label: "English", dir: "ltr" },
+    { code: "ar", label: "العربية", dir: "rtl" },
+    { code: "he", label: "עברית", dir: "rtl" },
   ];
 
   const changeLanguage = (langCode: string) => {
@@ -118,7 +123,9 @@ export function Navbar({ children }: NavbarProps) {
     <div className="border-b">
       <div className="flex h-16 items-center px-2 sm:px-4">
         <div className="flex flex-col items-center min-w-[120px] sm:min-w-[160px] gap-0.5">
-          <span className="text-xl sm:text-2xl font-bold text-[#1A5F5E] tracking-tight leading-none">{time}</span>
+          <span className="text-xl sm:text-2xl font-bold text-[#1A5F5E] tracking-tight leading-none">
+            {time}
+          </span>
           <div className="flex items-center gap-1.5 text-[10px] sm:text-xs tracking-wider font-medium text-muted-foreground/70">
             <span>{dayOfWeek}</span>
             <span>•</span>
@@ -126,9 +133,7 @@ export function Navbar({ children }: NavbarProps) {
           </div>
         </div>
 
-        <div className="flex-1 flex items-center px-2 sm:px-4">
-          {children}
-        </div>
+        <div className="flex-1 flex items-center px-2 sm:px-4">{children}</div>
 
         <div className="flex items-center gap-1 sm:gap-2">
           {/* Mobile menu button */}
@@ -146,11 +151,15 @@ export function Navbar({ children }: NavbarProps) {
                     <div className="flex items-center mb-2">
                       <img src={kendoLogo} alt="Kendo" className="h-8 w-auto" />
                     </div>
-                    <p className="text-sm text-muted-foreground">Kindergarten Management</p>
+                    <p className="text-sm text-muted-foreground">
+                      Kindergarten Management
+                    </p>
                   </div>
                   <SidebarNav className="flex-1" />
                   <div className="border-t pt-4 mt-4">
-                    <p className="text-xs text-muted-foreground">© 2025 Kendo</p>
+                    <p className="text-xs text-muted-foreground">
+                      © 2025 Kendo
+                    </p>
                   </div>
                 </div>
               </SheetContent>
@@ -165,12 +174,9 @@ export function Navbar({ children }: NavbarProps) {
                 <span className="sr-only">Change Language</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent 
-              align={isRTL ? 'start' : 'end'} 
-              className={cn(
-                "w-[200px]",
-                isRTL ? "rtl" : "ltr"
-              )}
+            <DropdownMenuContent
+              align={isRTL ? "start" : "end"}
+              className={cn("w-[200px]", isRTL ? "rtl" : "ltr")}
             >
               {languages.map((lang) => (
                 <DropdownMenuItem
@@ -189,7 +195,7 @@ export function Navbar({ children }: NavbarProps) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8 relative">
                 <Bell className="h-4 w-4" />
-                <Badge 
+                <Badge
                   className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center"
                   variant="destructive"
                 >
@@ -198,12 +204,9 @@ export function Navbar({ children }: NavbarProps) {
                 <span className="sr-only">Notifications</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent 
-              align={isRTL ? 'start' : 'end'}
-              className={cn(
-                "w-[300px] sm:w-[350px]",
-                isRTL ? "rtl" : "ltr"
-              )}
+            <DropdownMenuContent
+              align={isRTL ? "start" : "end"}
+              className={cn("w-[300px] sm:w-[350px]", isRTL ? "rtl" : "ltr")}
             >
               <div className="p-2">
                 <h4 className="text-sm font-medium">Notifications</h4>
@@ -223,12 +226,9 @@ export function Navbar({ children }: NavbarProps) {
                 <span className="sr-only">User menu</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent 
-              align={isRTL ? 'start' : 'end'}
-              className={cn(
-                "w-[200px]",
-                isRTL ? "rtl" : "ltr"
-              )}
+            <DropdownMenuContent
+              align={isRTL ? "start" : "end"}
+              className={cn("w-[200px]", isRTL ? "rtl" : "ltr")}
             >
               <DropdownMenuItem>
                 <UserRound className="mr-2 h-4 w-4" />
@@ -238,6 +238,29 @@ export function Navbar({ children }: NavbarProps) {
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Settings</span>
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              {kindergartens.length > 0 && (
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger>
+                      <School className="mr-2 h-4 w-4" />
+                      <span>{t("Login as KG")}</span>
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent>
+                      {kindergartens.map((kg) => (
+                        <DropdownMenuItem
+                          key={kg._id}
+                          onClick={() => {
+                            console.log("Selected KG:", kg._id);
+                            localStorage.setItem("selectedKG", kg._id);
+                          }}
+                        >
+                          {kg.name}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
+              )}
+
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />

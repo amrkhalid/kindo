@@ -13,24 +13,28 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Child } from '@/types/child';
+import { Child } from '@/api/Kindergarten/Children/childrenApis';
 
 const childSchema = z.object({
-  firstName: z.string().min(1, 'First name is required'),
-  lastName: z.string().min(1, 'Last name is required'),
-  dateOfBirth: z.string().min(1, 'Birth date is required'),
-  gender: z.enum(['male', 'female'], {
-    required_error: 'Gender is required',
-  }),
-  parentId: z.string().min(1, 'Parent ID is required'),
-  groupId: z.string().optional(),
+  first_name: z.string().min(1, 'First name is required'),
+  second_name: z.string().min(1, 'Second name is required'),
+  third_name: z.string().min(1, 'Third name is required'),
+  last_name: z.string().min(1, 'Last name is required'),
+  birth_date: z.string().min(1, 'Birth date is required'),
+  father_idno: z.string().min(1, 'Father ID is required'),
+  mother_idno: z.string().min(1, 'Mother ID is required'),
+  // gender: z.enum(['male', 'female'], {
+  //   required_error: 'Gender is required',
+  // }),
+  // parentId: z.string().min(1, 'Parent ID is required'),
+  // groupId: z.string().optional(),
 });
 
 interface ChildDialogProps {
-  child?: Child;
+  child?: Partial<Child>;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: Child) => void;
+  onSubmit: (data: any) => void;
   isLoading?: boolean;
 }
 
@@ -42,19 +46,22 @@ export function ChildDialog({
   isLoading = false,
 }: ChildDialogProps) {
   const { t } = useTranslation();
-  const form = useForm<Child>({
+
+  const form = useForm({
     resolver: zodResolver(childSchema),
-    defaultValues: child || {
-      firstName: '',
-      lastName: '',
-      dateOfBirth: '',
-      gender: 'male',
-      parentId: '',
-      groupId: '',
+    defaultValues: {
+      first_name: '',
+      second_name: '',
+      third_name: '',
+      last_name: '',
+      birth_date: '',
+      father_idno: '',
+      mother_idno: '',
+      ...child,
     },
   });
 
-  const handleSubmit = (data: Child) => {
+  const handleSubmit = (data: any) => {
     onSubmit(data);
   };
 
@@ -71,7 +78,7 @@ export function ChildDialog({
         <form className="space-y-4">
           <FormField
             control={form.control}
-            name="firstName"
+            name="first_name"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>{t('table.headers.children.firstName')}</FormLabel>
@@ -82,9 +89,37 @@ export function ChildDialog({
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
-            name="lastName"
+            name="second_name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('table.headers.children.secondName')}</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="third_name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('table.headers.children.thirdName')}</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="last_name"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>{t('table.headers.children.lastName')}</FormLabel>
@@ -97,7 +132,7 @@ export function ChildDialog({
           />
           <FormField
             control={form.control}
-            name="dateOfBirth"
+            name="birth_date"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>{t('table.headers.children.dateOfBirth')}</FormLabel>
@@ -109,6 +144,32 @@ export function ChildDialog({
             )}
           />
           <FormField
+            control={form.control}
+            name="father_idno"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('table.headers.children.fatherIdNumber')}</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="mother_idno"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('table.headers.children.motherIdNumber')}</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          {/* <FormField
             control={form.control}
             name="gender"
             render={({ field }) => (
@@ -136,8 +197,8 @@ export function ChildDialog({
                 <FormMessage />
               </FormItem>
             )}
-          />
-          <FormField
+          /> 
+            <FormField
             control={form.control}
             name="groupId"
             render={({ field }) => (
@@ -150,8 +211,9 @@ export function ChildDialog({
               </FormItem>
             )}
           />
+          */}
         </form>
       </Form>
     </BaseDialog>
   );
-} 
+}
