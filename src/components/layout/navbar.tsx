@@ -230,7 +230,7 @@ export function Navbar({ children }: NavbarProps) {
               align={isRTL ? "start" : "end"}
               className={cn("w-[200px]", isRTL ? "rtl" : "ltr")}
             >
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate(APP.ROUTES.PROFILE)}>
                 <UserRound className="mr-2 h-4 w-4" />
                 <span>Profile</span>
               </DropdownMenuItem>
