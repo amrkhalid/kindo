@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { DataTable } from "@/components/ui/data-table";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from 'react-i18next';
@@ -8,41 +8,19 @@ import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { GroupDialog } from '@/components/dialogs/group-dialog';
 import { DeleteDialog } from '@/components/dialogs/delete-dialog';
-import type { Child } from '@/types/child';
 import type { Column } from '@/types/data-table';
-
-export interface GroupData {
-  id: string;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// Mock data for initial groups
-const initialGroups: GroupData[] = [
-  {
-    id: "1",
-    name: "Group A",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "2",
-    name: "Group B",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
+import { createGroup, CreateGroupRequest, deleteGroup, getAllGroups, Group, updateGroup } from "@/api/Kindergarten/Group/groupApis";
 
 export default function GroupsPage() {
   const { toast } = useToast();
-  const [groups, setGroups] = useState<GroupData[]>(initialGroups);
-  const [selectedGroup, setSelectedGroup] = useState<GroupData | null>(null);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { t, i18n } = useTranslation();
+  const Kg_id = localStorage.getItem("selectedKG");
 
   // List of available languages with their directions
   const languages = [
@@ -53,7 +31,21 @@ export default function GroupsPage() {
 
   const isRTL = languages.find(lang => lang.code === i18n.language)?.dir === 'rtl';
 
-  const columns: Column<GroupData>[] = [
+    useEffect(() => {
+      loadGroups();
+    }, []);
+
+    const loadGroups = async () => {
+      try {
+          const response = await getAllGroups(Kg_id);
+          setGroups(response);
+        } catch (error) {
+          console.error("Failed to fetch my groups", error);
+        }
+      }
+    
+
+  const columns: Column<Group>[] = [
     {
       key: 'name',
       title: t('table.headers.groups.name'),
@@ -68,17 +60,16 @@ export default function GroupsPage() {
     },
   ];
 
-  const handleAdd = async (data: Omit<GroupData, "id" | "createdAt" | "updatedAt">) => {
+
+  const handleAdd = async (data: CreateGroupRequest) => {
     try {
       setIsLoading(true);
-      // TODO: Replace with actual API call
-      const newGroup: GroupData = {
-        ...data,
-        id: crypto.randomUUID(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      setGroups((prev) => [...prev, newGroup]);
+      const { data: responseData } = await createGroup( Kg_id, data);
+      const newGroup: Group = { ...responseData };
+
+      console.log(newGroup);
+
+      setGroups(prev => [...prev, newGroup]);
       setIsAddDialogOpen(false);
       toast({
         title: t('common.success'),
@@ -94,30 +85,26 @@ export default function GroupsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  };  
 
-  const handleEdit = (group: GroupData) => {
+  const handleEdit = (group: Group) => {
     setSelectedGroup(group);
     setIsEditDialogOpen(true);
   };
 
-  const handleEditSubmit = async (data: Omit<GroupData, "id" | "createdAt" | "updatedAt">) => {
+  const handleEditSubmit = async (data: CreateGroupRequest) => {
     if (!selectedGroup) return;
 
     try {
       setIsLoading(true);
-      // TODO: Replace with actual API call
-      const updatedGroup: GroupData = {
-        ...selectedGroup,
-        ...data,
-        updatedAt: new Date().toISOString(),
-      };
-      setGroups((prev) =>
-        prev.map((group) =>
-          group.id === selectedGroup.id ? updatedGroup : group
-        )
+      const response = await updateGroup(Kg_id, data ,selectedGroup.id);
+      const updatedGroup: Group = response.data;
+
+      setGroups(prev =>
+        prev.map(g => (g.id === updatedGroup.id ? updatedGroup : g))
       );
-      setIsEditDialogOpen(false);
+
+    setIsEditDialogOpen(false);
       setSelectedGroup(null);
       toast({
         title: t('common.success'),
@@ -140,10 +127,12 @@ export default function GroupsPage() {
 
     try {
       setIsLoading(true);
-      // TODO: Replace with actual API call
-      setGroups((prev) =>
-        prev.filter((group) => group.id !== selectedGroup.id)
+      await deleteGroup(Kg_id,selectedGroup.id);
+      const updatedGroups = groups.filter(
+        (g) => g.id !== selectedGroup.id
       );
+
+      setGroups(updatedGroups);
       setIsDeleteDialogOpen(false);
       setSelectedGroup(null);
       toast({
@@ -205,7 +194,7 @@ export default function GroupsPage() {
         onSubmit={handleAdd}
         isLoading={isLoading}
       />
-
+    
       <GroupDialog
         open={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
@@ -213,7 +202,7 @@ export default function GroupsPage() {
         defaultValues={selectedGroup}
         isLoading={isLoading}
       />
-
+     
       <DeleteDialog
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}

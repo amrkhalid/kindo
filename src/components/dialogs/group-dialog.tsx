@@ -15,13 +15,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { Child } from '@/types/child';
+import { Group } from '@/api/Kindergarten/Group/groupApis';
 
-export interface Group {
-  id: string;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
-}
 
 const groupSchema = z.object({
   name: z.string().min(1, 'Group name is required'),
