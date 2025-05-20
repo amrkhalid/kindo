@@ -6,18 +6,18 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
+import { Column } from '@/types/data-table';
 import { useToast } from '@/hooks/use-toast';
 import { AddRoleDialog } from '@/components/dialogs/add-role-dialog';
 import { EditRoleDialog } from '@/components/dialogs/edit-role-dialog';
 import { DeleteDialog } from '@/components/dialogs/delete-dialog';
 import { PageHeader } from '@/components/ui/page-header';
-import { sampleRoles } from '@/lib/sample-data/roles';
+import { createRole, deleteRole, getAllRoles, updateRole } from '@/api/Kindergarten/Kg_roles/rolesApis';
 
-interface Role {
+interface RoleRow {
   id: string;
   username: string;
   email: string;
-  identity: string;
   role: string;
   joinDate: string;
 }
@@ -28,58 +28,111 @@ const RolesPage: React.FC = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
-  const [roles, setRoles] = useState<Role[]>([]);
-
+  const [selectedRole, setSelectedRole] = useState<RoleRow | null>(null);
+  const [roles, setRoles] = useState<RoleRow[]>([]);
+  const Kg_id = localStorage.getItem("selectedKG");
   const isRTL = i18n.dir() === 'rtl';
 
-  // On mount, load Arabic mock data
   useEffect(() => {
-    // Map sampleRoles to the expected Role interface for the table
-    setRoles(sampleRoles.map((r, i) => ({
-      id: r.id,
-      username: r.name + '.' + r.id,
-      email: r.name + '@kendo.ps',
-      identity: String(1000 + i),
-      role: i < 2 ? 'manager' : 'staff',
-      joinDate: '2024-01-01T08:00:00Z',
-    })));
-  }, []);
+    async function fetchKGRoles() {
+      try {
+        const response = await getAllRoles(Kg_id);
+        console.log("Fetched Roles Response:", response);
+  
+        const mappedRoles = response.map((r) => ({
+          id: r.id,
+          username: r.user?.username ?? "—",
+          email: r.user?.email ?? "—",
+          role: r.role,
+          joinDate: r.created_at,
+        }));
+  
+        setRoles(mappedRoles);
+      } catch (error) {
+        console.error("Failed to fetch Kg roles", error);
+      }
+    }
+    fetchKGRoles();
+  }, [Kg_id]);
 
-  const handleAddRole = (newRole: Role) => {
-    setRoles([...roles, newRole]);
-    toast({
-      title: t('roles.addSuccess'),
-      variant: 'success'
-    });
-    setIsAddDialogOpen(false);
-  };
-
-  const handleEditRole = (updatedRole: Role) => {
-    setRoles(roles.map(role => role.id === updatedRole.id ? updatedRole : role));
-    toast({
-      title: t('roles.editSuccess'),
-      variant: 'success'
-    });
-    setIsEditDialogOpen(false);
-    setSelectedRole(null);
-  };
-
-  const handleDeleteRole = () => {
-    if (selectedRole) {
-      setRoles(roles.filter(role => role.id !== selectedRole.id));
-      toast({
-        title: t('roles.deleteSuccess'),
-        variant: 'success'
+  const handleAddRole = async ({ identity, role }: { identity: string; role: string }) => {
+    try {
+      const response = await createRole(Kg_id, {
+        idno: identity,
+        role,
       });
-      setIsDeleteDialogOpen(false);
-      setSelectedRole(null);
+      setTimeout(() => window.location.reload(), 1000);
+ 
+      toast({
+        title: t("roles.addSuccess"),
+        description: `${identity ?? "—"} ${t('roles.addDescription')}`,
+      });
+  
+      setIsAddDialogOpen(false);
+    } catch (error) {
+      toast({
+        title: t("common.error"),
+        description: t("roles.addError"),
+        variant: "destructive",
+      });
+      console.error("Error adding role:", error);
     }
   };
 
-  const columns = [
+  const handleEditRole = async ({ role ,}: { role: string }) => {
+    if (!selectedRole) return;
+    try {
+      const response = await updateRole(Kg_id, {
+        role,
+      },selectedRole.id);
+
+      setTimeout(() => window.location.reload(), 1000);
+      toast({
+        title: t('roles.editSuccess'),
+        description: t('roles.editSuccess'),
+      });
+      setIsEditDialogOpen(false);
+      setSelectedRole(null);
+      } catch (error) {
+      toast({
+        title: t("common.error"),
+        description: t("roles.editError"),
+        variant: "destructive",
+      });
+      console.error("Error editing role:", error);
+    }
+  };
+
+  const handleDeleteRole = async () => {
+    if (!selectedRole) return;
+    console.log(selectedRole);
+  
+      try {
+        await deleteRole(Kg_id,selectedRole.id);
+        const updatedRoles = roles.filter(
+          (r) => r.id !== selectedRole.id
+        );
+  
+        setRoles(updatedRoles);
+        setIsDeleteDialogOpen(false);
+        setSelectedRole(null);
+        toast({
+          title: t('common.success'),
+          description: t('roles.deleteSuccess'),
+          variant: 'default',
+        });
+      } catch (error) {
+        toast({
+          title: t('common.error'),
+          description: t('roles.deleteError'),
+          variant: 'destructive',
+        });
+
+  };}
+
+  const columns: Column<RoleRow>[] = [
     {
-      key: 'username' as keyof Role,
+      key: 'username',
       title: t('table.headers.roles.username'),
       render: (value: string) => (
         <div className={cn(
@@ -91,7 +144,7 @@ const RolesPage: React.FC = () => {
       ),
     },
     {
-      key: 'email' as keyof Role,
+      key: 'email',
       title: t('table.headers.roles.email'),
       render: (value: string) => (
         <div className={cn(
@@ -103,19 +156,7 @@ const RolesPage: React.FC = () => {
       ),
     },
     {
-      key: 'identity' as keyof Role,
-      title: t('table.headers.roles.identity'),
-      render: (value: string) => (
-        <div className={cn(
-          "text-gray-600",
-          isRTL ? "text-right" : "text-left"
-        )}>
-          {value}
-        </div>
-      ),
-    },
-    {
-      key: 'role' as keyof Role,
+      key: 'role',
       title: t('table.headers.roles.role'),
       render: (value: string) => (
         <Badge className={cn(
@@ -127,7 +168,7 @@ const RolesPage: React.FC = () => {
       ),
     },
     {
-      key: 'joinDate' as keyof Role,
+      key: 'joinDate',
       title: t('table.headers.roles.joinDate'),
       render: (value: string) => (
         <div className={cn(
@@ -182,7 +223,7 @@ const RolesPage: React.FC = () => {
         onOpenChange={setIsAddDialogOpen}
         onAddRole={handleAddRole}
       />
-
+      
       <EditRoleDialog
         open={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
@@ -197,7 +238,7 @@ const RolesPage: React.FC = () => {
         title={t('roles.delete')}
         description={t('roles.deleteDescription')}
       />
-    </div>
+      </div>
   );
 };
 

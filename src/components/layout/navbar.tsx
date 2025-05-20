@@ -252,6 +252,7 @@ export function Navbar({ children }: NavbarProps) {
                           onClick={() => {
                             console.log("Selected KG:", kg._id);
                             localStorage.setItem("selectedKG", kg._id);
+                            window.location.reload();
                           }}
                         >
                           {kg.name}
