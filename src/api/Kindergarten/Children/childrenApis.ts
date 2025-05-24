@@ -1,4 +1,5 @@
 import axiosInstance from "@/api/axiosInstance";
+import { User } from "@/api/User/user";
 
 interface Kindergarten {
     id: string;
@@ -19,6 +20,8 @@ export interface Child {
     created_at: string;
     updated_at: string;
     kindergarten: Kindergarten;
+    fatheruser: User;
+    motheruser: User;
   };
   
 interface ChildrenResponse {
@@ -49,6 +52,10 @@ export const getAllChildren = async (kg_id: string): Promise<Child[]> => {
   const response = await axiosInstance.get<ChildrenResponse>(`/kg/${kg_id}/child`);
   return response.data.data;
 };
+
+export const updateChild = ( id: string,data: CreateChildRequest) =>
+    axiosInstance.put<Child>(`/kg/child/${id}`, data);
+
 
 export const deleteChild = (kg_id: string, id: string) =>
     axiosInstance.delete<{ message: string }>(`/kg/${kg_id}/child/${id}`);

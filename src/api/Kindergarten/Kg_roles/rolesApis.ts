@@ -1,16 +1,6 @@
 import axiosInstance from "@/api/axiosInstance";
+import { User } from "@/api/User/user";
 
-export interface User {
-    username: string;
-    email: string;
-    phone_number?: string; 
-    address?: string;    
-    is_active: boolean;
-    is_superuser: boolean;
-    created_at: string;
-    updated_at: string;
-  }
-  
   export interface Role {
     id: string;
     user_id: string;

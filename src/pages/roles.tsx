@@ -17,8 +17,13 @@ import { createRole, deleteRole, getAllRoles, updateRole } from '@/api/Kindergar
 interface RoleRow {
   id: string;
   username: string;
+  first_name:string;
+  second_name:string;
+  third_name:string;
+  last_name:string;
   email: string;
   role: string;
+  phone_number:string;
   joinDate: string;
 }
 
@@ -42,7 +47,12 @@ const RolesPage: React.FC = () => {
         const mappedRoles = response.map((r) => ({
           id: r.id,
           username: r.user?.username ?? "—",
+          first_name:r.user?.first_name??"_",
+          second_name:r.user?.second_name??"_",
+          third_name:r.user?.third_name??"_",
+          last_name:r.user?.last_name??"_",
           email: r.user?.email ?? "—",
+          phone_number:r.user?.phone_number??"_",
           role: r.role,
           joinDate: r.created_at,
         }));
@@ -131,6 +141,27 @@ const RolesPage: React.FC = () => {
   };}
 
   const columns: Column<RoleRow>[] = [
+{
+  key: "full_name",
+  title: t("table.headers.children.fullName"),
+  render: (_: any, row: any) => (
+    <div
+      className={cn(
+        "font-medium text-[#1A5F5E]",
+        isRTL ? "text-right" : "text-left"
+      )}
+    >
+      {[
+        row.first_name,
+        row.second_name,
+        row.third_name,
+        row.last_name,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    </div>
+  ),
+},    
     {
       key: 'username',
       title: t('table.headers.roles.username'),
@@ -146,6 +177,18 @@ const RolesPage: React.FC = () => {
     {
       key: 'email',
       title: t('table.headers.roles.email'),
+      render: (value: string) => (
+        <div className={cn(
+          "text-gray-600",
+          isRTL ? "text-right" : "text-left"
+        )}>
+          {value}
+        </div>
+      ),
+    },
+    {
+      key: 'phone_number',
+      title: t('table.headers.systemUsers.phoneNumber'),
       render: (value: string) => (
         <div className={cn(
           "text-gray-600",
