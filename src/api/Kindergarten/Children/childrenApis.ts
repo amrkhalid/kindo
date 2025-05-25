@@ -53,8 +53,8 @@ export const getAllChildren = async (kg_id: string): Promise<Child[]> => {
   return response.data.data;
 };
 
-export const updateChild = ( id: string,data: CreateChildRequest) =>
-    axiosInstance.put<Child>(`/kg/child/${id}`, data);
+export const updateChild = ( kg_id: string, id: string,data: CreateChildRequest & { kg: string }) =>
+    axiosInstance.put<Child>(`/kg/${kg_id}/child/${id}`, data);
 
 
 export const deleteChild = (kg_id: string, id: string) =>

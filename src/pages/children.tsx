@@ -137,14 +137,17 @@ const ChildrenPage: React.FC = () => {
     
       try {
     
-        const response = await updateChild(selectedChildren.id, data);
+         const response = await updateChild(Kg_id,selectedChildren.id, {
+      ...data,
+      kg: Kg_id,
+    });
         const updatedChild: Child = response.data;
   
         setChildren(prev =>
           prev.map(k => (k.id === updatedChild.id ? updatedChild : k))
         );
   
-        window.location.reload();
+       setTimeout(() => window.location.reload(), 1000);
         setIsEditDialogOpen(false);
         setSelectedChildren(null);
        toast({
