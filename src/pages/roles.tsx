@@ -12,20 +12,7 @@ import { AddRoleDialog } from '@/components/dialogs/add-role-dialog';
 import { EditRoleDialog } from '@/components/dialogs/edit-role-dialog';
 import { DeleteDialog } from '@/components/dialogs/delete-dialog';
 import { PageHeader } from '@/components/ui/page-header';
-import { createRole, deleteRole, getAllRoles, updateRole } from '@/api/Kindergarten/Kg_roles/rolesApis';
-
-interface RoleRow {
-  id: string;
-  username: string;
-  first_name:string;
-  second_name:string;
-  third_name:string;
-  last_name:string;
-  email: string;
-  role: string;
-  phone_number:string;
-  joinDate: string;
-}
+import { createRole, deleteRole, getAllRoles, Role, updateRole } from '@/api/Kindergarten/Kg_roles/rolesApis';
 
 const RolesPage: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -33,45 +20,36 @@ const RolesPage: React.FC = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<RoleRow | null>(null);
-  const [roles, setRoles] = useState<RoleRow[]>([]);
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [totalPages, setTotalPages] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [page, setPage] = useState(1);
   const Kg_id = localStorage.getItem("selectedKG");
   const isRTL = i18n.dir() === 'rtl';
 
-  useEffect(() => {
-    async function fetchKGRoles() {
-      try {
-        const response = await getAllRoles(Kg_id);
-        console.log("Fetched Roles Response:", response);
-  
-        const mappedRoles = response.map((r) => ({
-          id: r.id,
-          username: r.user?.username ?? "—",
-          first_name:r.user?.first_name??"_",
-          second_name:r.user?.second_name??"_",
-          third_name:r.user?.third_name??"_",
-          last_name:r.user?.last_name??"_",
-          email: r.user?.email ?? "—",
-          phone_number:r.user?.phone_number??"_",
-          role: r.role,
-          joinDate: r.created_at,
-        }));
-  
-        setRoles(mappedRoles);
-      } catch (error) {
-        console.error("Failed to fetch Kg roles", error);
-      }
-    }
-    fetchKGRoles();
-  }, [Kg_id]);
+    useEffect(() => {
+        getAllRoles(limit, page, Kg_id)
+          .then((res) => {  
+        setRoles(res.data.data);
+        setTotalPages(res.data.totalPages);
+          })
+          .catch((err) => {
+            console.error("Error fetching Roles:", err);
+          });
+      }, [limit, page, Kg_id]);
+
+
+  console.log("roles",roles)
 
   const handleAddRole = async ({ identity, role }: { identity: string; role: string }) => {
     try {
-      const response = await createRole(Kg_id, {
+      await createRole(Kg_id, {
         idno: identity,
         role,
       });
-      setTimeout(() => window.location.reload(), 1000);
+      const res = await getAllRoles(limit, page, Kg_id);
+      setRoles(res.data.data);
  
       toast({
         title: t("roles.addSuccess"),
@@ -93,11 +71,12 @@ const RolesPage: React.FC = () => {
   const handleEditRole = async ({ role ,}: { role: string }) => {
     if (!selectedRole) return;
     try {
-      const response = await updateRole(Kg_id, {
+      await updateRole(Kg_id, {
         role,
       },selectedRole.id);
 
-      setTimeout(() => window.location.reload(), 1000);
+      const res = await getAllRoles(limit, page, Kg_id);
+      setRoles(res.data.data);
       toast({
         title: t('roles.editSuccess'),
         description: t('roles.editSuccess'),
@@ -121,11 +100,8 @@ const RolesPage: React.FC = () => {
   
       try {
         await deleteRole(Kg_id,selectedRole.id);
-        const updatedRoles = roles.filter(
-          (r) => r.id !== selectedRole.id
-        );
-  
-        setRoles(updatedRoles);
+        const res = await getAllRoles(limit, page, Kg_id);
+        setRoles(res.data.data);
         setIsDeleteDialogOpen(false);
         setSelectedRole(null);
         toast({
@@ -142,11 +118,11 @@ const RolesPage: React.FC = () => {
 
   };}
 
-  const columns: Column<RoleRow>[] = [
+  const columns: Column<Role>[] = [
 {
   key: "full_name",
   title: t("table.headers.children.fullName"),
-  render: (_: any, row: any) => (
+  render: (_: any, row: Role) => (
     <div
       className={cn(
         "font-medium text-[#1A5F5E]",
@@ -154,10 +130,10 @@ const RolesPage: React.FC = () => {
       )}
     >
       {[
-        row.first_name,
-        row.second_name,
-        row.third_name,
-        row.last_name,
+        row.user.first_name,
+        row.user.second_name,
+        row.user.third_name,
+        row.user.last_name,
       ]
         .filter(Boolean)
         .join(" ")}
@@ -167,38 +143,38 @@ const RolesPage: React.FC = () => {
     {
       key: 'username',
       title: t('table.headers.roles.username'),
-      render: (value: string) => (
-        <div className={cn(
-          "font-medium text-[#1A5F5E]",
-          isRTL ? "text-right" : "text-left"
-        )}>
-          {value}
-        </div>
-      ),
+      render: (_: any, row: Role) => (
+      <div className={cn(
+      "text-gray-600",
+      isRTL ? "text-right" : "text-left"
+      )}>
+      {row.user?.username}
+      </div>
+  ),
     },
     {
       key: 'email',
       title: t('table.headers.roles.email'),
-      render: (value: string) => (
-        <div className={cn(
-          "text-gray-600",
-          isRTL ? "text-right" : "text-left"
-        )}>
-          {value}
-        </div>
-      ),
+      render: (_: any, row: Role) => (
+      <div className={cn(
+      "text-gray-600",
+      isRTL ? "text-right" : "text-left"
+      )}>
+      {row.user?.email}
+      </div>
+  ),
     },
     {
       key: 'phone_number',
       title: t('table.headers.systemUsers.phoneNumber'),
-      render: (value: string) => (
-        <div className={cn(
-          "text-gray-600",
-          isRTL ? "text-right" : "text-left"
-        )}>
-          {value}
-        </div>
-      ),
+      render: (_: any, row: Role) => (
+      <div className={cn(
+      "text-gray-600",
+      isRTL ? "text-right" : "text-left"
+      )}>
+      {row.user?.phone_number}
+      </div>
+  ),
     },
     {
       key: 'role',
@@ -213,7 +189,7 @@ const RolesPage: React.FC = () => {
       ),
     },
     {
-      key: 'joinDate',
+      key: 'created_at',
       title: t('table.headers.roles.joinDate'),
       render: (value: string) => (
         <div className={cn(
@@ -261,6 +237,43 @@ const RolesPage: React.FC = () => {
             setIsDeleteDialogOpen(true);
           }}
         />
+                <div className="flex items-center justify-between mb-4">
+          <div className="flex gap-2 items-center">
+            <label>{t("Rows per page")}:</label>
+            <select
+              value={limit}
+              onChange={(e) => {
+                setPage(1);
+                setLimit(Number(e.target.value));
+              }}
+              className="border rounded px-2 py-1"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
+
+          <div className="flex gap-2 py-5">
+            <Button
+              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+              disabled={page === 1}
+            >
+              {t("Previous")}
+            </Button>
+            <span className="py-2">
+              {t("Page")}: {page} / {totalPages}
+            </span>
+            <Button
+              onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={page >= totalPages}
+            >
+              {t("Next")}
+            </Button>
+          </div>
+        </div>
+
       </Card>
 
       <AddRoleDialog

@@ -20,6 +20,9 @@ const ChildrenPage: React.FC = () => {
   const { t } = useTranslation();
   const { toast } = useToast();
   const { isRTL } = useRTL();
+  const [totalPages, setTotalPages] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [page, setPage] = useState(1);
   const Kg_id = localStorage.getItem("selectedKG");
 
 
@@ -89,34 +92,26 @@ const ChildrenPage: React.FC = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  useEffect(() => {
-    loadChildren();
-  }, []);
+    useEffect(() => {
+        getAllChildren({ limit, page, kg_id: Kg_id })
+          .then((res) => {
+            setChildren(res.data.data);
+            setTotalPages(res.data.totalPages);
+          })
+          .catch((err) => {
+            console.error("Error fetching Children:", err);
+          });
+      }, [limit, page, Kg_id]);
 
-  const loadChildren = async () => {
-    try {
-      const data = await getAllChildren(Kg_id);
-      setChildren(data);
-      console.log("ch",data)
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: t('common.error'),
-        description: t('children.loadError'),
-      });
-    }
-  };
+  console.log(children);
 
   const handleAdd = async (data: CreateChildRequest) => {
     console.log(data);
 
     try {
-      const { data: responseData } = await createChild( Kg_id, data);
-      const newChild: Child = { ...responseData };
-
-      console.log(newChild);
-
-      setChildren(prev => [...prev, newChild]);
+      await createChild( Kg_id, data);
+      const res = await getAllChildren({ limit, page, kg_id: Kg_id });
+      setChildren(res.data.data);
       setIsAddDialogOpen(false);
       toast({
         title: t('common.success'),
@@ -138,17 +133,12 @@ const ChildrenPage: React.FC = () => {
     
       try {
     
-         const response = await updateChild(Kg_id,selectedChildren.id, {
+      await updateChild(Kg_id,selectedChildren.id, {
       ...data,
       kg: Kg_id,
     });
-        const updatedChild: Child = response.data;
-  
-        setChildren(prev =>
-          prev.map(k => (k.id === updatedChild.id ? updatedChild : k))
-        );
-  
-       setTimeout(() => window.location.reload(), 1000);
+      const res = await getAllChildren({ limit, page, kg_id: Kg_id });
+      setChildren(res.data.data);
         setIsEditDialogOpen(false);
         setSelectedChildren(null);
        toast({
@@ -172,11 +162,8 @@ const ChildrenPage: React.FC = () => {
 
     try {
       await deleteChild(Kg_id,selectedChildren.id);
-      const updatedChildren = children.filter(
-        (k) => k.id !== selectedChildren.id
-      );
-
-      setChildren(updatedChildren);
+      const res = await getAllChildren({ limit, page, kg_id: Kg_id });
+      setChildren(res.data.data);
       setIsDeleteDialogOpen(false);
       setSelectedChildren(null);
       toast({
@@ -222,6 +209,42 @@ const ChildrenPage: React.FC = () => {
             setIsDeleteDialogOpen(true);
           }}
         />
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex gap-2 items-center">
+            <label>{t("Rows per page")}:</label>
+            <select
+              value={limit}
+              onChange={(e) => {
+                setPage(1);
+                setLimit(Number(e.target.value));
+              }}
+              className="border rounded px-2 py-1"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
+
+          <div className="flex gap-2 py-5">
+            <Button
+              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+              disabled={page === 1}
+            >
+              {t("Previous")}
+            </Button>
+            <span className="py-2">
+              {t("Page")}: {page} / {totalPages}
+            </span>
+            <Button
+              onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={page >= totalPages}
+            >
+              {t("Next")}
+            </Button>
+          </div>
+        </div>
       </Card>
 
        <ChildDialog

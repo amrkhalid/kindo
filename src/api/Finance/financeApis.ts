@@ -56,9 +56,8 @@ export interface InvoiceRequest {
   notes: string;
 }
 
-export const getAllTransaction = async (kg_id: string): Promise<Invoice[]> => {
-  const response = await axiosInstance.get<InvoiceResponse>(`/finance/${kg_id}/invoice`);
-  return response.data.data;
+export const getAllTransaction = (limit: number, page: number, kg_id: string ) => {
+    return axiosInstance.get<InvoiceResponse>(`/finance/${kg_id}/invoice?limit=${limit}&page=${page}`);
 };
 
 export const createInvoice = (kg_id: string ,data: InvoiceRequest) =>

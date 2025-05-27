@@ -19,6 +19,10 @@ export default function GroupsPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [totalPages, setTotalPages] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [page, setPage] = useState(1);
+
   const { t, i18n } = useTranslation();
   const Kg_id = localStorage.getItem("selectedKG");
 
@@ -31,18 +35,19 @@ export default function GroupsPage() {
 
   const isRTL = languages.find(lang => lang.code === i18n.language)?.dir === 'rtl';
 
-    useEffect(() => {
-      loadGroups();
-    }, []);
-
-    const loadGroups = async () => {
-      try {
-          const response = await getAllGroups(Kg_id);
-          setGroups(response);
-        } catch (error) {
-          console.error("Failed to fetch my groups", error);
-        }
-      }
+   useEffect(() => {
+    setIsLoading(true);
+      getAllGroups(limit, page, Kg_id)
+        .then((res) => {
+          setGroups(res.data.data);
+          setTotalPages(res.data.totalPages);
+          setIsLoading(false);
+        })
+        .catch((err) => {
+          console.error("Error fetching groups:", err);
+          setIsLoading(false);
+        });
+      }, [limit, page, Kg_id]);
     
 
   const columns: Column<Group>[] = [
@@ -64,12 +69,9 @@ export default function GroupsPage() {
   const handleAdd = async (data: CreateGroupRequest) => {
     try {
       setIsLoading(true);
-      const { data: responseData } = await createGroup( Kg_id, data);
-      const newGroup: Group = { ...responseData };
-
-      console.log(newGroup);
-
-      setGroups(prev => [...prev, newGroup]);
+      await createGroup( Kg_id, data);
+      const res = await getAllGroups(limit, page, Kg_id);
+      setGroups(res.data.data);
       setIsAddDialogOpen(false);
       toast({
         title: t('common.success'),
@@ -97,12 +99,9 @@ export default function GroupsPage() {
 
     try {
       setIsLoading(true);
-      const response = await updateGroup(Kg_id, data ,selectedGroup.id);
-      const updatedGroup: Group = response.data;
-
-      setGroups(prev =>
-        prev.map(g => (g.id === updatedGroup.id ? updatedGroup : g))
-      );
+      await updateGroup(Kg_id, data ,selectedGroup.id);
+      const res = await getAllGroups(limit, page, Kg_id);
+      setGroups(res.data.data);
 
     setIsEditDialogOpen(false);
       setSelectedGroup(null);
@@ -128,11 +127,8 @@ export default function GroupsPage() {
     try {
       setIsLoading(true);
       await deleteGroup(Kg_id,selectedGroup.id);
-      const updatedGroups = groups.filter(
-        (g) => g.id !== selectedGroup.id
-      );
-
-      setGroups(updatedGroups);
+      const res = await getAllGroups(limit, page, Kg_id);
+      setGroups(res.data.data);
       setIsDeleteDialogOpen(false);
       setSelectedGroup(null);
       toast({
@@ -186,6 +182,42 @@ export default function GroupsPage() {
             setIsDeleteDialogOpen(true);
           }}
         />
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex gap-2 items-center">
+            <label>{t("Rows per page")}:</label>
+            <select
+              value={limit}
+              onChange={(e) => {
+                setPage(1);
+                setLimit(Number(e.target.value));
+              }}
+              className="border rounded px-2 py-1"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
+
+          <div className="flex gap-2 py-5">
+            <Button
+              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+              disabled={page === 1}
+            >
+              {t("Previous")}
+            </Button>
+            <span className="py-2">
+              {t("Page")}: {page} / {totalPages}
+            </span>
+            <Button
+              onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={page >= totalPages}
+            >
+              {t("Next")}
+            </Button>
+          </div>
+        </div>
       </Card>
 
       <GroupDialog

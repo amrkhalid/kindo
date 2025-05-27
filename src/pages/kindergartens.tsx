@@ -6,13 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { getMyKG } from "@/api/Profile/myKG";
 import { useToast } from "@/hooks/use-toast";
 import { KindergartenDialog } from '@/components/dialogs/kindergarten-dialog';
 import { DeleteDialog } from '@/components/dialogs/delete-dialog';
 import { Column } from '@/types/data-table';
 import { toast } from 'sonner';
-import { createKindergarten, CreateKindergartenRequest, deleteKindergarten, Kindergarten, Plan, updateKindergarten } from "@/api/Kindergarten/Kindergartens/kindergartenApis";
+import { createKindergarten, CreateKindergartenRequest, deleteKindergarten, getAllKgs, Kindergarten, Plan, updateKindergarten } from "@/api/Kindergarten/Kindergartens/kindergartenApis";
 
 
 const KindergartensPage = () => {
@@ -24,6 +23,10 @@ const KindergartensPage = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [totalPages, setTotalPages] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [page, setPage] = useState(1);
+
 
   // List of available languages with their directions
   const languages = [
@@ -124,26 +127,39 @@ const mockPlans: Plan[] = [
     },
   ];
 
+  // useEffect(() => {
+  //   async function fetchMyKG() {
+  //     try {
+  //       const response = await getMyKG();
+  //       setKindergartens(response);
+  //     } catch (error) {
+  //       console.error("Failed to fetch my KG", error);
+  //     }
+  //   }
+  //   fetchMyKG();
+  // }, []);
+
   useEffect(() => {
-    async function fetchMyKG() {
-      try {
-        const response = await getMyKG();
-        setKindergartens(response);
-      } catch (error) {
-        console.error("Failed to fetch my KG", error);
-      }
-    }
-    fetchMyKG();
-  }, []);
+      setIsLoading(true);
+      getAllKgs(limit, page)
+        .then((res) => {
+          setKindergartens(res.data.data);
+          setTotalPages(res.data.totalPages);
+          setIsLoading(false);
+        })
+        .catch((err) => {
+          console.error("Error fetching KGs:", err);
+          setIsLoading(false);
+        });
+    }, [limit, page]);
   
   
   const handleAddKindergarten = async (data: CreateKindergartenRequest) => {
     setIsLoading(true);
     try {
-      const { data: responseData } = await createKindergarten(data);
-      const newKG: Kindergarten = { ...responseData, __v: 0 };
-  
-      setKindergartens(prev => [...prev, newKG]);
+      await createKindergarten(data);
+      const res = await getAllKgs(limit, page);
+      setKindergartens(res.data.data);
       setIsAddDialogOpen(false);
       toast({
         title: t('common.success'),
@@ -168,17 +184,12 @@ const mockPlans: Plan[] = [
     try {
       setIsLoading(true);
   
-      const response = await updateKindergarten(selectedKindergarten._id, data);
-      const updatedKG: Kindergarten = response.data.result;
-      console.log(response.data.result);
-
-      setKindergartens(prev =>
-        prev.map(k => (k._id === updatedKG._id ? updatedKG : k))
-      );
-
-      setTimeout(() => window.location.reload(), 1000);
+      await updateKindergarten(selectedKindergarten.id, data);
       setIsEditDialogOpen(false);
       setSelectedKindergarten(null);
+
+      const res = await getAllKgs(limit, page);
+      setKindergartens(res.data.data);
   
       toast({
         title: t('common.success'),
@@ -203,14 +214,11 @@ const mockPlans: Plan[] = [
     try {
       setIsLoading(true);
   
-      await deleteKindergarten(selectedKindergarten._id);
+      await deleteKindergarten(selectedKindergarten.id);
+      const res = await getAllKgs(limit, page);
+      setKindergartens(res.data.data);
+
   
-      const updatedKindergartens = kindergartens.filter(
-        (k) => k._id !== selectedKindergarten._id
-      );
-      setKindergartens(updatedKindergartens);
-  
-      window.location.reload();
       setIsDeleteDialogOpen(false);
       setSelectedKindergarten(null);
   
@@ -266,6 +274,42 @@ const mockPlans: Plan[] = [
             setIsDeleteDialogOpen(true);
           }}
         />
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex gap-2 items-center">
+            <label>{t("Rows per page")}:</label>
+            <select
+              value={limit}
+              onChange={(e) => {
+                setPage(1);
+                setLimit(Number(e.target.value));
+              }}
+              className="border rounded px-2 py-1"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
+
+          <div className="flex gap-2 py-5">
+            <Button
+              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+              disabled={page === 1}
+            >
+              {t("Previous")}
+            </Button>
+            <span className="py-2">
+              {t("Page")}: {page} / {totalPages}
+            </span>
+            <Button
+              onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={page >= totalPages}
+            >
+              {t("Next")}
+            </Button>
+          </div>
+        </div>
       </Card>
       
       <KindergartenDialog

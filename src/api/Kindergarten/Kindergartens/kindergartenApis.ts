@@ -1,7 +1,7 @@
 import axiosInstance from "@/api/axiosInstance";
 
 export interface Kindergarten {
-  _id: string;
+  id: string;
   name: string;
   address: string;
   phone_number: string;
@@ -41,14 +41,25 @@ export interface CreateKindergartenRequest {
     phone_number: string;
     plan_id:string;
   }
-  
+
+export interface GetKgsResponse {
+  data: Kindergarten[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export const getAllKgs = (limit: number, page: number) => {
+    return axiosInstance.get<GetKgsResponse>(`/kg?limit=${limit}&page=${page}`);
+};
 
 export const createKindergarten = (data: CreateKindergartenRequest) =>
     axiosInstance.post<Kindergarten>("/kg", data);
   
 
 export const updateKindergarten = (id: string, data: CreateKindergartenRequest) =>
-  axiosInstance.put<{ message: string; result: Kindergarten }>(`/kg/${id}`, data);
+  axiosInstance.put(`/kg/${id}`, data);
 
 export const deleteKindergarten = (id: string) =>
     axiosInstance.delete<{ message: string }>(`/kg/${id}`);

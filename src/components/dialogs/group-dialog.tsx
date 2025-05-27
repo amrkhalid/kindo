@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -46,6 +46,15 @@ export function GroupDialog({
       name: '',
     },
   });
+
+  useEffect(() => {
+  if (defaultValues) {
+    form.reset({
+      name: defaultValues.name,
+    });
+  }
+}, [defaultValues]);
+
 
   const handleSubmit = (data: Omit<Group, 'id' | 'createdAt' | 'updatedAt'>) => {
     onSubmit(data);

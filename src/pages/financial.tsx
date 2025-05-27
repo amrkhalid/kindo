@@ -16,20 +16,12 @@ import {
 } from "@/api/Kindergarten/Children/childrenApis";
 import { DeleteDialog } from "@/components/dialogs/delete-dialog";
 
-interface Transaction {
-  id: string;
-  user_name: string;
-  amount_paid: number;
-  payment_date: string;
-  payment_method: string;
-  parent_email: string;
-  notes: string;
-  active:boolean;
-}
-
 export default function FinancialPage() {
   const { t, i18n } = useTranslation();
   const { toast } = useToast();
+  const [totalPages, setTotalPages] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [page, setPage] = useState(1);
   const [isAddDialogOpen, setIsAddDialogOpen] = React.useState(false);
 
   // List of available languages with their directions
@@ -40,46 +32,32 @@ export default function FinancialPage() {
   ];
 
   const isRTL = languages.find(lang => lang.code === i18n.language)?.dir === 'rtl';
-  const [transactions, setTransactions] = React.useState<Transaction[]>([]);
-  const [selectedTrans, setSelectedTrans] = useState<Transaction | null>(null);
+  const [transactions, setTransactions] = React.useState<Invoice[]>([]);
+  const [selectedTrans, setSelectedTrans] = useState<Invoice | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const Kg_id = localStorage.getItem("selectedKG");
   const [children, setChildren] = useState<Child[]>([]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const childrenData = await getAllChildren(Kg_id);
-        setChildren(childrenData);
+  getAllChildren({kg_id:Kg_id})
+    .then((res) => {
+      setChildren(res.data.data);
+    })
+    .catch((err) => {
+      console.error("Error fetching Children:", err);
+    });
 
-        const transactionsResponse = await getAllTransaction(Kg_id);
-        console.log("Fetched Trans Response:", transactionsResponse);
-
-        const mappedTrans = transactionsResponse.map((r) => ({
-          id: r.id,
-          user_name: r.childuser?.first_name + " " + r.childuser?.last_name,
-          amount_paid: r.amount_paid,
-          payment_method: r.payment_method,
-          parent_email: r.parentuser?.email,
-          payment_date: r.created_at,
-          notes: r.notes,
-          active:r.active,
-        }));
-        setTransactions(mappedTrans);
-      } catch (error) {
-        console.error("Failed to fetch data", error);
-        toast({
-          variant: "destructive",
-          title: t("common.error"),
-          description: t("children.loadError"),
-        });
-      }
-    };
-
-    fetchData();
-  }, [Kg_id]);
-
+  getAllTransaction(limit, page, Kg_id)
+    .then((res) => {
+      setTransactions(res.data.data);
+      setTotalPages(res.data.totalPages);
+    })
+    .catch((err) => {
+      console.error("Error fetching Transactions:", err);
+    });
+}, [limit, page, Kg_id]);
+      
     const handleDelete = async () => {
     if (!selectedTrans) return;
 
@@ -87,7 +65,8 @@ export default function FinancialPage() {
 
     try {
       await deleteInvoice(Kg_id,selectedTrans.id);
-      setTimeout(() => window.location.reload(), 1000);
+      const res = await getAllTransaction( limit, page, Kg_id );
+      setTransactions(res.data.data);
       setIsDeleteDialogOpen(false);
       setSelectedTrans(null);
       toast({
@@ -105,25 +84,39 @@ export default function FinancialPage() {
   };
 
 
-  const columns: Column<Transaction>[] = [
+  const columns: Column<Invoice>[] = [
     {
       key: "user_name",
-      title: t("table.headers.roles.username"),
-      render: (value: string) => (
-        <div
-          className={cn(
-            "font-medium text-[#1A5F5E]",
-            isRTL ? "text-right" : "text-left"
-          )}
-        >
-          {value}
-        </div>
-      ),
+      title: t("table.headers.financial.childName"),
+     render: (_: any, row: Invoice) => (
+    <div
+      className={cn(
+        "font-medium text-[#1A5F5E]",
+        isRTL ? "text-right" : "text-left"
+      )}
+    >
+      {[
+        row.childuser.first_name,
+        row.childuser.second_name,
+        row.childuser.third_name,
+        row.childuser.last_name,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    </div>
+  ),
     },
     {
       key: 'parent_email' as const,
       title: t('financial.parentEmail'),
-      render: (parent_email: string) => parent_email,
+      render: (_: any, row: Invoice) => (
+      <div className={cn(
+      "text-gray-600",
+      isRTL ? "text-right" : "text-left"
+      )}>
+      {row.parentuser?.email}
+      </div>
+      ),
     },
     {
       key: 'amount_paid' as const,
@@ -190,20 +183,9 @@ export default function FinancialPage() {
       ),
     },];
 
-  const handleAddPayment = (payment: Invoice) => {
-    const newTransaction: Transaction = {
-      id: payment.id,
-      user_name:
-        payment.childuser?.first_name + " " + payment.childuser?.last_name,
-      amount_paid: payment.amount_paid,
-      payment_method: payment.payment_method,
-      parent_email: payment.parentuser?.email || "",
-      payment_date: payment.created_at,
-      notes: payment.notes,
-      active:payment.active,
-    };
-
-    setTransactions((prev) => [newTransaction, ...prev]);
+  const handleAddPayment = async () => {
+      const res = await getAllTransaction( limit, page, Kg_id );
+      setTransactions(res.data.data);
   };
 
   return (
@@ -234,6 +216,42 @@ export default function FinancialPage() {
           setIsDeleteDialogOpen(true);
           }}
         />
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex gap-2 items-center">
+            <label>{t("Rows per page")}:</label>
+            <select
+              value={limit}
+              onChange={(e) => {
+                setPage(1);
+                setLimit(Number(e.target.value));
+              }}
+              className="border rounded px-2 py-1"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
+
+          <div className="flex gap-2 py-5">
+            <Button
+              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+              disabled={page === 1}
+            >
+              {t("Previous")}
+            </Button>
+            <span className="py-2">
+              {t("Page")}: {page} / {totalPages}
+            </span>
+            <Button
+              onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={page >= totalPages}
+            >
+              {t("Next")}
+            </Button>
+          </div>
+        </div>        
       </Card>
       <AddPaymentDialog
         open={isAddDialogOpen}

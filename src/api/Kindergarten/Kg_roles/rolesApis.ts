@@ -28,10 +28,9 @@ export interface CreateRoleRequest {
 export interface UpdateRoleRequest {
     role:string;
 }  
-  
-export const getAllRoles = async (kg_id: string): Promise<Role[]> => {
-  const response = await axiosInstance.get<KgRolesResponse>(`/kg/${kg_id}/role`);
-  return response.data.data;
+
+export const getAllRoles = async (limit: number, page: number, kg_id: string) => {
+  return axiosInstance.get<KgRolesResponse>(`/kg/${kg_id}/role?limit=${limit}&page=${page}`);
 };
 
 export const createRole = (kg_id: string ,data: CreateRoleRequest) =>
