@@ -67,6 +67,7 @@ export function AddPaymentDialog({
       toast({
       title: t('financial.addSuccess'),
       description: t('financial.addTransaction'),
+      variant: "success"
       });
       setForm({
         child_id: "",

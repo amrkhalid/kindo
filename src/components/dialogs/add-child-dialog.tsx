@@ -49,6 +49,7 @@ export function AddChildDialog({
     toast({
       title: "Child added",
       description: `${form.firstName} ${form.lastName} has been added successfully`,
+      variant: "success"
     });
     
     // Reset form and close dialog

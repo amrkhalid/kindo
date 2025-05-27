@@ -93,6 +93,7 @@ export default function FinancialPage() {
       toast({
         title: t('common.success'),
         description: t('financial.deleteSuccess'),
+        variant: "success"
       });
     } catch (error) {
       toast({

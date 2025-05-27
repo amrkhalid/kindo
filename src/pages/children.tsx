@@ -121,6 +121,7 @@ const ChildrenPage: React.FC = () => {
       toast({
         title: t('common.success'),
         description: t('children.addSuccess'),
+        variant: "success"
       });
     } catch (error) {
       console.error(error);
@@ -153,6 +154,7 @@ const ChildrenPage: React.FC = () => {
        toast({
         title: t('common.success'),
         description: t('children.editSuccess'),
+        variant: "success"
       });
     } catch (error) {
       toast({
@@ -180,6 +182,7 @@ const ChildrenPage: React.FC = () => {
       toast({
         title: t('common.success'),
         description: t('children.deleteSuccess'),
+        variant: "success"
       });
     } catch (error) {
       toast({

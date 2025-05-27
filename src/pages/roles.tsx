@@ -76,6 +76,7 @@ const RolesPage: React.FC = () => {
       toast({
         title: t("roles.addSuccess"),
         description: `${identity ?? "—"} ${t('roles.addDescription')}`,
+        variant: "success"
       });
   
       setIsAddDialogOpen(false);
@@ -100,6 +101,7 @@ const RolesPage: React.FC = () => {
       toast({
         title: t('roles.editSuccess'),
         description: t('roles.editSuccess'),
+        variant: "success"
       });
       setIsEditDialogOpen(false);
       setSelectedRole(null);
@@ -129,7 +131,7 @@ const RolesPage: React.FC = () => {
         toast({
           title: t('common.success'),
           description: t('roles.deleteSuccess'),
-          variant: 'default',
+          variant: "success"
         });
       } catch (error) {
         toast({

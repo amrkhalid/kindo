@@ -74,7 +74,7 @@ export default function GroupsPage() {
       toast({
         title: t('common.success'),
         description: t('groups.addSuccess'),
-        variant: 'default',
+        variant: "success"
       });
     } catch (error) {
       toast({
@@ -109,7 +109,7 @@ export default function GroupsPage() {
       toast({
         title: t('common.success'),
         description: t('groups.editSuccess'),
-        variant: 'default',
+        variant: "success"
       });
     } catch (error) {
       toast({
@@ -138,7 +138,7 @@ export default function GroupsPage() {
       toast({
         title: t('common.success'),
         description: t('groups.deleteSuccess'),
-        variant: 'default',
+        variant: "success"
       });
     } catch (error) {
       toast({

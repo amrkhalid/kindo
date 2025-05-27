@@ -148,6 +148,7 @@ const mockPlans: Plan[] = [
       toast({
         title: t('common.success'),
         description: t('kindergartens.addSuccess'),
+        variant: "success"
       });
     } catch (error) {
       console.error(error);
@@ -169,19 +170,20 @@ const mockPlans: Plan[] = [
   
       const response = await updateKindergarten(selectedKindergarten._id, data);
       const updatedKG: Kindergarten = response.data.result;
-      console.log(response.data.message);
+      console.log(response.data.result);
 
       setKindergartens(prev =>
         prev.map(k => (k._id === updatedKG._id ? updatedKG : k))
       );
 
-      window.location.reload();
+      setTimeout(() => window.location.reload(), 1000);
       setIsEditDialogOpen(false);
       setSelectedKindergarten(null);
   
       toast({
         title: t('common.success'),
         description: t('kindergartens.editSuccess'),
+        variant: "success"
       });
     } catch (error) {
       console.error("Edit failed", error);
@@ -215,6 +217,7 @@ const mockPlans: Plan[] = [
       toast({
         title: t('common.success'),
         description: t('kindergartens.deleteSuccess'),
+        variant: "success"
       });
     } catch (error) {
       console.error("Delete failed", error);
