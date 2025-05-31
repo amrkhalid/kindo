@@ -8,13 +8,14 @@ import { DataTable } from "@/components/ui/data-table";
 import { Badge } from "@/components/ui/badge";
 import { AddPaymentDialog } from "@/components/dialogs/add-payment-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { deleteInvoice, getAllTransaction, Invoice } from "@/api/Finance/financeApis";
+import { deleteInvoice, getAllTransaction, Invoice, updateInvoice } from "@/api/Finance/financeApis";
 import { Column } from "@/types/data-table";
 import {
   Child,
   getAllChildren,
 } from "@/api/Kindergarten/Children/childrenApis";
 import { DeleteDialog } from "@/components/dialogs/delete-dialog";
+import { EditPaymentDialog } from "@/components/dialogs/edit-payment-dialog";
 
 export default function FinancialPage() {
   const { t, i18n } = useTranslation();
@@ -35,6 +36,7 @@ export default function FinancialPage() {
   const [transactions, setTransactions] = React.useState<Invoice[]>([]);
   const [selectedTrans, setSelectedTrans] = useState<Invoice | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const Kg_id = localStorage.getItem("selectedKG");
   const [children, setChildren] = useState<Child[]>([]);
@@ -57,6 +59,33 @@ export default function FinancialPage() {
       console.error("Error fetching Transactions:", err);
     });
 }, [limit, page, Kg_id]);
+
+  const handleEditPayment = async ({ amount_paid}: { amount_paid: number }) => {
+    if (!selectedTrans) return;
+    try {
+      await updateInvoice(Kg_id, {
+        amount_paid,
+      },selectedTrans.id);
+
+      const res = await getAllTransaction( limit, page, Kg_id );
+      setTransactions(res.data.data);
+      toast({
+        title: t('financial.editSuccess'),
+        description: t('financial.editSuccess'),
+        variant: "success"
+      });
+      setIsEditDialogOpen(false);
+      setSelectedTrans(null);
+      } catch (error) {
+      toast({
+        title: t("common.error"),
+        description: t("financial.editError"),
+        variant: "destructive",
+      });
+      console.error("Error editing payment:", error);
+    }
+  };
+
       
     const handleDelete = async () => {
     if (!selectedTrans) return;
@@ -215,6 +244,11 @@ export default function FinancialPage() {
           setSelectedTrans(selectedTrans);
           setIsDeleteDialogOpen(true);
           }}
+          onEdit={(payment) => {
+            setSelectedTrans(payment);
+            setIsEditDialogOpen(true);
+          }}
+
         />
         <div className="flex items-center justify-between mb-4">
           <div className="flex gap-2 items-center">
@@ -267,6 +301,13 @@ export default function FinancialPage() {
         title={t('financial.deleteTitle')}
         description={t('financial.deleteDescription')}
       />
+
+      <EditPaymentDialog
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        onEditPayment={handleEditPayment}
+        payment={selectedTrans}
+      />      
     </div>
   );
 }

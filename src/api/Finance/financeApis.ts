@@ -56,12 +56,19 @@ export interface InvoiceRequest {
   notes: string;
 }
 
+export interface UpdateInvoiceRequest {
+  amount_paid: number;
+}
+
 export const getAllTransaction = (limit: number, page: number, kg_id: string ) => {
     return axiosInstance.get<InvoiceResponse>(`/finance/${kg_id}/invoice?limit=${limit}&page=${page}`);
 };
 
 export const createInvoice = (kg_id: string ,data: InvoiceRequest) =>
     axiosInstance.post<Invoice>(`/finance/${kg_id}/invoice`, data);
+
+export const updateInvoice = (kg_id: string ,data: UpdateInvoiceRequest,id: string) =>
+    axiosInstance.put<Invoice>(`/finance/${kg_id}/invoice/${id}`, data);
 
 export const deleteInvoice = (kg_id: string, id: string) =>
     axiosInstance.delete<{ message: string }>(`/finance/${kg_id}/invoice/${id}`);
