@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -29,6 +29,7 @@ import { Activity } from '@/types/activity';
 import { format } from 'date-fns';
 import { PageHeader } from '@/components/ui/page-header';
 import { useTranslation } from 'react-i18next';
+import { createActivity, deleteActivity, getAllActivities, updateActivity } from '@/api/Kindergarten/Activity/activityApis';
 
 const activityFormSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -41,50 +42,10 @@ const activityFormSchema = z.object({
 type ActivityFormValues = z.infer<typeof activityFormSchema>;
 
 export function ActivitiesPage() {
-  const [activities, setActivities] = useState<Activity[]>([
-    {
-      id: '1',
-      name: 'Morning Circle Time',
-      description: 'Daily morning gathering for songs, stories, and calendar activities',
-      location: 'Main Classroom',
-      start_time: '2024-03-20T08:30:00.000Z',
-      end_time: '2024-03-20T09:00:00.000Z'
-    },
-    {
-      id: '2',
-      name: 'Art & Craft Session',
-      description: 'Creative art session focusing on spring themes and nature crafts',
-      location: 'Art Room',
-      start_time: '2024-03-20T09:30:00.000Z',
-      end_time: '2024-03-20T10:30:00.000Z'
-    },
-    {
-      id: '3',
-      name: 'Outdoor Play Time',
-      description: 'Supervised playground activities and games',
-      location: 'Playground',
-      start_time: '2024-03-20T10:45:00.000Z',
-      end_time: '2024-03-20T11:45:00.000Z'
-    },
-    {
-      id: '4',
-      name: 'Lunch & Story Time',
-      description: 'Healthy lunch followed by interactive storytelling session',
-      location: 'Dining Hall',
-      start_time: '2024-03-20T12:00:00.000Z',
-      end_time: '2024-03-20T13:00:00.000Z'
-    },
-    {
-      id: '5',
-      name: 'Music & Movement',
-      description: 'Interactive music session with dancing and musical instruments',
-      location: 'Music Room',
-      start_time: '2024-03-20T14:00:00.000Z',
-      end_time: '2024-03-20T15:00:00.000Z'
-    }
-  ]);
+  const [activities, setActivities] = useState<Activity[]>([]);
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const Kg_id = localStorage.getItem("selectedKG");
   const { toast } = useToast();
   const { t } = useTranslation();
 
@@ -99,51 +60,58 @@ export function ActivitiesPage() {
     },
   });
 
-  const onSubmit = (data: ActivityFormValues) => {
-    if (selectedActivity) {
-      // Edit existing activity
-      const updatedActivities = activities.map((activity) =>
-        activity.id === selectedActivity.id ? { ...activity, ...data } : activity
-      );
-      setActivities(updatedActivities);
-      toast({
-        title: 'Activity Updated',
-        description: 'The activity has been updated successfully.',
-      });
-    } else {
-      // Add new activity
-      const newActivity = {
-        id: Math.random().toString(36).substr(2, 9),
-        name: data.name,
-        description: data.description,
-        location: data.location,
-        start_time: data.start_time,
-        end_time: data.end_time,
-      };
-      setActivities([...activities, newActivity]);
-      toast({
-        title: 'Activity Created',
-        description: 'The activity has been created successfully.',
-      });
+  useEffect(() => {
+  const fetchActivities = async () => {
+    try {
+      const response = await getAllActivities(Kg_id);
+      setActivities(response.data);
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to load activities',variant: 'destructive' });
     }
+  };
+
+  fetchActivities();
+}, [Kg_id]);
+
+
+  const onSubmit = async (data: ActivityFormValues) => {
+  try {
+    if (selectedActivity) {
+      await updateActivity(Kg_id,selectedActivity.id,{ ...data });
+      toast({ title: 'Activity Updated', description: 'The activity has been updated successfully.', variant: "success" });
+    } else {
+      await createActivity(Kg_id, data);
+      toast({ title: 'Activity Created', description: 'The activity has been created successfully.', variant: "success" });
+    }      
+    const res = await getAllActivities(Kg_id);
+    setActivities(res.data);
     setIsDialogOpen(false);
     form.reset();
     setSelectedActivity(null);
-  };
+  } catch (error) {
+    toast({ title: 'Error', description: 'Something went wrong while saving the activity.',variant: 'destructive' });
+  }
+};
 
-  const handleEdit = (activity: Activity) => {
-    setSelectedActivity(activity);
-    form.reset(activity);
-    setIsDialogOpen(true);
-  };
+const handleEdit = (activity: Activity) => {
+  setSelectedActivity(activity);
+  form.reset({
+    ...activity,
+    start_time: format(new Date(activity.start_time), "yyyy-MM-dd'T'HH:mm"),
+    end_time: format(new Date(activity.end_time), "yyyy-MM-dd'T'HH:mm"),
+  });
+  setIsDialogOpen(true);
+};
 
-  const handleDelete = (activityId: string) => {
+ const handleDelete = async (activityId: string) => {
+  try {
+    await deleteActivity(Kg_id, activityId);
     setActivities(activities.filter((activity) => activity.id !== activityId));
-    toast({
-      title: 'Activity Deleted',
-      description: 'The activity has been deleted successfully.',
-    });
-  };
+    toast({ title: 'Activity Deleted', description: 'The activity has been deleted successfully.', variant: "success" });
+  } catch (error) {
+    toast({ title: 'Error', description: 'Failed to delete activity',variant: 'destructive' });
+  }
+};
 
   const handleAddActivity = () => {
     setSelectedActivity(null);
@@ -233,8 +201,14 @@ export function ActivitiesPage() {
                   <p className="text-sm text-gray-600 mb-3">{activity.description}</p>
                   <div className="flex flex-wrap gap-3 text-sm items-center">
                     <Badge className="bg-blue-100 text-blue-800 flex items-center gap-1"><MapPin className="h-4 w-4" /> {activity.location}</Badge>
-                    <Badge className="bg-green-100 text-green-800 flex items-center gap-1"><Clock className="h-4 w-4" /> {t('activities.startTime')}: {format(new Date(activity.start_time), 'PPp')}</Badge>
-                    <Badge className="bg-yellow-100 text-yellow-800 flex items-center gap-1"><Clock className="h-4 w-4" /> {t('activities.endTime')}: {format(new Date(activity.end_time), 'PPp')}</Badge>
+                    <Badge className="bg-green-100 text-green-800 flex items-center gap-1">
+                      <Clock className="h-4 w-4" />
+                        {t('activities.startTime')}: {format(new Date(activity.start_time), 'MMM d, yyyy, h:mm a')}
+                     </Badge>
+                    <Badge className="bg-yellow-100 text-yellow-800 flex items-center gap-1">
+                      <Clock className="h-4 w-4" />
+                        {t('activities.endTime')}: {format(new Date(activity.end_time), 'MMM d, yyyy, h:mm a')}
+                     </Badge>
                   </div>
                 </div>
               ))}
