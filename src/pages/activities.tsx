@@ -65,6 +65,7 @@ export function ActivitiesPage() {
     try {
       const response = await getAllActivities(Kg_id);
       setActivities(response.data);
+      console.log("accc",response.data)
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to load activities',variant: 'destructive' });
     }
@@ -97,8 +98,8 @@ const handleEdit = (activity: Activity) => {
   setSelectedActivity(activity);
   form.reset({
     ...activity,
-    start_time: format(new Date(activity.start_time), "yyyy-MM-dd'T'HH:mm"),
-    end_time: format(new Date(activity.end_time), "yyyy-MM-dd'T'HH:mm"),
+    start_time: activity.start_time,
+    end_time: activity.end_time,
   });
   setIsDialogOpen(true);
 };
@@ -106,7 +107,8 @@ const handleEdit = (activity: Activity) => {
  const handleDelete = async (activityId: string) => {
   try {
     await deleteActivity(Kg_id, activityId);
-    setActivities(activities.filter((activity) => activity.id !== activityId));
+    const res = await getAllActivities(Kg_id);
+    setActivities(res.data);
     toast({ title: 'Activity Deleted', description: 'The activity has been deleted successfully.', variant: "success" });
   } catch (error) {
     toast({ title: 'Error', description: 'Failed to delete activity',variant: 'destructive' });
@@ -203,11 +205,11 @@ const handleEdit = (activity: Activity) => {
                     <Badge className="bg-blue-100 text-blue-800 flex items-center gap-1"><MapPin className="h-4 w-4" /> {activity.location}</Badge>
                     <Badge className="bg-green-100 text-green-800 flex items-center gap-1">
                       <Clock className="h-4 w-4" />
-                        {t('activities.startTime')}: {format(new Date(activity.start_time), 'MMM d, yyyy, h:mm a')}
+                        {t('activities.startTime')}: {activity.start_time}
                      </Badge>
                     <Badge className="bg-yellow-100 text-yellow-800 flex items-center gap-1">
                       <Clock className="h-4 w-4" />
-                        {t('activities.endTime')}: {format(new Date(activity.end_time), 'MMM d, yyyy, h:mm a')}
+                        {t('activities.endTime')}: {activity.end_time}
                      </Badge>
                   </div>
                 </div>
@@ -272,7 +274,7 @@ const handleEdit = (activity: Activity) => {
                   <FormItem>
                     <FormLabel>{t('activities.startTime')}</FormLabel>
                     <FormControl>
-                      <Input type="datetime-local" {...field} />
+                     <Input type="time" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -285,7 +287,7 @@ const handleEdit = (activity: Activity) => {
                   <FormItem>
                     <FormLabel>{t('activities.endTime')}</FormLabel>
                     <FormControl>
-                      <Input type="datetime-local" {...field} />
+                      <Input type="time" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
