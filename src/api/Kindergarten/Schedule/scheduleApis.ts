@@ -39,10 +39,10 @@ export interface CreateScheduleActivity {
 }
 
 export interface CreateScheduleRequest {
-  name: string;
+  name?: string;
   start_time: string;
   end_time: string;  
-  week: number;
+  week?: number;
   activities: CreateScheduleActivity[];
 }
 
@@ -50,11 +50,11 @@ export const getAllSchedules = ( kg_id: string) => {
     return axiosInstance.get<ScheduleResponse>(`/kg/${kg_id}/schedule`);
 };
 
-// export const createSchedule = (kg_id: string ,data: CreateScheduleRequest) =>
-//     axiosInstance.post<Schedule>(`/kg/${kg_id}/schedule`, data);
+export const createSchedule = (kg_id: string ,data: CreateScheduleRequest) =>
+    axiosInstance.post<Schedule>(`/kg/${kg_id}/schedule`, data);
 
-// export const updateSchedule = (kg_id: string ,data: CreateScheduleRequest,id: string) =>
-//     axiosInstance.put<Schedule>(`/kg/${kg_id}/schedule/${id}`, data);
+export const updateSchedule = (kg_id: string ,data: CreateScheduleRequest,id: string) =>
+    axiosInstance.put<Schedule>(`/kg/${kg_id}/schedule/${id}`, data);
     
-// export const deleteSchedule = (kg_id: string, id: string) =>
-//     axiosInstance.delete<{ message: string }>(`/kg/${kg_id}/schedule/${id}`);
+export const deleteSchedule = (kg_id: string, id: string) =>
+    axiosInstance.delete<{ message: string }>(`/kg/${kg_id}/schedule/${id}`);
