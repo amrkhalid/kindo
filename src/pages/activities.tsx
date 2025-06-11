@@ -3,7 +3,13 @@ import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Trash2, MapPin, Clock } from "lucide-react";
+import { MoreVertical,Pencil, Trash2, MapPin, Clock } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useToast } from "@/components/ui/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,8 +26,10 @@ import {
 } from "@/api/Kindergarten/Activity/activityApis";
 import {
   createSchedule,
+  deleteSchedule,
   getAllSchedules,
   Schedule,
+  updateSchedule,
 } from "@/api/Kindergarten/Schedule/scheduleApis";
 import {
   AddScheduleDialog,
@@ -40,6 +48,9 @@ export function ActivitiesPage() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(
+    null
+  );
+  const [selectedSchedule, setSelectedSchedule] = useState<Schedule | null>(
     null
   );
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -169,29 +180,39 @@ export function ActivitiesPage() {
           activities: day.activities,
         })),
       };
-      console.log("data", formattedSchedule);
-      await createSchedule(Kg_id, formattedSchedule);
 
-      toast({
-        title: "Schedule Created",
-        description: "The schedule has been created successfully.",
-        variant: "success",
-      });
+      if (selectedSchedule) {
+        await updateSchedule(Kg_id, selectedSchedule.id, formattedSchedule);
+        toast({
+          title: "Schedule Updated",
+          description: "The schedule has been updated successfully.",
+          variant: "success",
+        });
+      } else {
+        await createSchedule(Kg_id, formattedSchedule);
+        toast({
+          title: "Schedule Created",
+          description: "The schedule has been created successfully.",
+          variant: "success",
+        });
+      }
 
       const res = await getAllSchedules(Kg_id);
       setSchedules(res.data.data);
 
       setIsScheduleDialogOpen(false);
+      setSelectedSchedule(null);
       scheduleFormHook.reset();
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to create schedule",
+        description: selectedSchedule
+          ? "Failed to update schedule"
+          : "Failed to create schedule",
         variant: "destructive",
       });
     }
   };
-
   const handleEdit = (activity: Activity) => {
     setSelectedActivity(activity);
     form.reset({
@@ -221,6 +242,25 @@ export function ActivitiesPage() {
     }
   };
 
+  const handleDeleteSchedule = async (scheduleId: string) => {
+    try {
+      await deleteSchedule(Kg_id, scheduleId);
+      const res = await getAllSchedules(Kg_id);
+      setSchedules(res.data.data);
+      toast({
+        title: "Schedule Deleted",
+        description: "The schedule has been deleted successfully.",
+        variant: "success",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete schedule",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleAddActivity = () => {
     setSelectedActivity(null);
     form.reset();
@@ -228,8 +268,14 @@ export function ActivitiesPage() {
   };
 
   const handleAddSchedule = () => {
+    setSelectedSchedule(null);
     setIsScheduleDialogOpen(true);
     scheduleFormHook.reset();
+  };
+
+  const handleEditSchedule = (schedule: Schedule) => {
+    setSelectedSchedule(schedule);
+    setIsScheduleDialogOpen(true);
   };
 
   const getActivityDates = () => {
@@ -309,8 +355,11 @@ export function ActivitiesPage() {
 
           return (
             <div key={schedule.id} className="mb-8">
-              <ScheduleHeader schedule={schedule} />
-
+              <ScheduleHeader
+                schedule={schedule}
+                onEdit={handleEditSchedule}
+                onDelete={handleDeleteSchedule}
+              />
               {dayActivities.length > 0 ? (
                 <div className="space-y-4">
                   {dayActivities.map((activity) => (
@@ -357,7 +406,6 @@ export function ActivitiesPage() {
           </Button>
         </div>
       </PageHeader>
-
       <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-8 px-4 md:px-8 mt-10">
         <div className="w-full">
           <Card className="p-4 md:p-6">
@@ -407,7 +455,6 @@ export function ActivitiesPage() {
           <Card className="p-4 md:p-6">{renderRightPanelContent()}</Card>
         </div>
       </div>
-
       <ActivityDialog
         isOpen={isDialogOpen}
         onOpenChange={setIsDialogOpen}
@@ -419,12 +466,12 @@ export function ActivitiesPage() {
           setSelectedActivity(null);
         }}
       />
-
       <AddScheduleDialog
         isOpen={isScheduleDialogOpen}
         onOpenChange={setIsScheduleDialogOpen}
         onSubmit={onSubmitSchedule}
         activities={activities}
+        selectedSchedule={selectedSchedule}
       />
     </div>
   );
@@ -487,10 +534,54 @@ function ActivityCard({
   );
 }
 
-function ScheduleHeader({ schedule }: { schedule: Schedule }) {
+function ScheduleHeader({
+  schedule,
+  onEdit,
+  onDelete,
+}: {
+  schedule: Schedule;
+  onEdit?: (schedule: Schedule) => void;
+  onDelete?: (id: string) => void;
+}) {
   return (
     <div className="p-4 bg-gray-50 rounded-lg mb-4">
-      <h3 className="font-bold text-lg text-[#1A5F5E]">{schedule.name}</h3>
+      <div className="flex justify-between items-start">
+        <h3 className="font-bold text-lg text-[#1A5F5E]">{schedule.name}</h3>
+        {(onEdit || onDelete) && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="hover:bg-[#1A5F5E]/10"
+                aria-label="Schedule actions"
+              >
+                <MoreVertical className="h-4 w-4 text-[#1A5F5E]" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {onEdit && (
+                <DropdownMenuItem
+                  onClick={() => onEdit(schedule)}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <Pencil className="h-4 w-4 text-[#1A5F5E]" />
+                  <span>Edit</span>
+                </DropdownMenuItem>
+              )}
+              {onDelete && (
+                <DropdownMenuItem
+                  onClick={() => onDelete(schedule.id!)}
+                  className="flex items-center gap-2 cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span>Delete</span>
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+      </div>
       <div className="flex flex-wrap gap-2 mt-2">
         <Badge className="bg-blue-100 text-blue-800">
           Week {schedule.week}

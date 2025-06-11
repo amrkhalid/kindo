@@ -27,6 +27,8 @@ import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Activity } from "@/api/Kindergarten/Activity/activityApis";
+import { useEffect } from "react";
+import { Schedule } from "@/api/Kindergarten/Schedule/scheduleApis";
 
 export const scheduleFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -52,22 +54,68 @@ interface ScheduleDialogProps {
   activities: Activity[];
 }
 
+interface ScheduleDialogProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: (data: ScheduleFormValues) => Promise<void>;
+  activities: Activity[];
+  selectedSchedule?: Schedule | null;
+}
+
 export function AddScheduleDialog({
   isOpen,
   onOpenChange,
   onSubmit,
   activities,
+  selectedSchedule,
 }: ScheduleDialogProps) {
+  const formatDateTimeForInput = (isoString: string) => {
+    if (!isoString) return "";
+    const date = new Date(isoString);
+    return date.toISOString().slice(0, 16);
+  };
+
   const scheduleFormHook = useForm<ScheduleFormValues>({
     resolver: zodResolver(scheduleFormSchema),
     defaultValues: {
-      name: "",
-      start_time: "",
-      end_time: "",
-      week: "",
-      activities: [],
+      name: selectedSchedule?.name || "",
+      start_time: selectedSchedule
+        ? formatDateTimeForInput(selectedSchedule.start_date)
+        : "",
+      end_time: selectedSchedule
+        ? formatDateTimeForInput(selectedSchedule.end_date)
+        : "",
+      week: selectedSchedule?.week.toString() || "",
+      activities:
+        selectedSchedule?.activities.map((day) => ({
+          date: day.date,
+          activities: day.activities.map((a) => a.id),
+        })) || [],
     },
   });
+
+  useEffect(() => {
+    if (selectedSchedule) {
+      scheduleFormHook.reset({
+        name: selectedSchedule.name,
+        start_time: formatDateTimeForInput(selectedSchedule.start_date),
+        end_time: formatDateTimeForInput(selectedSchedule.end_date),
+        week: selectedSchedule.week.toString(),
+        activities: selectedSchedule.activities.map((day) => ({
+          date: day.date,
+          activities: day.activities.map((a) => a.id),
+        })),
+      });
+    } else {
+      scheduleFormHook.reset({
+        name: "",
+        start_time: "",
+        end_time: "",
+        week: "",
+        activities: [],
+      });
+    }
+  }, [selectedSchedule]);
 
   const { fields, append, remove } = useFieldArray({
     control: scheduleFormHook.control,
@@ -78,7 +126,9 @@ export function AddScheduleDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
-          <DialogTitle>Add New Schedule</DialogTitle>
+          <DialogTitle>
+            {selectedSchedule ? "Edit Schedule" : "Add New Schedule"}
+          </DialogTitle>
         </DialogHeader>
         <Form {...scheduleFormHook}>
           <form
@@ -177,26 +227,40 @@ export function AddScheduleDialog({
                           </FormControl>
                           <SelectContent>
                             {activities
-                              .filter(activity => !field.value?.includes(activity.id))
+                              .filter(
+                                (activity) =>
+                                  !field.value?.includes(activity.id)
+                              )
                               .map((activity) => (
-                                <SelectItem key={activity.id} value={activity.id}>
+                                <SelectItem
+                                  key={activity.id}
+                                  value={activity.id}
+                                >
                                   {activity.name}
                                 </SelectItem>
                               ))}
                           </SelectContent>
                         </Select>
-                        
+
                         <div className="flex flex-wrap gap-2 mt-2">
                           {field.value?.map((activityId) => {
-                            const activity = activities.find(a => a.id === activityId);
+                            const activity = activities.find(
+                              (a) => a.id === activityId
+                            );
+                            if (!activity) return null;
                             return (
-                              <Badge key={activityId} className="flex items-center gap-1">
-                                {activity?.name}
+                              <Badge
+                                key={activityId}
+                                className="flex items-center gap-1"
+                              >
+                                {activity.name}
                                 <button
                                   type="button"
                                   onClick={() => {
                                     field.onChange(
-                                      field.value.filter(id => id !== activityId)
+                                      field.value.filter(
+                                        (id) => id !== activityId
+                                      )
                                     );
                                   }}
                                   className="ml-1 p-0.5 rounded-full hover:bg-accent"
@@ -235,7 +299,7 @@ export function AddScheduleDialog({
               type="submit"
               className="bg-[#1A5F5E] hover:bg-[#1A5F5E]/90 w-full"
             >
-              Add Schedule
+              {selectedSchedule ? "Update Schedule" : "Add Schedule"}
             </Button>
           </form>
         </Form>

@@ -53,7 +53,7 @@ export const getAllSchedules = ( kg_id: string) => {
 export const createSchedule = (kg_id: string ,data: CreateScheduleRequest) =>
     axiosInstance.post<Schedule>(`/kg/${kg_id}/schedule`, data);
 
-export const updateSchedule = (kg_id: string ,data: CreateScheduleRequest,id: string) =>
+export const updateSchedule = (kg_id: string, id: string, data: CreateScheduleRequest) =>
     axiosInstance.put<Schedule>(`/kg/${kg_id}/schedule/${id}`, data);
     
 export const deleteSchedule = (kg_id: string, id: string) =>
