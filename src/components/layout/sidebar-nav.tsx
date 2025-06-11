@@ -29,8 +29,11 @@ export function SidebarNav({ className, isCollapsed, ...props }: SidebarNavProps
   const location = useLocation();
   const isRTL = i18n.dir() === 'rtl';
 
-  const navItems = [
-        {
+  const userRole = localStorage.getItem('user_role');
+  const isSuperuser = localStorage.getItem('is_superuser') === 'true';
+
+  const baseNavItems = [
+    {
       title: t('navbar.children'),
       href: '/children',
       icon: Baby,
@@ -40,50 +43,44 @@ export function SidebarNav({ className, isCollapsed, ...props }: SidebarNavProps
       href: '/roles',
       icon: UserCog,
     },
-    
     {
       title: t('navbar.groups'),
       href: '/groups',
       icon: Users,
     },
-        {
+    {
       title: t('navbar.financial'),
       href: '/financial',
       icon: FileText,
     },
-
-
     {
       title: t('navbar.activities'),
       href: '/activities',
       icon: Calendar,
     },
-
   ];
 
-  const adminItems = [
-        {
+  const developerNavItems = [
+    {
       title: t('navbar.dashboard'),
       href: '/',
       icon: LayoutDashboard,
     },
-        {
+    {
       title: t('navbar.kindergartens'),
       href: '/kindergartens',
       icon: School,
     },
-       {
+    {
       title: t('navigation.systemUsers'),
       href: '/system-users',
       icon: Wrench,
     },
-
-      {
+    {
       title: t('navbar.auditLogs'),
       href: '/audit-logs',
       icon: Wrench,
     },
-
     {
       title: t('navigation.plans'),
       href: '/plans',
@@ -96,7 +93,16 @@ export function SidebarNav({ className, isCollapsed, ...props }: SidebarNavProps
     },
   ];
 
-  const renderNavItem = (item: typeof navItems[0]) => {
+  const filteredNavItems = baseNavItems.filter((item) => {
+    if (userRole === 'secretary') {
+      return item.href !== '/financial';
+    }
+    return true;
+  });
+
+  const filteredAdminItems = isSuperuser ? developerNavItems : [];
+
+  const renderNavItem = (item: typeof baseNavItems[0]) => {
     const isActive = location.pathname === item.href;
     const Icon = item.icon;
 
@@ -111,15 +117,9 @@ export function SidebarNav({ className, isCollapsed, ...props }: SidebarNavProps
           isRTL && "flex-row-reverse"
         )}
       >
-        <Icon className={cn(
-          "h-4 w-4",
-          isCollapsed && "mx-auto"
-        )} />
+        <Icon className={cn("h-4 w-4", isCollapsed && "mx-auto")} />
         {!isCollapsed && (
-          <span className={cn(
-            "truncate",
-            isRTL && "text-right"
-          )}>
+          <span className={cn("truncate", isRTL && "text-right")}>
             {item.title}
           </span>
         )}
@@ -128,43 +128,32 @@ export function SidebarNav({ className, isCollapsed, ...props }: SidebarNavProps
   };
 
   return (
-    <nav className={cn(
-      "flex flex-col gap-2",
-      className
-    )} {...props}>
-
-      
-
-
-    <div className="flex flex-col gap-2">
-      
-        <div className={cn(
-          "px-3 text-xs font-semibold text-muted-foreground",
-          isCollapsed && "text-center",
-          isRTL && "text-right"
-        )}>
-          
-          {t('navigation.general')}
-          <Separator className="my-2" />
-        </div>
-        {navItems.map(renderNavItem)}
-      </div>
-
-      <div className="pt-5">
-
-      </div>
-
+    <nav className={cn("flex flex-col gap-2", className)} {...props}>
       <div className="flex flex-col gap-2">
         <div className={cn(
           "px-3 text-xs font-semibold text-muted-foreground",
           isCollapsed && "text-center",
           isRTL && "text-right"
         )}>
-          {t('navigation.developerOptions')}
+          {t('navigation.general')}
           <Separator className="my-2" />
         </div>
-        {adminItems.map(renderNavItem)}
+        {filteredNavItems.map(renderNavItem)}
       </div>
+
+      {filteredAdminItems.length > 0 && (
+        <div className="pt-5 flex flex-col gap-2">
+          <div className={cn(
+            "px-3 text-xs font-semibold text-muted-foreground",
+            isCollapsed && "text-center",
+            isRTL && "text-right"
+          )}>
+            {t('navigation.developerOptions')}
+            <Separator className="my-2" />
+          </div>
+          {filteredAdminItems.map(renderNavItem)}
+        </div>
+      )}
     </nav>
   );
 }

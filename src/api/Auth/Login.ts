@@ -1,3 +1,4 @@
+import axiosInstance from "../axiosInstance";
 import axios from "../axiosInstance";
 
 interface LoginRequest {
@@ -27,7 +28,20 @@ interface LoginResponse {
   token: string;
   user: User;
 }
+
+interface UserRole {
+  _id: string;
+  user_id: string;
+  kg_id: string;
+  role: string;
+  created_at: string;
+  updated_at: string;
+  __v: number;
+};
+
+export const getUserRole = ( user_id: string ) => {
+    return axiosInstance.get<UserRole>(`/kg/role/user/${user_id}`);
+};
 export const login = (data: LoginRequest) =>
   axios.post<LoginResponse>("/auth/login/web", data);
 
-export const getMe = () => axios.get("/users/me");

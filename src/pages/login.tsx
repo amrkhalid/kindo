@@ -14,7 +14,7 @@ import {
 import { Globe } from "lucide-react";
 import { APP } from '@/constants/app';
 import kendoLogo from '@/assets/kindo-logo.png';
-import { login } from '@/api/Auth/Login';
+import { getUserRole, login } from '@/api/Auth/Login';
 
 // List of available languages with their directions
 const languages = [
@@ -42,31 +42,46 @@ export default function LoginPage() {
   const currentLanguage = languages.find(lang => lang.code === i18n.language);
   const isRTL = currentLanguage?.dir === 'rtl';
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError(null);
-  
-    if (!formData.username || !formData.password) {
-      setError(t('login.allFieldsRequired'));
-      return;
-    }
-  
-    try {
-      const response = await login(formData);
-      const token = response?.data?.token;
-  
-      if (token) {
-        localStorage.setItem('token', token);
-  
-        navigate(APP.ROUTES.DASHBOARD);
-      } else {
-        setError(t('login.invalidCredentials'));
+const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  setError(null);
+
+  if (!formData.username || !formData.password) {
+    setError(t('login.allFieldsRequired'));
+    return;
+  }
+
+  try {
+    const response = await login(formData);
+    const token = response?.data?.token;
+    const user = response?.data?.user;
+    const is_superuser = user?.is_superuser;
+    const user_id = user.id; 
+
+
+    if (token && user_id) {
+      localStorage.setItem('token', token);
+      localStorage.setItem('is_superuser', is_superuser ? 'true' : 'false');
+
+      const roleResponse = await getUserRole(user_id);
+      const role = roleResponse?.data?.role;
+      const kg_id = roleResponse?.data?.kg_id; 
+
+
+      if (role) {
+        localStorage.setItem('user_role', role);
+        localStorage.setItem('selectedKG', kg_id);
       }
-    } catch (err: any) {
-      console.error('Login Error:', err);
+
+      navigate(APP.ROUTES.DASHBOARD);
+    } else {
       setError(t('login.invalidCredentials'));
     }
-  };
+  } catch (err: any) {
+    console.error('Login Error:', err);
+    setError(t('login.invalidCredentials'));
+  }
+};
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

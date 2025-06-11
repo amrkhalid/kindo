@@ -48,6 +48,7 @@ export function Navbar({ children }: NavbarProps) {
   const [dayOfWeek, setDayOfWeek] = useState("");
   const [kindergartens, setKindergartens] = useState<Kindergarten[]>([]);
   const Token = localStorage.getItem("token");
+  const isSuperuser = localStorage.getItem("is_superuser") === "true";
   const navigate = useNavigate();
 
   const handleLogout = async (e: React.FormEvent) => {
@@ -60,7 +61,7 @@ export function Navbar({ children }: NavbarProps) {
         },
       };
       const response = await logout(logoutData);
-      localStorage.removeItem("token");
+      localStorage.clear();
       console.log("logged out successfully");
       navigate(APP.ROUTES.LOGIN);
     } catch (error) {
@@ -239,27 +240,27 @@ export function Navbar({ children }: NavbarProps) {
                 <span>Settings</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              {kindergartens.length > 0 && (
-                  <DropdownMenuSub>
-                    <DropdownMenuSubTrigger>
-                      <School className="mr-2 h-4 w-4" />
-                      <span>{t("Login as KG")}</span>
-                    </DropdownMenuSubTrigger>
-                    <DropdownMenuSubContent>
-                      {kindergartens.map((kg) => (
-                        <DropdownMenuItem
-                          key={kg._id}
-                          onClick={() => {
-                            console.log("Selected KG:", kg._id);
-                            localStorage.setItem("selectedKG", kg._id);
-                            window.location.reload();
-                          }}
-                        >
-                          {kg.name}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuSubContent>
-                  </DropdownMenuSub>
+              {isSuperuser && kindergartens.length > 0 && (
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <School className="mr-2 h-4 w-4" />
+                    <span>{t("Login as KG")}</span>
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    {kindergartens.map((kg) => (
+                      <DropdownMenuItem
+                        key={kg._id}
+                        onClick={() => {
+                          console.log("Selected KG:", kg._id);
+                          localStorage.setItem("selectedKG", kg._id);
+                          window.location.reload();
+                        }}
+                      >
+                        {kg.name}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
               )}
 
               <DropdownMenuSeparator />
