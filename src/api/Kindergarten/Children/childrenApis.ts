@@ -1,4 +1,5 @@
 import axiosInstance from "@/api/axiosInstance";
+import { User } from "@/api/User/user";
 
 interface Kindergarten {
     id: string;
@@ -19,6 +20,8 @@ export interface Child {
     created_at: string;
     updated_at: string;
     kindergarten: Kindergarten;
+    fatheruser: User;
+    motheruser: User;
   };
   
 interface ChildrenResponse {
@@ -40,15 +43,22 @@ export interface CreateChildRequest {
     mother_idno: string;
   }
   
+type GetAllChildrenParams = {
+  limit?: number;
+  page?: number;
+  kg_id: string;
+};
+
+export const getAllChildren = ({ limit = 10, page = 1, kg_id }: GetAllChildrenParams) => {
+  return axiosInstance.get<ChildrenResponse>(`/kg/${kg_id}/child?limit=${limit}&page=${page}`);
+};
 
 export const createChild = (kg_id: string ,data: CreateChildRequest) =>
     axiosInstance.post<Child>(`/kg/${kg_id}/child`, data);
     
+export const updateChild = ( kg_id: string, id: string,data: CreateChildRequest & { kg: string }) =>
+    axiosInstance.put<Child>(`/kg/${kg_id}/child/${id}`, data);
 
-export const getAllChildren = async (kg_id: string): Promise<Child[]> => {
-  const response = await axiosInstance.get<ChildrenResponse>(`/kg/${kg_id}/child`);
-  return response.data.data;
-};
 
 export const deleteChild = (kg_id: string, id: string) =>
     axiosInstance.delete<{ message: string }>(`/kg/${kg_id}/child/${id}`);

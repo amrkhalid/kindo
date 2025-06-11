@@ -14,53 +14,40 @@ import { Badge } from "@/components/ui/badge";
 import { format } from 'date-fns';
 import { useRTL } from "@/hooks/use-rtl";
 import { PageHeader } from '@/components/ui/page-header';
-import { Child, createChild, CreateChildRequest, deleteChild, getAllChildren } from '@/api/Kindergarten/Children/childrenApis';
-
-const mockGroups: Group[] = [
-  {
-    id: '1',
-    name: 'Group 1',
-    description: 'Description 1',
-    capacity: 20,
-    staffName: 'Test Name',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    children: [],
-  },
-];
+import { Child, createChild, CreateChildRequest, deleteChild, getAllChildren, updateChild } from '@/api/Kindergarten/Children/childrenApis';
 
 const ChildrenPage: React.FC = () => {
   const { t } = useTranslation();
   const { toast } = useToast();
   const { isRTL } = useRTL();
+  const [totalPages, setTotalPages] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [page, setPage] = useState(1);
   const Kg_id = localStorage.getItem("selectedKG");
 
 
   const columns: Column<Child>[] = [
     {
-      key: "first_name",
-      title: t('table.headers.children.firstName'),
-      render: (value: string) => (
-        <div className={cn(
-          "font-medium text-[#1A5F5E]",
-          isRTL ? "text-right" : "text-left"
-        )}>
-          {value}
-        </div>
-      ),
-    },
-    {
-      key: "last_name",
-      title: t('table.headers.children.lastName'),
-      render: (value: string) => (
-        <div className={cn(
-          "text-gray-600",
-          isRTL ? "text-right" : "text-left"
-        )}>
-          {value}
-        </div>
-      ),
-    },
+  key: "full_name",
+  title: t("table.headers.children.fullName"),
+  render: (_: any, row: any) => (
+    <div
+      className={cn(
+        "font-medium text-[#1A5F5E]",
+        isRTL ? "text-right" : "text-left"
+      )}
+    >
+      {[
+        row.first_name,
+        row.second_name,
+        row.third_name,
+        row.last_name,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    </div>
+  ),
+},
     {
       key: "birth_date",
       title: t('table.headers.children.dateOfBirth'),
@@ -73,35 +60,29 @@ const ChildrenPage: React.FC = () => {
           </div>
       ),
     },
-    {
-      key: "gender",
-      title: t('table.headers.children.gender'),
-      render: (value: string) => (
-        <Badge className={value === 'male' ? "bg-blue-100 text-blue-800" : "bg-pink-100 text-pink-800"}>
-          {t(`common.gender.${value}`)}
-        </Badge>
-      ),
+     {
+      key: "father_idno",
+      title: t('table.headers.children.fatherIdNumber'),
+      render: (_: any, row: Child) => (
+      <div className={cn(
+      "text-gray-600",
+      isRTL ? "text-right" : "text-left"
+      )}>
+      {row.fatheruser?.id_no}
+      </div>
+  ),
     },
     {
       key: "mother_idno",
-      title: t('table.headers.children.parentId'),
-      render: (value: string) => (
-        <div className={cn(
-          "text-gray-600",
-          isRTL ? "text-right" : "text-left"
-        )}>
-          {value}
-        </div>
-      ),
-    },
-    {
-      key: "groupId",
-      title: t('table.headers.children.groupId'),
-      render: (value: string | undefined) => (
-        <Badge className={value ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>
-          {value ? t('common.hasGroup') : t('common.noGroup')}
-        </Badge>
-      ),
+      title: t('table.headers.children.motherIdNumber'),
+     render: (_: any, row: Child) => (
+     <div className={cn(
+      "text-gray-600",
+      isRTL ? "text-right" : "text-left"
+      )}>
+      {row.motheruser?.id_no}
+    </div>
+     ),
     },
   ];
 
@@ -111,38 +92,31 @@ const ChildrenPage: React.FC = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  useEffect(() => {
-    loadChildren();
-  }, []);
+    useEffect(() => {
+        getAllChildren({ limit, page, kg_id: Kg_id })
+          .then((res) => {
+            setChildren(res.data.data);
+            setTotalPages(res.data.totalPages);
+          })
+          .catch((err) => {
+            console.error("Error fetching Children:", err);
+          });
+      }, [limit, page, Kg_id]);
 
-  const loadChildren = async () => {
-    try {
-      const data = await getAllChildren(Kg_id);
-      setChildren(data);
-      console.log("ch",data)
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: t('common.error'),
-        description: t('children.loadError'),
-      });
-    }
-  };
+  console.log(children);
 
   const handleAdd = async (data: CreateChildRequest) => {
     console.log(data);
 
     try {
-      const { data: responseData } = await createChild( Kg_id, data);
-      const newChild: Child = { ...responseData };
-
-      console.log(newChild);
-
-      setChildren(prev => [...prev, newChild]);
+      await createChild( Kg_id, data);
+      const res = await getAllChildren({ limit, page, kg_id: Kg_id });
+      setChildren(res.data.data);
       setIsAddDialogOpen(false);
       toast({
         title: t('common.success'),
         description: t('children.addSuccess'),
+        variant: "success"
       });
     } catch (error) {
       console.error(error);
@@ -154,39 +128,32 @@ const ChildrenPage: React.FC = () => {
     }
   };
 
-  // const handleEdit = async (data: Omit<Child, 'id' | 'createdAt' | 'updatedAt'>) => {
-  //   if (!selectedChildren.length) return;
-
-  //   try {
-  //     const updatedChildren = await Promise.all(
-  //       selectedChildren.map((child) => childrenService.updateChild(child.id, {
-  //         firstName: data.firstName,
-  //         lastName: data.lastName,
-  //         dateOfBirth: data.dateOfBirth,
-  //         gender: data.gender,
-  //         parentId: data.parentId,
-  //         groupId: data.groupId,
-  //       }))
-  //     );
-  //     setChildren((prev) =>
-  //       prev.map((child) =>
-  //         updatedChildren.find((updated) => updated.id === child.id) || child
-  //       )
-  //     );
-  //     setIsEditDialogOpen(false);
-  //     setSelectedChildren([]);
-  //     toast({
-  //       title: t('common.success'),
-  //       description: t('children.editSuccess'),
-  //     });
-  //   } catch (error) {
-  //     toast({
-  //       variant: 'destructive',
-  //       title: t('common.error'),
-  //       description: t('children.editError'),
-  //     });
-  //   }
-  // };
+  const handleEdit = async (data: CreateChildRequest) => {
+      if (!selectedChildren) return;
+    
+      try {
+    
+      await updateChild(Kg_id,selectedChildren.id, {
+      ...data,
+      kg: Kg_id,
+    });
+      const res = await getAllChildren({ limit, page, kg_id: Kg_id });
+      setChildren(res.data.data);
+        setIsEditDialogOpen(false);
+        setSelectedChildren(null);
+       toast({
+        title: t('common.success'),
+        description: t('children.editSuccess'),
+        variant: "success"
+      });
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: t('common.error'),
+        description: t('children.editError'),
+      });
+    };
+  }
 
   const handleDelete = async () => {
     if (!selectedChildren) return;
@@ -195,16 +162,14 @@ const ChildrenPage: React.FC = () => {
 
     try {
       await deleteChild(Kg_id,selectedChildren.id);
-      const updatedChildren = children.filter(
-        (k) => k.id !== selectedChildren.id
-      );
-
-      setChildren(updatedChildren);
+      const res = await getAllChildren({ limit, page, kg_id: Kg_id });
+      setChildren(res.data.data);
       setIsDeleteDialogOpen(false);
       setSelectedChildren(null);
       toast({
         title: t('common.success'),
         description: t('children.deleteSuccess'),
+        variant: "success"
       });
     } catch (error) {
       toast({
@@ -235,15 +200,51 @@ const ChildrenPage: React.FC = () => {
         <DataTable
           columns={columns}
           data={children}
-          // onEdit={(child) => {
-          //   setSelectedChildren([child]);
-          //   setIsEditDialogOpen(true);
-          // }}
+          onEdit={(selectedChildren) => {
+            setSelectedChildren(selectedChildren);
+            setIsEditDialogOpen(true);
+          }}
           onDelete={(selectedChildren) => {
             setSelectedChildren(selectedChildren);
             setIsDeleteDialogOpen(true);
           }}
         />
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex gap-2 items-center">
+            <label>{t("Rows per page")}:</label>
+            <select
+              value={limit}
+              onChange={(e) => {
+                setPage(1);
+                setLimit(Number(e.target.value));
+              }}
+              className="border rounded px-2 py-1"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
+
+          <div className="flex gap-2 py-5">
+            <Button
+              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+              disabled={page === 1}
+            >
+              {t("Previous")}
+            </Button>
+            <span className="py-2">
+              {t("Page")}: {page} / {totalPages}
+            </span>
+            <Button
+              onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={page >= totalPages}
+            >
+              {t("Next")}
+            </Button>
+          </div>
+        </div>
       </Card>
 
        <ChildDialog
@@ -260,14 +261,12 @@ const ChildrenPage: React.FC = () => {
         description={t('children.deleteConfirmation')}
       />
 
-    {/* 
       <ChildDialog
-        child={selectedChildren[0]}
+        child={selectedChildren}
         open={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
         onSubmit={handleEdit}
       />
-     */}
     </div>
   );
 };

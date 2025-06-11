@@ -5,27 +5,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Child } from "@/types/child";
-import { useTranslation } from 'react-i18next';
-
-interface PaymentRequest {
-  id: string;
-  child_id: string;
-  parent_id: string;
-  amount_paid: number;
-  payment_method: string;
-  payment_date: string;
-  notes: string;
-  createdAt: string;
-}
+import { useTranslation } from "react-i18next";
+import { Child } from "@/api/Kindergarten/Children/childrenApis";
+import { createInvoice, InvoiceRequest } from "@/api/Finance/financeApis";
 
 interface AddPaymentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddPayment: (payment: PaymentRequest) => void;
+  onAddPayment: (payment: InvoiceRequest) => void;
   children: Child[];
 }
-
+const Kg_id = localStorage.getItem("selectedKG");
 const paymentMethods = [
   { value: "credit_card", labelKey: "financial.creditCard" },
   { value: "cash", labelKey: "financial.cash" },
@@ -41,23 +31,16 @@ export function AddPaymentDialog({
 }: AddPaymentDialogProps) {
   const { toast } = useToast();
   const { t } = useTranslation();
-  const [form, setForm] = useState<{
-    child_id: string;
-    parent_id: string;
-    amount_paid: string;
-    payment_method: string;
-    payment_date: string;
-    notes: string;
-  }>({
+  const [form, setForm] = useState<InvoiceRequest>({
     child_id: "",
     parent_id: "",
-    amount_paid: "",
+    amount_paid: 0,
     payment_method: "",
     payment_date: "",
     notes: ""
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.child_id || !form.parent_id || !form.amount_paid || !form.payment_method || !form.payment_date) {
       toast({
@@ -69,34 +52,44 @@ export function AddPaymentDialog({
     }
 
     const newPayment = {
-      id: crypto.randomUUID(),
       child_id: form.child_id,
       parent_id: form.parent_id,
-      amount_paid: parseFloat(form.amount_paid),
+      amount_paid: form.amount_paid,
       payment_method: form.payment_method,
       payment_date: form.payment_date,
       notes: form.notes,
-      createdAt: new Date().toISOString(),
     };
+    console.log(newPayment);
 
-    onAddPayment(newPayment);
-    toast({
+    try {
+      const response = await createInvoice(Kg_id!, newPayment);
+      onAddPayment(response.data);
+      toast({
       title: t('financial.addSuccess'),
       description: t('financial.addTransaction'),
-    });
-    setForm({
-      child_id: "",
-      parent_id: "",
-      amount_paid: "",
-      payment_method: "",
-      payment_date: "",
-      notes: ""
-    });
-    onOpenChange(false);
+      variant: "success"
+      });
+      setForm({
+        child_id: "",
+        parent_id: "",
+        amount_paid: 0,
+        payment_method: "",
+        payment_date: "",
+        notes: ""
+      });
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Failed to add payment:", error);
+      toast({
+        title: t("common.error"),
+        description: t("financial.addError"),
+        variant: "destructive",
+      });
+    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+   <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{t('financial.addTransaction')}</DialogTitle>
@@ -106,37 +99,41 @@ export function AddPaymentDialog({
             <Label htmlFor="child_id">{t('financial.childName')}</Label>
             <Select
               value={form.child_id}
-              onValueChange={(value) => setForm({ ...form, child_id: value })}
+              onValueChange={(value) => {
+                const selectedChild = children.find(
+                  (child) => child.id === value
+                );
+                setForm({
+                  ...form,
+                  child_id: value,
+                  parent_id: selectedChild?.father_idno || "",
+                });
+              }}
             >
               <SelectTrigger>
-                <SelectValue placeholder={t('financial.childNamePlaceholder')} />
+                <SelectValue
+                  placeholder={t("financial.childNamePlaceholder")}
+                />
               </SelectTrigger>
               <SelectContent>
                 {children.map((child) => (
                   <SelectItem key={child.id} value={child.id}>
-                    {`${child.firstName} ${child.lastName}`}
+                    {`${child.first_name} ${child.last_name}`}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="parent_id">{t('financial.parentEmail')}</Label>
-            <Input
-              id="parent_id"
-              value={form.parent_id}
-              onChange={(e) => setForm({ ...form, parent_id: e.target.value })}
-              placeholder={t('financial.parentEmailPlaceholder')}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="amount_paid">{t('financial.amount')}</Label>
+            <Label htmlFor="amount_paid">{t("financial.amount")}</Label>
             <Input
               id="amount_paid"
               type="number"
               value={form.amount_paid}
-              onChange={(e) => setForm({ ...form, amount_paid: e.target.value })}
-              placeholder={t('financial.amountPlaceholder')}
+              onChange={(e) =>
+                setForm({ ...form, amount_paid: Number(e.target.value) })
+              }
+              placeholder={t("financial.amountPlaceholder")}
             />
           </div>
           <div className="space-y-2">

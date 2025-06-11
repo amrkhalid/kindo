@@ -51,6 +51,7 @@ export function AddGroupDialog({
     toast({
       title: "Group added",
       description: `${form.name} group has been created successfully`,
+      variant: "success"
     });
     
     // Reset form and close dialog

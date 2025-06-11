@@ -58,7 +58,6 @@ interface SystemUser {
   created_at: string;
   updated_at: string;
   password?: string;
-  status?: "active" | "inactive";
 }
 
 const SystemUsersPage: React.FC = () => {
@@ -87,7 +86,6 @@ const SystemUsersPage: React.FC = () => {
     password: "",
     phone_number: "",
     address: "",
-    status: "active",
     is_active: true,
     is_superuser: false,
     created_at: "",
@@ -135,6 +133,7 @@ const SystemUsersPage: React.FC = () => {
         password: "",
         phone_number: "",
         address: "",
+        is_active:true,
       });
       getUsers(limit, page).then((res) => setUsers(res.data.data));
     } catch (error: any) {
@@ -338,18 +337,11 @@ const SystemUsersPage: React.FC = () => {
       ),
     },
     {
-      key: "status" as keyof SystemUser,
-      title: t("table.headers.systemUsers.status"),
-      render: (value: "active" | "inactive") => (
-        <Badge
-          className={cn(
-            value === "active"
-              ? "bg-green-100 text-green-800"
-              : "bg-red-100 text-red-800",
-            isRTL ? "ml-2" : "mr-2"
-          )}
-        >
-          {value}
+      key: 'is_active' as keyof SystemUser,
+      title: t('table.headers.systemUsers.status'),
+      render: (value: boolean) => (
+        <Badge className={value ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
+          {value ? t('common.active') : t('common.inactive')}
         </Badge>
       ),
     },
@@ -379,7 +371,7 @@ const SystemUsersPage: React.FC = () => {
                   password: user.password,
                   phone_number: user.phone_number,
                   address: user.address,
-                  status: user.status,
+                  is_active: user.is_active,
                 });
                 setIsEditDialogOpen(true);
               }}
@@ -702,6 +694,7 @@ const SystemUsersPage: React.FC = () => {
                     onChange={handleInputChange}
                     required
                     className="h-9"
+                    disabled
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -714,6 +707,7 @@ const SystemUsersPage: React.FC = () => {
                     value={formData.second_name}
                     onChange={handleInputChange}
                     className="h-9"
+                    disabled                    
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -726,6 +720,7 @@ const SystemUsersPage: React.FC = () => {
                     value={formData.third_name}
                     onChange={handleInputChange}
                     className="h-9"
+                    disabled                    
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -739,6 +734,7 @@ const SystemUsersPage: React.FC = () => {
                     onChange={handleInputChange}
                     required
                     className="h-9"
+                    disabled
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -752,6 +748,7 @@ const SystemUsersPage: React.FC = () => {
                     onChange={handleInputChange}
                     required
                     className="h-9"
+                    disabled
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -761,6 +758,7 @@ const SystemUsersPage: React.FC = () => {
                   <Select
                     value={formData.gender}
                     onValueChange={handleGenderChange}
+                    disabled
                   >
                     <SelectTrigger className="h-9">
                       <SelectValue
@@ -844,6 +842,7 @@ const SystemUsersPage: React.FC = () => {
                     onChange={handleInputChange}
                     required
                     className="h-9"
+                    disabled
                   />
                 </div>
                 <div className="space-y-1.5">

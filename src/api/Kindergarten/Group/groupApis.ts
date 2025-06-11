@@ -23,9 +23,8 @@ export interface CreateGroupRequest {
     name: string;
   }
   
-export const getAllGroups = async (kg_id: string): Promise<Group[]> => {
-  const response = await axiosInstance.get<GroupsResponse>(`/kg/${kg_id}/group`);
-  return response.data.data;
+export const getAllGroups = (limit: number, page: number, kg_id: string ) => {
+    return axiosInstance.get<GroupsResponse>(`/kg/${kg_id}/group?limit=${limit}&page=${page}`);
 };
 
 export const createGroup = (kg_id: string ,data: CreateGroupRequest) =>
