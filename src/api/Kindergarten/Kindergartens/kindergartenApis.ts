@@ -52,4 +52,3 @@ export const updateKindergarten = (id: string, data: CreateKindergartenRequest) 
 
 export const deleteKindergarten = (id: string) =>
     axiosInstance.delete<{ message: string }>(`/kg/${id}`);
-  

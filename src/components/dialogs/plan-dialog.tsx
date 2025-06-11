@@ -1,3 +1,4 @@
+// PlanDialog.tsx
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
@@ -28,7 +29,6 @@ const planSchema = z.object({
   buildIn: z.boolean(),
 });
 
-// Mock features data - replace with actual API call
 const features = [
   { id: 'attendance', name: 'Attendance Tracking' },
   { id: 'parent_portal', name: 'Parent Portal' },
@@ -49,45 +49,46 @@ const features = [
   { id: 'curriculum_planning', name: 'Curriculum Planning' },
   { id: 'staff_management', name: 'Staff Management' },
   { id: 'inventory_management', name: 'Inventory Management' },
-  { id: 'reporting', name: 'Reporting & Analytics' }
+  { id: 'reporting', name: 'Reporting & Analytics' },
 ];
 
 export function PlanDialog({ open, onOpenChange, plan, onSubmit }: PlanDialogProps) {
   const { t } = useTranslation();
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
 
+  const formatDateForInput = (dateStr?: string) =>
+    dateStr ? new Date(dateStr).toISOString().slice(0, 16) : '';
+
   const form = useForm<z.infer<typeof planSchema>>({
     resolver: zodResolver(planSchema),
     defaultValues: {
-      name: plan?.name || '',
-      startDate: plan?.startDate || '',
-      endDate: plan?.endDate || '',
-      cost: plan?.cost || 0,
-      discount: plan?.discount || 0,
-      enable: plan?.enable ?? true,
-      buildIn: plan?.buildIn ?? false,
+      name: '',
+      startDate: '',
+      endDate: '',
+      cost: 0,
+      discount: 0,
+      enable: true,
+      buildIn: false,
     },
   });
 
   useEffect(() => {
     if (open) {
-      // Reset form and selected features when dialog opens
       form.reset({
         name: plan?.name || '',
-        startDate: plan?.startDate || '',
-        endDate: plan?.endDate || '',
+        startDate: formatDateForInput(plan?.startDate),
+        endDate: formatDateForInput(plan?.endDate),
         cost: plan?.cost || 0,
         discount: plan?.discount || 0,
         enable: plan?.enable ?? true,
         buildIn: plan?.buildIn ?? false,
       });
-      // TODO: Load plan features from API when editing
-      setSelectedFeatures([]);
+      setSelectedFeatures(plan?.features?.map(f => f.id) || []);
     }
   }, [open, plan, form]);
 
   const handleSubmit = (data: z.infer<typeof planSchema>) => {
-    const planData: Omit<Plan, 'id' | 'createdAt' | 'updatedAt'> = {
+    const planData: Omit<Plan, 'id' | 'createdAt' | 'updatedAt' | 'features'> = {
       name: data.name,
       startDate: data.startDate,
       endDate: data.endDate,
@@ -125,11 +126,7 @@ export function PlanDialog({ open, onOpenChange, plan, onSubmit }: PlanDialogPro
 
         <div className="space-y-2">
           <Label htmlFor="startDate">{t('plans.startDate')}</Label>
-          <Input
-            id="startDate"
-            type="datetime-local"
-            {...form.register('startDate')}
-          />
+          <Input id="startDate" type="datetime-local" {...form.register('startDate')} />
           {form.formState.errors.startDate && (
             <p className="text-sm text-red-500">{form.formState.errors.startDate.message}</p>
           )}
@@ -137,11 +134,7 @@ export function PlanDialog({ open, onOpenChange, plan, onSubmit }: PlanDialogPro
 
         <div className="space-y-2">
           <Label htmlFor="endDate">{t('plans.endDate')}</Label>
-          <Input
-            id="endDate"
-            type="datetime-local"
-            {...form.register('endDate')}
-          />
+          <Input id="endDate" type="datetime-local" {...form.register('endDate')} />
           {form.formState.errors.endDate && (
             <p className="text-sm text-red-500">{form.formState.errors.endDate.message}</p>
           )}
@@ -176,7 +169,7 @@ export function PlanDialog({ open, onOpenChange, plan, onSubmit }: PlanDialogPro
         <div className="space-y-2">
           <Label htmlFor="features">{t('plans.features')}</Label>
           <MultiSelect
-            options={features.map(f => ({ value: f.id, label: f.name }))}
+            options={features.map((f) => ({ value: f.id, label: f.name }))}
             value={selectedFeatures}
             onChange={setSelectedFeatures}
             placeholder={t('plans.selectFeatures')}
@@ -202,18 +195,12 @@ export function PlanDialog({ open, onOpenChange, plan, onSubmit }: PlanDialogPro
         </div>
 
         <div className="flex justify-end space-x-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-          >
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
             {t('common.cancel')}
           </Button>
-          <Button type="submit">
-            {plan ? t('common.save') : t('common.add')}
-          </Button>
+          <Button type="submit">{plan ? t('common.save') : t('common.add')}</Button>
         </div>
       </form>
     </BaseDialog>
   );
-} 
+}
