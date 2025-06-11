@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import { MainLayout } from "@/components/layout/main-layout";
+import React, { useState, useEffect } from "react";
 import { DataTable } from "@/components/ui/data-table";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from 'react-i18next';
@@ -9,41 +8,23 @@ import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { Feature } from '@/types/feature';
 import { Column } from '@/types/data-table';
-import { DeleteDialog } from '@/components/dialogs/delete-dialog';
+//import { DeleteDialog } from '@/components/dialogs/delete-dialog';
 import { FeatureDialog } from '@/components/dialogs/feature-dialog';
 import { useToast } from '@/hooks/use-toast';
-
-// Mock data - replace with actual API calls
-const initialFeatures: Feature[] = [
-  {
-    id: "1",
-    name: "Attendance Tracking",
-    enable: true,
-    buildIn: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "2",
-    name: "Payment Management",
-    enable: true,
-    buildIn: false,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-];
+import { getFeatures, updateFeature, addFeature } from "@/api/Subscribtion/Features/FeatureApis";
 
 const FeaturesPage = () => {
   const { toast } = useToast();
-  const [features, setFeatures] = useState<Feature[]>(initialFeatures);
+  const [features, setFeatures] = useState<Feature[]>([]);
   const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  //const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { t, i18n } = useTranslation();
-  
-  // List of available languages with their directions
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
   const languages = [
     { code: 'en', label: 'English', dir: 'ltr' },
     { code: 'ar', label: 'العربية', dir: 'rtl' },
@@ -54,28 +35,25 @@ const FeaturesPage = () => {
 
   const columns: Column<Feature>[] = [
     {
-      key: 'name' as keyof Feature,
+      key: 'name',
       title: t('table.headers.features.name'),
       render: (value: string) => (
-        <div className={cn(
-          "font-medium text-[#1A5F5E]",
-          isRTL ? "text-right" : "text-left"
-        )}>
+        <div className={cn("font-medium text-[#1A5F5E]", isRTL ? "text-right" : "text-left")}>
           {value}
         </div>
       ),
     },
     {
-      key: 'enable' as keyof Feature,
+      key: 'enable',
       title: t('table.headers.features.enable'),
       render: (value: boolean) => (
         <Badge className={value ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
-          {value ? t('common.enabled') : t('common.disabled')}
+          {value ? t('common.enabled') : t('disabled')}
         </Badge>
       ),
     },
     {
-      key: 'buildIn' as keyof Feature,
+      key: 'buildIn',
       title: t('table.headers.features.buildIn'),
       render: (value: boolean) => (
         <Badge className={value ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-800"}>
@@ -84,36 +62,48 @@ const FeaturesPage = () => {
       ),
     },
     {
-      key: 'created_at' as keyof Feature,
+      key: 'created_at',
       title: t('table.headers.features.createdAt'),
       render: (value: string) => (
-        <div className={cn(
-          "text-gray-600",
-          isRTL ? "text-right" : "text-left"
-        )}>
+        <div className={cn("text-gray-600", isRTL ? "text-right" : "text-left")}>
           {new Date(value).toLocaleDateString()}
         </div>
       ),
     },
   ];
 
-  const handleAddFeature = async (newFeature: Omit<Feature, 'id' | 'created_at' | 'updated_at'>) => {
+  useEffect(() => {
+    const fetchFeatures = async () => {
+      setIsLoading(true);
+      try {
+        const response = await getFeatures(currentPage, 10);
+        setFeatures(response.data.data);
+        setTotalPages(response.data.totalPages);
+      } catch (error) {
+        toast({
+          title: t('common.error'),
+          description: t('features.fetchError'),
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchFeatures();
+  }, [t, toast, currentPage]);
+
+  const handleAddFeature = async (newFeature: Omit<Feature, '_id' | 'created_at' | 'updated_at'>) => {
     try {
       setIsLoading(true);
-      // TODO: Replace with actual API call
-      const feature: Feature = {
-        ...newFeature,
-        id: crypto.randomUUID(),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      setFeatures([...features, feature]);
+      const response = await addFeature(newFeature);
+      setFeatures([...features, response.data]);
       setIsAddDialogOpen(false);
       toast({
         title: t('common.success'),
         description: t('features.addSuccess'),
       });
     } catch (error) {
+      console.error("Add feature error:", error);
       toast({
         title: t('common.error'),
         description: t('features.addError'),
@@ -124,62 +114,44 @@ const FeaturesPage = () => {
     }
   };
 
-  const handleEdit = async (data: Omit<Feature, 'id' | 'created_at' | 'updated_at'>) => {
-    if (!selectedFeature) return;
-    try {
-      setIsLoading(true);
-      // TODO: Replace with actual API call
-      const updatedFeatures = features.map((f) =>
-        f.id === selectedFeature.id ? { ...data, id: selectedFeature.id, created_at: selectedFeature.created_at, updated_at: new Date().toISOString() } : f
-      );
-      setFeatures(updatedFeatures);
-      setIsEditDialogOpen(false);
-      setSelectedFeature(null);
-      toast({
-        title: t('common.success'),
-        description: t('features.editSuccess'),
-      });
-    } catch (error) {
-      toast({
-        title: t('common.error'),
-        description: t('features.editError'),
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+const handleEdit = async (feature: Feature) => {
+  if (!feature._id) {
+    console.error("Feature ID is missing");
+    toast({
+      title: "خطأ",
+      description: "لا يمكن تعديل الخاصية بدون ID",
+      variant: "destructive",
+    });
+    return;
+  }
 
-  const handleDelete = async () => {
-    if (!selectedFeature) return;
-    try {
-      setIsLoading(true);
-      // TODO: Replace with actual API call
-      const updatedFeatures = features.filter((f) => f.id !== selectedFeature.id);
-      setFeatures(updatedFeatures);
-      setIsDeleteDialogOpen(false);
-      setSelectedFeature(null);
-      toast({
-        title: t('common.success'),
-        description: t('features.deleteSuccess'),
-      });
-    } catch (error) {
-      toast({
-        title: t('common.error'),
-        description: t('features.deleteError'),
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  try {
+    const response = await updateFeature(feature._id, feature.enable);
+    
+    console.log("Feature updated:", response.data);
+    const updatedFeatures = features.map((f) =>
+      f._id === feature._id ? response.data : f
+    );
+    setFeatures(updatedFeatures);
+
+    toast({
+      title: "تم التحديث",
+      description: "تم تحديث حالة الخاصية بنجاح",
+    });
+  } catch (error) {
+    console.error("Error updating feature:", error);
+    toast({
+      title: "خطأ",
+      description: "فشل في تحديث الخاصية",
+      variant: "destructive",
+    });
+  }
+};
+
 
   return (
     <div className={cn("space-y-4", isRTL ? "rtl" : "ltr")}>
-      <div className={cn(
-        "flex items-center justify-between border-b pb-4",
-        isRTL ? "flex-row-reverse" : "flex-row"
-      )}>
+      <div className={cn("flex items-center justify-between border-b pb-4", isRTL ? "flex-row-reverse" : "flex-row")}>
         <div>
           <h1 className="text-3xl font-bold text-[#1A5F5E]">{t('features.title')}</h1>
           <p className="text-sm text-muted-foreground">{t('features.description')}</p>
@@ -187,11 +159,9 @@ const FeaturesPage = () => {
         <Button
           onClick={() => setIsAddDialogOpen(true)}
           className="bg-[#1A5F5E] hover:bg-[#1A5F5E]/90"
+          disabled={isLoading}
         >
-          <Plus className={cn(
-            "h-4 w-4 mr-2",
-            isRTL ? "ml-2" : "mr-2"
-          )} />
+          <Plus className={cn("h-4 w-4", isRTL ? "ml-2" : "mr-2")} />
           {t('features.add')}
         </Button>
       </div>
@@ -201,17 +171,30 @@ const FeaturesPage = () => {
           columns={columns}
           data={features}
           searchable
-          pagination
-          pageSize={10}
+          loading={isLoading}
           onEdit={(feature) => {
             setSelectedFeature(feature);
             setIsEditDialogOpen(true);
           }}
-          onDelete={(feature) => {
-            setSelectedFeature(feature);
-            setIsDeleteDialogOpen(true);
-          }}
         />
+
+        <div className="flex justify-center mt-4 gap-2">
+          <Button
+            disabled={currentPage === 1 || isLoading}
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+          >
+            {t('common.previous')}
+          </Button>
+          <span className="flex items-center px-2">
+            {t('common.page')} {currentPage} / {totalPages}
+          </span>
+          <Button
+            disabled={currentPage === totalPages || isLoading}
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+          >
+            {t('common.next')}
+          </Button>
+        </div>
       </Card>
 
       <FeatureDialog
@@ -225,20 +208,37 @@ const FeaturesPage = () => {
         open={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
         onSubmit={handleEdit}
-        defaultValues={selectedFeature}
+        defaultValues={selectedFeature || undefined}
         isLoading={isLoading}
       />
 
-      <DeleteDialog
+      {/*<DeleteDialog
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
         onConfirm={handleDelete}
         isLoading={isLoading}
         title={t('features.deleteTitle')}
         description={t('features.deleteDescription')}
-      />
+      />*/}
     </div>
   );
 };
 
-export default FeaturesPage; 
+export default FeaturesPage;
+
+
+/*<Card className="p-6">
+        <DataTable
+          columns={columns}
+          data={features}
+          searchable
+          loading={isLoading}
+          onEdit={(feature) => {
+            setSelectedFeature(feature);
+            setIsEditDialogOpen(true);
+          }}
+          onDelete={(feature) => {
+            setSelectedFeature(feature);
+            setIsDeleteDialogOpen(true);
+          }}
+        />*/
