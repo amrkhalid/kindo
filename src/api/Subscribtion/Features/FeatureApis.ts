@@ -1,5 +1,4 @@
 import axiosInstance from "@/api/axiosInstance";
-import axios from "axios";
 
 export interface Feature {
   _id: string;
@@ -17,39 +16,24 @@ export interface FeatureResponse {
   limit: number;
   totalPages: number;
 }
-export const getFeatures = (page = 1, limit = 10) =>
-  axiosInstance.get<FeatureResponse>(`/subscribtion/feature?page=${page}&limit=${limit}`);
 
+export interface FeatureCreateRequest {
+  featureData: {
+    name: string;
+    enable: boolean;
+    buildIn: boolean;
+  };
+}
 
-export const updateFeature = async (id: string, enable: boolean) => {
-  const token = localStorage.getItem("token"); 
-  return await axios.put(
-    `http://localhost:3000/api/v1/subscribtion/feature/${id}`,
-    { enable },
-    {
-      headers: {
-        Authorization: `${token}`,
-          'x-api-key': token,
-      },
-    }
-  );
-};
-
-export const addFeature = async (featureData: {
-  name: string;
+export interface FeatureUpdateRequest {
   enable: boolean;
-  buildIn: boolean;
-}) => {
-  const token = localStorage.getItem("token");
-  return await axios.post(
-    "http://localhost:3000/api/v1/subscribtion/feature",
-    { featureData },
-    {
-      headers: {
-        Authorization: `${token}`,
-        "x-api-key": token,
-      },
-    }
-  );
-};
+}
 
+export const createFeature = (data: FeatureCreateRequest) =>
+  axiosInstance.post<Feature>("/subscribtion/feature", data);
+
+export const updateFeature = (id: string, data: FeatureUpdateRequest) =>
+  axiosInstance.put<Feature>(`/subscribtion/feature/${id}`, data);
+
+export const getFeatures = (limit: number, page: number) =>
+  axiosInstance.get<FeatureResponse>(`/subscribtion/feature?limit=${limit}&page=${page}`);

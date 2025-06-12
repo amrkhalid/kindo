@@ -1,17 +1,23 @@
 import React, { useState, useEffect } from "react";
 import { DataTable } from "@/components/ui/data-table";
 import { Badge } from "@/components/ui/badge";
-import { useTranslation } from 'react-i18next';
-import { Card } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
-import { Feature } from '@/types/feature';
-import { Column } from '@/types/data-table';
-//import { DeleteDialog } from '@/components/dialogs/delete-dialog';
-import { FeatureDialog } from '@/components/dialogs/feature-dialog';
-import { useToast } from '@/hooks/use-toast';
-import { getFeatures, updateFeature, addFeature } from "@/api/Subscribtion/Features/FeatureApis";
+import { useTranslation } from "react-i18next";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { Column } from "@/types/data-table";
+import {
+  FeatureDialog,
+  FeatureFormData,
+} from "@/components/dialogs/feature-dialog";
+import { useToast } from "@/hooks/use-toast";
+import {
+  getFeatures,
+  updateFeature,
+  createFeature,
+  Feature,
+} from "@/api/Subscribtion/Features/FeatureApis";
 
 const FeaturesPage = () => {
   const { toast } = useToast();
@@ -19,53 +25,69 @@ const FeaturesPage = () => {
   const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  //const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [totalPages, setTotalPages] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const { t, i18n } = useTranslation();
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
 
   const languages = [
-    { code: 'en', label: 'English', dir: 'ltr' },
-    { code: 'ar', label: 'العربية', dir: 'rtl' },
-    { code: 'he', label: 'עברית', dir: 'rtl' }
+    { code: "en", label: "English", dir: "ltr" },
+    { code: "ar", label: "العربية", dir: "rtl" },
+    { code: "he", label: "עברית", dir: "rtl" },
   ];
 
-  const isRTL = languages.find(lang => lang.code === i18n.language)?.dir === 'rtl';
+  const isRTL =
+    languages.find((lang) => lang.code === i18n.language)?.dir === "rtl";
 
   const columns: Column<Feature>[] = [
     {
-      key: 'name',
-      title: t('table.headers.features.name'),
+      key: "name",
+      title: t("table.headers.features.name"),
       render: (value: string) => (
-        <div className={cn("font-medium text-[#1A5F5E]", isRTL ? "text-right" : "text-left")}>
+        <div
+          className={cn(
+            "font-medium text-[#1A5F5E]",
+            isRTL ? "text-right" : "text-left"
+          )}
+        >
           {value}
         </div>
       ),
     },
     {
-      key: 'enable',
-      title: t('table.headers.features.enable'),
+      key: "enable",
+      title: t("table.headers.features.enable"),
       render: (value: boolean) => (
-        <Badge className={value ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
-          {value ? t('common.enabled') : t('disabled')}
+        <Badge
+          className={
+            value ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+          }
+        >
+          {value ? t("common.enabled") : t("disabled")}
         </Badge>
       ),
     },
     {
-      key: 'buildIn',
-      title: t('table.headers.features.buildIn'),
+      key: "buildIn",
+      title: t("table.headers.features.buildIn"),
       render: (value: boolean) => (
-        <Badge className={value ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-800"}>
-          {value ? t('common.yes') : t('common.no')}
+        <Badge
+          className={
+            value ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-800"
+          }
+        >
+          {value ? t("common.yes") : t("common.no")}
         </Badge>
       ),
     },
     {
-      key: 'created_at',
-      title: t('table.headers.features.createdAt'),
+      key: "created_at",
+      title: t("table.headers.features.createdAt"),
       render: (value: string) => (
-        <div className={cn("text-gray-600", isRTL ? "text-right" : "text-left")}>
+        <div
+          className={cn("text-gray-600", isRTL ? "text-right" : "text-left")}
+        >
           {new Date(value).toLocaleDateString()}
         </div>
       ),
@@ -76,85 +98,103 @@ const FeaturesPage = () => {
     const fetchFeatures = async () => {
       setIsLoading(true);
       try {
-        const response = await getFeatures(currentPage, 10);
-        setFeatures(response.data.data);
-        setTotalPages(response.data.totalPages);
+        const res = await getFeatures(limit, page);
+        setFeatures(res.data.data);
+        setTotalPages(res.data.totalPages);
       } catch (error) {
         toast({
-          title: t('common.error'),
-          description: t('features.fetchError'),
-          variant: 'destructive',
+          title: t("common.error"),
+          description: t("features.fetchError"),
+          variant: "destructive",
         });
       } finally {
         setIsLoading(false);
       }
     };
     fetchFeatures();
-  }, [t, toast, currentPage]);
+  }, [limit, page]);
 
-  const handleAddFeature = async (newFeature: Omit<Feature, '_id' | 'created_at' | 'updated_at'>) => {
+  const handleAddFeature = async (data: FeatureFormData) => {
     try {
       setIsLoading(true);
-      const response = await addFeature(newFeature);
-      setFeatures([...features, response.data]);
+      await createFeature({
+        featureData: {
+          name: data.name,
+          enable: data.enable,
+          buildIn: data.buildIn,
+        },
+      });
+      const res = await getFeatures(limit, page);
+      setFeatures(res.data.data);
       setIsAddDialogOpen(false);
       toast({
-        title: t('common.success'),
-        description: t('features.addSuccess'),
+        title: t("common.success"),
+        description: t("features.addSuccess"),
+        variant: "success",
       });
     } catch (error) {
       console.error("Add feature error:", error);
       toast({
-        title: t('common.error'),
-        description: t('features.addError'),
-        variant: 'destructive',
+        title: t("common.error"),
+        description: t("features.addError"),
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-const handleEdit = async (feature: Feature) => {
-  if (!feature._id) {
-    console.error("Feature ID is missing");
-    toast({
-      title: "خطأ",
-      description: "لا يمكن تعديل الخاصية بدون ID",
-      variant: "destructive",
-    });
-    return;
-  }
+  const handleEdit = async (data: FeatureFormData & { _id?: string }) => {
+    if (!data._id) {
+      toast({
+        title: t("common.error"),
+        description: t("features.missingIdError"),
+        variant: "destructive",
+      });
+      return;
+    }
 
-  try {
-    const response = await updateFeature(feature._id, feature.enable);
-    
-    console.log("Feature updated:", response.data);
-    const updatedFeatures = features.map((f) =>
-      f._id === feature._id ? response.data : f
-    );
-    setFeatures(updatedFeatures);
+    try {
+      setIsLoading(true);
+      await updateFeature(data._id, { enable: data.enable });
 
-    toast({
-      title: "تم التحديث",
-      description: "تم تحديث حالة الخاصية بنجاح",
-    });
-  } catch (error) {
-    console.error("Error updating feature:", error);
-    toast({
-      title: "خطأ",
-      description: "فشل في تحديث الخاصية",
-      variant: "destructive",
-    });
-  }
-};
+      const res = await getFeatures(limit, page);
+      setFeatures(res.data.data);
 
+      setIsEditDialogOpen(false);
+
+      toast({
+        title: t("common.success"),
+        description: t("features.updateSuccess"),
+        variant: "success",
+      });
+    } catch (error) {
+      console.error("Error updating feature:", error);
+      toast({
+        title: t("common.error"),
+        description: t("features.updateError"),
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className={cn("space-y-4", isRTL ? "rtl" : "ltr")}>
-      <div className={cn("flex items-center justify-between border-b pb-4", isRTL ? "flex-row-reverse" : "flex-row")}>
+      <div
+        className={cn(
+          "flex items-center justify-between border-b pb-4",
+          isRTL ? "flex-row-reverse" : "flex-row"
+        )}
+      >
         <div>
-          <h1 className="text-3xl font-bold text-[#1A5F5E]">{t('features.title')}</h1>
-          <p className="text-sm text-muted-foreground">{t('features.description')}</p>
+          <h1 className="text-3xl font-bold text-[#1A5F5E]">
+            {t("features.title")}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {t("features.description")}
+          </p>
         </div>
         <Button
           onClick={() => setIsAddDialogOpen(true)}
@@ -162,7 +202,7 @@ const handleEdit = async (feature: Feature) => {
           disabled={isLoading}
         >
           <Plus className={cn("h-4 w-4", isRTL ? "ml-2" : "mr-2")} />
-          {t('features.add')}
+          {t("features.add")}
         </Button>
       </div>
 
@@ -177,23 +217,41 @@ const handleEdit = async (feature: Feature) => {
             setIsEditDialogOpen(true);
           }}
         />
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex gap-2 items-center">
+            <label>{t("Rows per page")}:</label>
+            <select
+              value={limit}
+              onChange={(e) => {
+                setPage(1);
+                setLimit(Number(e.target.value));
+              }}
+              className="border rounded px-2 py-1"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
 
-        <div className="flex justify-center mt-4 gap-2">
-          <Button
-            disabled={currentPage === 1 || isLoading}
-            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-          >
-            {t('common.previous')}
-          </Button>
-          <span className="flex items-center px-2">
-            {t('common.page')} {currentPage} / {totalPages}
-          </span>
-          <Button
-            disabled={currentPage === totalPages || isLoading}
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-          >
-            {t('common.next')}
-          </Button>
+          <div className="flex gap-2 py-5">
+            <Button
+              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+              disabled={page === 1}
+            >
+              {t("Previous")}
+            </Button>
+            <span className="py-2">
+              {t("Page")}: {page} / {totalPages}
+            </span>
+            <Button
+              onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={page >= totalPages}
+            >
+              {t("Next")}
+            </Button>
+          </div>
         </div>
       </Card>
 
@@ -211,34 +269,8 @@ const handleEdit = async (feature: Feature) => {
         defaultValues={selectedFeature || undefined}
         isLoading={isLoading}
       />
-
-      {/*<DeleteDialog
-        open={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
-        onConfirm={handleDelete}
-        isLoading={isLoading}
-        title={t('features.deleteTitle')}
-        description={t('features.deleteDescription')}
-      />*/}
     </div>
   );
 };
 
 export default FeaturesPage;
-
-
-/*<Card className="p-6">
-        <DataTable
-          columns={columns}
-          data={features}
-          searchable
-          loading={isLoading}
-          onEdit={(feature) => {
-            setSelectedFeature(feature);
-            setIsEditDialogOpen(true);
-          }}
-          onDelete={(feature) => {
-            setSelectedFeature(feature);
-            setIsDeleteDialogOpen(true);
-          }}
-        />*/

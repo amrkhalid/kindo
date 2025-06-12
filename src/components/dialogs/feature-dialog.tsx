@@ -15,7 +15,7 @@ const featureSchema = z.object({
   buildIn: z.boolean().default(false),
 });
 
-type FeatureFormData = z.infer<typeof featureSchema>;
+export type FeatureFormData = z.infer<typeof featureSchema>;
 
 interface FeatureDialogProps {
   open: boolean;
@@ -33,6 +33,7 @@ export function FeatureDialog({
   isLoading = false,
 }: FeatureDialogProps) {
   const { t } = useTranslation();
+  const isEditMode = !!defaultValues?._id;
 
   const {
     register,
@@ -75,6 +76,7 @@ export function FeatureDialog({
             id="name"
             {...register('name')}
             placeholder={t('features.namePlaceholder')}
+            disabled={isEditMode} 
           />
           {errors.name && (
             <p className="text-sm text-red-500">{errors.name.message}</p>
@@ -105,6 +107,7 @@ export function FeatureDialog({
                 id="buildIn"
                 checked={field.value}
                 onCheckedChange={field.onChange}
+                disabled={isEditMode} 
               />
               <Label htmlFor="buildIn">{t('features.buildIn')}</Label>
             </div>
