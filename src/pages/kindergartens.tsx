@@ -12,6 +12,7 @@ import { DeleteDialog } from '@/components/dialogs/delete-dialog';
 import { Column } from '@/types/data-table';
 import { toast } from 'sonner';
 import { createKindergarten, CreateKindergartenRequest, deleteKindergarten, getAllKgs, Kindergarten, Plan, updateKindergarten } from "@/api/Kindergarten/Kindergartens/kindergartenApis";
+import { getPlans } from "@/api/Subscribtion/Plans/PlanApis";
 
 
 const KindergartensPage = () => {
@@ -35,35 +36,25 @@ const KindergartensPage = () => {
     { code: 'he', label: 'עברית', dir: 'rtl' }
   ];
 
-  // Mock plans data - replace with actual API call
-const mockPlans: Plan[] = [
-  {
-    _id: "67f954f665d12a811dcc15ca",
-    name: "Basic Plan",
-    startDate: new Date().toISOString(),
-    endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-    cost: 99.99,
-    discount: 0,
-    enable: true,
-    buildIn: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    __v:0
-  },
-  {
-    _id: "67f954f665d12a811dcc15ca",
-    name: "Premium Plan",
-    startDate: new Date().toISOString(),
-    endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-    cost: 199.99,
-    discount: 10,
-    enable: true,
-    buildIn: false,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    __v:0
-  },
-  ];
+const [plans, setPlans] = useState<Plan[]>([]);
+
+useEffect(() => {
+  const fetchPlans = async () => {
+    try {
+      const response = await getPlans(); 
+      setPlans(response.data);
+    } catch (err) {
+      console.error("Error fetching Plans:", err);
+      toast({
+        variant: 'destructive',
+        title: t('common.error'),
+        description: t('plans.fetchError'),
+      });
+    }
+  };
+
+  fetchPlans();
+});
 
   const isRTL = languages.find(lang => lang.code === i18n.language)?.dir === 'rtl';
 
@@ -151,8 +142,7 @@ const mockPlans: Plan[] = [
           console.error("Error fetching KGs:", err);
           setIsLoading(false);
         });
-    }, [limit, page]);
-  
+    }, [limit, page]);  
   
   const handleAddKindergarten = async (data: CreateKindergartenRequest) => {
     setIsLoading(true);
@@ -317,7 +307,7 @@ const mockPlans: Plan[] = [
         onOpenChange={setIsAddDialogOpen}
         onSubmit={handleAddKindergarten}
         isLoading={isLoading}
-        plans={mockPlans}
+        plans={plans}
       />
 
       <KindergartenDialog
@@ -326,7 +316,7 @@ const mockPlans: Plan[] = [
         onSubmit={handleEdit}
         defaultValues={selectedKindergarten}
         isLoading={isLoading}
-        plans={mockPlans}
+        plans={plans}
       />
 
       <DeleteDialog

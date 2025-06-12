@@ -153,7 +153,7 @@ export function KindergartenDialog({
           </label>
           <MultiSelect
             options={plans.map((plan) => ({
-              value: plan._id || "",
+              value: plan.id || "",
               label: formatPlanOption(plan),
             }))}
             value={selectedPlanId ? [selectedPlanId] : []}
