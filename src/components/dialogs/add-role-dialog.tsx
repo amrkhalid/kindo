@@ -86,6 +86,9 @@ export function AddRoleDialog({
                 <SelectItem value="staff">
                   {t("roles.staff", "Staff")}
                 </SelectItem>
+                <SelectItem value="secretary">
+                  {t("roles.secretary", "Secretary")}
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
