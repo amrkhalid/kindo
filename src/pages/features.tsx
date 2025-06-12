@@ -199,7 +199,7 @@ const FeaturesPage = () => {
         <Button
           onClick={() => setIsAddDialogOpen(true)}
           className="bg-[#1A5F5E] hover:bg-[#1A5F5E]/90"
-          disabled={isLoading}
+          disabled
         >
           <Plus className={cn("h-4 w-4", isRTL ? "ml-2" : "mr-2")} />
           {t("features.add")}

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { MainLayout } from "@/components/layout/main-layout";
 import { DataTable } from "@/components/ui/data-table";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from "react-i18next";
@@ -7,22 +6,27 @@ import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { Plan, PlanRequest } from "@/types/plan";
+import { Plan } from "@/types/plan";
 import { Column } from "@/types/data-table";
 import { DeleteDialog } from "@/components/dialogs/delete-dialog";
-import { PlanDialog } from "@/components/dialogs/plan-dialog";
+import { PlanDialog, PlanFormData } from "@/components/dialogs/plan-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { getPlans } from "@/api/Subscribtion/Plans/PlanApis";
+import {
+  getPlans,
+  createPlan,
+  updatePlan,
+  PlanUpdateRequest,
+  DEFAULT_FEATURES,
+  PlanRequest,
+} from "@/api/Subscribtion/Plans/PlanApis";
 
 const PlansPage: React.FC = () => {
   const { toast } = useToast();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-
   const [isLoading, setIsLoading] = useState(false);
   const { t, i18n } = useTranslation();
 
@@ -37,57 +41,108 @@ const PlansPage: React.FC = () => {
 
   useEffect(() => {
     const fetchPlans = async () => {
+      setIsLoading(true);
+
       try {
-        setIsLoading(true);
-        const response = await getPlans();
-
-        const plansData = response.data;
-
-        if (!Array.isArray(plansData)) {
-          throw new Error("Expected an array of plans");
-        }
-
+        const res = await getPlans();
+        const plansData = res.data.map((plan) => ({
+          ...plan,
+          cost: plan.cost || 0,
+          discount: plan.discount || 0,
+        }));
         setPlans(plansData);
+        console.log("plans", plans);
+        setIsLoading(false);
       } catch (error) {
         toast({
           title: t("common.error"),
-          description:
-            (error as Error).message ||
-            t("plans.fetchError") ||
-            "Error fetching plans",
+          description: t("plans.fetchError"),
           variant: "destructive",
         });
       } finally {
         setIsLoading(false);
       }
     };
-
     fetchPlans();
-  }, [t, toast]);
+  }, []);
 
-  const handleUpdatePlan = async (planData: PlanRequest) => {
-    if (!selectedPlan) return;
-
+  const handleAddPlan = async (data: PlanFormData) => {
     try {
       setIsLoading(true);
-      await updatePlan(selectedPlan.id, planData);
+
+      const requestData: PlanRequest = {
+        planData: {
+          name: data.name,
+          startDate: new Date(data.startDate).toISOString(),
+          endDate: new Date(data.endDate).toISOString(),
+          cost: data.cost,
+          discount: data.discount,
+          enable: data.enable,
+          buildIn: data.buildIn,
+        },
+        features: DEFAULT_FEATURES,
+      };
+      await createPlan(requestData);
+      const res = await getPlans();
+      const plansData = res.data.map((plan) => ({
+        ...plan,
+        cost: plan.cost || 0,
+        discount: plan.discount || 0,
+      }));
+
+      setPlans(plansData);
+      setIsAddDialogOpen(false);
       toast({
         title: t("common.success"),
-        description: t("plans.updateSuccess") || "Plan updated successfully",
-        variant: "default",
+        description: t("plans.addSuccess"),
+        variant: "success",
       });
-      setIsEditDialogOpen(false);
-      setSelectedPlan(null);
-
-      const response = await getPlans();
-      setPlans(response.data);
     } catch (error) {
       toast({
         title: t("common.error"),
-        description:
-          (error as Error).message ||
-          t("plans.updateError") ||
-          "Failed to update plan",
+        description: t("plans.addError"),
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUpdatePlan = async (data: PlanFormData) => {
+    if (!selectedPlan?.id) return;
+
+    try {
+      setIsLoading(true);
+      const requestData: PlanUpdateRequest = {
+        updateData: {
+          name: data.name,
+          startDate: new Date(data.startDate).toISOString(),
+          endDate: new Date(data.endDate).toISOString(),
+          cost: data.cost,
+          discount: data.discount,
+          enable: data.enable,
+          buildIn: data.buildIn,
+        },
+      };
+      await updatePlan(selectedPlan.id, requestData);
+      const response = await getPlans();
+      const plansData = response.data.map((plan) => ({
+        ...plan,
+        cost: plan.cost || 0,
+        discount: plan.discount || 0,
+      }));
+      setPlans(plansData);
+      setIsEditDialogOpen(false);
+      setSelectedPlan(null);
+      toast({
+        title: t("common.success"),
+        description: t("plans.updateSuccess"),
+        variant: "success",
+      });
+    } catch (error) {
+      toast({
+        title: t("common.error"),
+        description: t("plans.updateError"),
         variant: "destructive",
       });
     } finally {
@@ -97,7 +152,7 @@ const PlansPage: React.FC = () => {
 
   const columns: Column<Plan>[] = [
     {
-      key: "name" as keyof Plan,
+      key: "name",
       title: t("table.headers.plans.name"),
       render: (value: string) => (
         <div
@@ -111,7 +166,7 @@ const PlansPage: React.FC = () => {
       ),
     },
     {
-      key: "startDate" as keyof Plan,
+      key: "startDate",
       title: t("table.headers.plans.startDate"),
       render: (value: string) => (
         <div
@@ -122,7 +177,7 @@ const PlansPage: React.FC = () => {
       ),
     },
     {
-      key: "endDate" as keyof Plan,
+      key: "endDate",
       title: t("table.headers.plans.endDate"),
       render: (value: string) => (
         <div
@@ -133,29 +188,29 @@ const PlansPage: React.FC = () => {
       ),
     },
     {
-      key: "cost" as keyof Plan,
+      key: "cost",
       title: t("table.headers.plans.cost"),
-      render: (value: number) => (
+      render: (value: number | undefined) => (
         <div
           className={cn("text-gray-600", isRTL ? "text-right" : "text-left")}
         >
-          ${value.toFixed(2)}
+          ${(value || 0).toFixed(2)}
         </div>
       ),
     },
     {
-      key: "discount" as keyof Plan,
+      key: "discount",
       title: t("table.headers.plans.discount"),
-      render: (value: number) => (
+      render: (value: number | undefined) => (
         <div
           className={cn("text-gray-600", isRTL ? "text-right" : "text-left")}
         >
-          {value}%
+          {value || 0}%
         </div>
       ),
     },
     {
-      key: "enable" as keyof Plan,
+      key: "enable",
       title: t("table.headers.plans.enable"),
       render: (value: boolean) => (
         <Badge
@@ -163,12 +218,12 @@ const PlansPage: React.FC = () => {
             value ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
           }
         >
-          {value ? t("common.enabled") : t("common.disabled")}
+          {value ? t("common.enabled") : t("disabled")}
         </Badge>
       ),
     },
     {
-      key: "buildIn" as keyof Plan,
+      key: "buildIn",
       title: t("table.headers.plans.buildIn"),
       render: (value: boolean) => (
         <Badge
@@ -181,11 +236,6 @@ const PlansPage: React.FC = () => {
       ),
     },
   ];
-
-  const handleAdd = () => {
-    setSelectedPlan(null);
-    setIsAddDialogOpen(true);
-  };
 
   return (
     <div className={cn("space-y-4", isRTL ? "rtl" : "ltr")}>
@@ -204,7 +254,7 @@ const PlansPage: React.FC = () => {
           </p>
         </div>
         <Button
-          onClick={handleAdd}
+          onClick={() => setIsAddDialogOpen(true)}
           className="bg-[#1A5F5E] hover:bg-[#1A5F5E]/90"
         >
           <Plus className={cn("h-4 w-4", isRTL ? "ml-2" : "mr-2")} />
@@ -217,30 +267,33 @@ const PlansPage: React.FC = () => {
           columns={columns}
           data={plans}
           searchable
-          title={t("plans.title")}
+          loading={isLoading}
           onEdit={(plan) => {
             setSelectedPlan(plan);
             setIsEditDialogOpen(true);
           }}
-          onDelete={(plan) => {
-            setSelectedPlan(plan);
-            setIsDeleteDialogOpen(true);
-          }}
+          // onDelete={(plan) => {
+          //   setSelectedPlan(plan);
+          //   setIsDeleteDialogOpen(true);
+          // }}
         />
       </Card>
 
-      <PlanDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} />
+      <PlanDialog
+        open={isAddDialogOpen}
+        onOpenChange={setIsAddDialogOpen}
+        onSubmit={handleAddPlan}
+        isLoading={isLoading}
+      />
 
-      {isEditDialogOpen && selectedPlan && (
-        <PlanDialog
-          open={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
-          plan={selectedPlan}
-          onSubmit={handleUpdatePlan}
-        />
-      )}
-
-      <DeleteDialog
+      <PlanDialog
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        onSubmit={handleUpdatePlan}
+        defaultValues={selectedPlan || undefined}
+        isLoading={isLoading}
+      />
+      {/* <DeleteDialog
         title={t("plans.delete")}
         description={t("plans.deleteConfirmation")}
         open={isDeleteDialogOpen}
@@ -250,7 +303,7 @@ const PlansPage: React.FC = () => {
         }}
         onConfirm={() => {}}
         isLoading={isLoading}
-      />
+      /> */}
     </div>
   );
 };
