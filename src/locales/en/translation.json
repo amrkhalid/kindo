@@ -660,7 +660,10 @@
     "deleteSuccess": "The schedule has been deleted successfully.",
     "noSchedules": "No schedule available.",
     "dialogTitleAdd": "Add Schedule",
-    "dialogTitleEdit": "Edit Schedule"
+    "dialogTitleEdit": "Edit Schedule",
+    "week":"Week",
+    "date":"Date",
+    "removeActivity":"Remove Activity"
   },
   "features": {
     "title": "Features",
