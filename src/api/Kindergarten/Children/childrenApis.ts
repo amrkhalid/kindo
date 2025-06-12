@@ -43,14 +43,13 @@ export interface CreateChildRequest {
     mother_idno: string;
   }
   
-type GetAllChildrenParams = {
-  limit?: number;
-  page?: number;
-  kg_id: string;
+
+export const getAllChildren = (limit: number, page: number, kg_id: string ) => {
+  return axiosInstance.get<ChildrenResponse>(`/kg/${kg_id}/child?limit=${limit}&page=${page}`);
 };
 
-export const getAllChildren = ({ limit = 10, page = 1, kg_id }: GetAllChildrenParams) => {
-  return axiosInstance.get<ChildrenResponse>(`/kg/${kg_id}/child?limit=${limit}&page=${page}`);
+export const getAllChildrenNames = (kg_id: string ) => {
+  return axiosInstance.get<ChildrenResponse>(`/kg/${kg_id}/child`);
 };
 
 export const createChild = (kg_id: string ,data: CreateChildRequest) =>

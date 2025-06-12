@@ -12,7 +12,7 @@ import { deleteInvoice, getAllTransaction, Invoice, updateInvoice } from "@/api/
 import { Column } from "@/types/data-table";
 import {
   Child,
-  getAllChildren,
+  getAllChildrenNames,
 } from "@/api/Kindergarten/Children/childrenApis";
 import { DeleteDialog } from "@/components/dialogs/delete-dialog";
 import { EditPaymentDialog } from "@/components/dialogs/edit-payment-dialog";
@@ -42,7 +42,7 @@ export default function FinancialPage() {
   const [children, setChildren] = useState<Child[]>([]);
 
   useEffect(() => {
-  getAllChildren({kg_id:Kg_id})
+  getAllChildrenNames(Kg_id)
     .then((res) => {
       setChildren(res.data.data);
     })

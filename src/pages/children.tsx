@@ -93,7 +93,7 @@ const ChildrenPage: React.FC = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
     useEffect(() => {
-        getAllChildren({ limit, page, kg_id: Kg_id })
+        getAllChildren( limit, page, Kg_id )
           .then((res) => {
             setChildren(res.data.data);
             setTotalPages(res.data.totalPages);
@@ -110,7 +110,7 @@ const ChildrenPage: React.FC = () => {
 
     try {
       await createChild( Kg_id, data);
-      const res = await getAllChildren({ limit, page, kg_id: Kg_id });
+      const res = await getAllChildren( limit, page,Kg_id );
       setChildren(res.data.data);
       setIsAddDialogOpen(false);
       toast({
@@ -137,7 +137,7 @@ const ChildrenPage: React.FC = () => {
       ...data,
       kg: Kg_id,
     });
-      const res = await getAllChildren({ limit, page, kg_id: Kg_id });
+      const res = await getAllChildren(limit, page,  Kg_id );
       setChildren(res.data.data);
         setIsEditDialogOpen(false);
         setSelectedChildren(null);
@@ -162,7 +162,7 @@ const ChildrenPage: React.FC = () => {
 
     try {
       await deleteChild(Kg_id,selectedChildren.id);
-      const res = await getAllChildren({ limit, page, kg_id: Kg_id });
+      const res = await getAllChildren(limit, page,  Kg_id);
       setChildren(res.data.data);
       setIsDeleteDialogOpen(false);
       setSelectedChildren(null);
