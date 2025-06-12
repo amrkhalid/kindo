@@ -388,7 +388,7 @@ export function ActivitiesPage() {
     <div className="w-full min-h-screen py-8 px-0">
       <PageHeader
         title={t("activities.title")}
-        description={t("activities.description")}
+        description={t("schedules.description")}
         isRTL={true}
       >
         <div className="flex gap-4">

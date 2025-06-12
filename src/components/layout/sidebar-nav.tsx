@@ -54,7 +54,7 @@ export function SidebarNav({ className, isCollapsed, ...props }: SidebarNavProps
       icon: FileText,
     },
     {
-      title: t('navbar.activities'),
+      title: t('navbar.schedules'),
       href: '/activities',
       icon: Calendar,
     },
