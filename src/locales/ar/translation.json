@@ -12,7 +12,8 @@
     "financial": "المالية",
     "auditLogs": "سجلات التدقيق",
     "logout": "تسجيل الخروج",
-    "activities":"الأنشطة"
+    "activities":"الأنشطة",
+    "schedules":"الجداول"
   },
   "common": {
     "copyright": "© 2025 كيندو",
@@ -654,6 +655,27 @@
     "noActivities": "لا توجد أنشطة متاحة.",
     "dialogTitleAdd": "إضافة نشاط",
     "dialogTitleEdit": "تعديل النشاط"
+  },
+  "schedules": {
+    "title": "الأنشطة",
+    "description": "عرض وإضافة وإدارة جداول الأنشطة والفعاليات الخاصة برياض الأطفال.",
+    "add": "إضافة جدول",
+    "edit": "تعديل جدول",
+    "delete": "حذف جدول",
+    "name": "اسم الجدول",
+    "descriptionLabel": "الوصف",
+    "location": "الموقع",
+    "startTime": "وقت البدء",
+    "endTime": "وقت الانتهاء",
+    "createSuccess": "تم إنشاء الجدول بنجاح.",
+    "updateSuccess": "تم تحديث الجدول بنجاح.",
+    "deleteSuccess": "تم حذف الجدول بنجاح.",
+    "noActivities": "لا توجد جداول متاحة.",
+    "dialogTitleAdd": "إضافة جدول",
+    "dialogTitleEdit": "تعديل جدول",
+    "week":"الأسبوع",
+    "date":"التاريخ",
+    "removeActivity":"حذف النشاط"
   },
   "login": {
     "title": "تسجيل الدخول",

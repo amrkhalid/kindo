@@ -13,7 +13,8 @@
     "auditLogs": "Audit Logs",
     "logout": "Logout",
     "features": "Features",
-    "activities":"Activities"
+    "activities":"Activities",
+    "schedules":"Schedules"
   },
   "common": {
     "copyright": "© 2025 Kendo",
@@ -642,6 +643,27 @@
     "noActivities": "No activities available.",
     "dialogTitleAdd": "Add Activity",
     "dialogTitleEdit": "Edit Activity"
+  },
+  "schedules": {
+    "title": "Schedules",
+    "description": "View, add, and manage kindergarten schedules, activities and events.",
+    "add": "Add Schedule",
+    "edit": "Edit Schedule",
+    "delete": "Delete Schedule",
+    "name": "Schedule Name",
+    "descriptionLabel": "Description",
+    "location": "Location",
+    "startTime": "Start Time",
+    "endTime": "End Time",
+    "createSuccess": "The schedule has been created successfully.",
+    "updateSuccess": "The schedule has been updated successfully.",
+    "deleteSuccess": "The schedule has been deleted successfully.",
+    "noSchedules": "No schedule available.",
+    "dialogTitleAdd": "Add Schedule",
+    "dialogTitleEdit": "Edit Schedule",
+    "week":"Week",
+    "date":"Date",
+    "removeActivity":"Remove Activity"
   },
   "features": {
     "title": "Features",

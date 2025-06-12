@@ -388,7 +388,7 @@ export function ActivitiesPage() {
     <div className="w-full min-h-screen py-8 px-0">
       <PageHeader
         title={t("activities.title")}
-        description={t("activities.description")}
+        description={t("schedules.description")}
         isRTL={true}
       >
         <div className="flex gap-4">
@@ -543,6 +543,7 @@ function ScheduleHeader({
   onEdit?: (schedule: Schedule) => void;
   onDelete?: (id: string) => void;
 }) {
+    const { t } = useTranslation();
   return (
     <div className="p-4 bg-gray-50 rounded-lg mb-4">
       <div className="flex justify-between items-start">
@@ -566,7 +567,7 @@ function ScheduleHeader({
                   className="flex items-center gap-2 cursor-pointer"
                 >
                   <Pencil className="h-4 w-4 text-[#1A5F5E]" />
-                  <span>Edit</span>
+                  <span>{t("common.edit")}</span>
                 </DropdownMenuItem>
               )}
               {onDelete && (
@@ -575,7 +576,7 @@ function ScheduleHeader({
                   className="flex items-center gap-2 cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
                 >
                   <Trash2 className="h-4 w-4" />
-                  <span>Delete</span>
+                  <span>{t("common.delete")}</span>
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>

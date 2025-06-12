@@ -29,6 +29,8 @@ import { Input } from "@/components/ui/input";
 import { Activity } from "@/api/Kindergarten/Activity/activityApis";
 import { useEffect } from "react";
 import { Schedule } from "@/api/Kindergarten/Schedule/scheduleApis";
+import { useTranslation } from "react-i18next";
+
 
 export const scheduleFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -74,6 +76,8 @@ export function AddScheduleDialog({
     const date = new Date(isoString);
     return date.toISOString().slice(0, 16);
   };
+    const { t } = useTranslation();
+
 
   const scheduleFormHook = useForm<ScheduleFormValues>({
     resolver: zodResolver(scheduleFormSchema),
@@ -127,7 +131,7 @@ export function AddScheduleDialog({
       <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle>
-            {selectedSchedule ? "Edit Schedule" : "Add New Schedule"}
+            {selectedSchedule ? t('schedules.edit') : t('schedules.add')}
           </DialogTitle>
         </DialogHeader>
         <Form {...scheduleFormHook}>
@@ -140,7 +144,7 @@ export function AddScheduleDialog({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>{t("schedules.name")}</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -153,7 +157,7 @@ export function AddScheduleDialog({
               name="start_time"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Start Time</FormLabel>
+                  <FormLabel>{t("schedules.startTime")}</FormLabel>
                   <FormControl>
                     <Input type="datetime-local" {...field} />
                   </FormControl>
@@ -166,7 +170,7 @@ export function AddScheduleDialog({
               name="end_time"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>End Time</FormLabel>
+                  <FormLabel>{t("schedules.endTime")}</FormLabel>
                   <FormControl>
                     <Input type="datetime-local" {...field} />
                   </FormControl>
@@ -180,7 +184,7 @@ export function AddScheduleDialog({
               name="week"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Week</FormLabel>
+                  <FormLabel>{t("schedules.week")}</FormLabel>
                   <FormControl>
                     <Input type="number" {...field} />
                   </FormControl>
@@ -197,7 +201,7 @@ export function AddScheduleDialog({
                     name={`activities.${index}.date`}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Date</FormLabel>
+                        <FormLabel>{t("schedules.date")}</FormLabel>
                         <FormControl>
                           <Input type="date" {...field} />
                         </FormControl>
@@ -211,7 +215,7 @@ export function AddScheduleDialog({
                     name={`activities.${index}.activities`}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Activities</FormLabel>
+                        <FormLabel>{t("activities.title")}</FormLabel>
                         <Select
                           onValueChange={(value) => {
                             if (!field.value?.includes(value)) {
@@ -281,7 +285,7 @@ export function AddScheduleDialog({
                     variant="destructive"
                     onClick={() => remove(index)}
                   >
-                    Remove Activity
+                    {t("schedules.removeActivity")}
                   </Button>
                 </div>
               ))}
@@ -291,7 +295,7 @@ export function AddScheduleDialog({
                 onClick={() => append({ date: "", activities: [] })}
                 className="w-full"
               >
-                + Add Activity
+                + {t('schedules.dialogTitleAdd')}
               </Button>
             </div>
 
@@ -299,7 +303,7 @@ export function AddScheduleDialog({
               type="submit"
               className="bg-[#1A5F5E] hover:bg-[#1A5F5E]/90 w-full"
             >
-              {selectedSchedule ? "Update Schedule" : "Add Schedule"}
+              {selectedSchedule ? t('schedules.dialogTitleEdit'): t('schedules.dialogTitleAdd')}
             </Button>
           </form>
         </Form>
