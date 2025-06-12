@@ -73,7 +73,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         localStorage.setItem('selectedKG', kg_id);
       }
 
-      navigate(APP.ROUTES.DASHBOARD);
+      navigate(APP.ROUTES.CHILDREN);
     } else {
       setError(t('login.invalidCredentials'));
     }

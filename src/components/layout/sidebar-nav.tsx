@@ -61,11 +61,11 @@ export function SidebarNav({ className, isCollapsed, ...props }: SidebarNavProps
   ];
 
   const developerNavItems = [
-    {
-      title: t('navbar.dashboard'),
-      href: '/',
-      icon: LayoutDashboard,
-    },
+    // {
+    //   title: t('navbar.dashboard'),
+    //   href: '/',
+    //   icon: LayoutDashboard,
+    // },
     {
       title: t('navbar.kindergartens'),
       href: '/kindergartens',

@@ -70,18 +70,22 @@ export function Navbar({ children }: NavbarProps) {
     }
   };
 
-  useEffect(() => {
-    async function fetchMyKG() {
-      try {
-        const response = await getMyKG();
-        setKindergartens(response);
-        console.log("kg", response);
-      } catch (error) {
-        console.error("Failed to fetch my KG", error);
+ useEffect(() => {
+  async function fetchMyKG() {
+    try {
+      const response = await getMyKG();
+      setKindergartens(response);
+      console.log("kg", response);
+
+      if (response.length > 0 && !localStorage.getItem("selectedKG")) {
+        localStorage.setItem("selectedKG", response[0]._id);
       }
+    } catch (error) {
+      console.error("Failed to fetch my KG", error);
     }
-    fetchMyKG();
-  }, []);
+  }
+  fetchMyKG();
+}, []);
 
   useEffect(() => {
     const updateDateTime = () => {
