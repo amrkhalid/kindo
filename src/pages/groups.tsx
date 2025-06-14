@@ -1,19 +1,40 @@
 import React, { useEffect, useState } from "react";
 import { DataTable } from "@/components/ui/data-table";
 import { useToast } from "@/hooks/use-toast";
-import { useTranslation } from 'react-i18next';
-import { Card } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
-import { GroupDialog } from '@/components/dialogs/group-dialog';
-import { DeleteDialog } from '@/components/dialogs/delete-dialog';
-import type { Column } from '@/types/data-table';
-import { createGroup, CreateGroupRequest, deleteGroup, getAllGroups, Group, updateGroup } from "@/api/Kindergarten/Group/groupApis";
+import { useTranslation } from "react-i18next";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { GroupDialog } from "@/components/dialogs/group-dialog";
+import { DeleteDialog } from "@/components/dialogs/delete-dialog";
+import type { Column } from "@/types/data-table";
+import {
+  createGroup,
+  CreateGroupRequest,
+  deleteGroup,
+  getAllGroups,
+  Group,
+  updateGroup,
+} from "@/api/Kindergarten/Group/groupApis";
+import {
+  Child,
+  getAllChildren,
+  getAllChildrenNames,
+} from "@/api/Kindergarten/Children/childrenApis";
+import {
+  createGroupStaff,
+  getAllStaff,
+  Staff,
+} from "@/api/Kindergarten/Group_staff/staffApis";
+import { createGroupChildren } from "@/api/Kindergarten/Group_children/groupChildrenApis";
+import { ExpandingChildrenTable } from "@/components/ui/ExpandingChildrenTable";
 
 export default function GroupsPage() {
   const { toast } = useToast();
   const [groups, setGroups] = useState<Group[]>([]);
+  const [staffList, setStaffList] = useState<Staff[]>([]);
+  const [childrenList, setChildrenList] = useState<Child[]>([]);
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -28,66 +49,159 @@ export default function GroupsPage() {
 
   // List of available languages with their directions
   const languages = [
-    { code: 'en', label: 'English', dir: 'ltr' },
-    { code: 'ar', label: 'العربية', dir: 'rtl' },
-    { code: 'he', label: 'עברית', dir: 'rtl' }
+    { code: "en", label: "English", dir: "ltr" },
+    { code: "ar", label: "العربية", dir: "rtl" },
+    { code: "he", label: "עברית", dir: "rtl" },
   ];
 
-  const isRTL = languages.find(lang => lang.code === i18n.language)?.dir === 'rtl';
+  const isRTL =
+    languages.find((lang) => lang.code === i18n.language)?.dir === "rtl";
 
-   useEffect(() => {
+  useEffect(() => {
     setIsLoading(true);
-      getAllGroups(limit, page, Kg_id)
-        .then((res) => {
-          setGroups(res.data.data);
-          setTotalPages(res.data.totalPages);
-          setIsLoading(false);
-        })
-        .catch((err) => {
-          console.error("Error fetching groups:", err);
-          setIsLoading(false);
-        });
-      }, [limit, page, Kg_id]);
-    
+
+    const fetchData = async () => {
+      try {
+        const [groupsRes, staffRes, childrenRes] = await Promise.all([
+          getAllGroups(limit, page, Kg_id),
+          getAllStaff(Kg_id),
+          getAllChildrenNames(Kg_id),
+        ]);
+
+        setGroups(groupsRes.data.data);
+        setTotalPages(groupsRes.data.totalPages);
+        setStaffList(staffRes.data.data);
+        setChildrenList(childrenRes.data.data);
+      } catch (err) {
+        console.error("Error fetching data:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (Kg_id) fetchData();
+  }, [limit, page, Kg_id]);
+
+  console.log("g", groups);
 
   const columns: Column<Group>[] = [
     {
-      key: 'name',
-      title: t('table.headers.groups.name'),
+      key: "name",
+      title: t("table.headers.groups.name"),
       render: (value: string) => (
-        <div className={cn(
-          "font-medium text-[#1A5F5E]",
-          isRTL ? "text-right" : "text-left"
-        )}>
+        <div
+          className={cn(
+            "font-medium text-[#1A5F5E]",
+            isRTL ? "text-right" : "text-left"
+          )}
+        >
           {value}
+        </div>
+      ),
+    },
+    {
+      key: "children",
+      title: t("table.headers.groups.children"),
+      render: (_, group) => (
+        <div className="flex flex-col">
+          {group.children && group.children.length > 0 ? (
+            <ExpandingChildrenTable
+              children={group.children.map((child) => child.childDetails)}
+              columns={columnsChildren}
+              groupId={group.id}
+              onDeleteSuccess={() => {
+                const fetchData = async () => {
+                  const res = await getAllGroups(limit, page, Kg_id);
+                  setGroups(res.data.data);
+                };
+                fetchData();
+              }}
+            />
+          ) : (
+            <span className="text-gray-500">{t("groups.noChildren")}</span>
+          )}
         </div>
       ),
     },
   ];
 
+  const columnsChildren: Column<Child>[] = [
+    {
+      key: "full_name",
+      title: t("table.headers.children.fullName"),
+      render: (_: any, row: any) => (
+        <div
+          className={cn(
+            "font-medium text-[#1A5F5E]",
+            isRTL ? "text-right" : "text-left"
+          )}
+        >
+          {[row.first_name, row.second_name, row.third_name, row.last_name]
+            .filter(Boolean)
+            .join(" ")}
+        </div>
+      ),
+    },
+    {
+      key: "birth_date",
+      title: t("table.headers.children.dateOfBirth"),
+      render: (value: string) => (
+        <div
+          className={cn("text-gray-600", isRTL ? "text-right" : "text-left")}
+        >
+          {new Date(value).toLocaleDateString()}
+        </div>
+      ),
+    },
+  ];
 
-  const handleAdd = async (data: CreateGroupRequest) => {
+  const handleAdd = async (data: {
+    name: string;
+    staffId?: string;
+    childrenIds?: string[];
+  }) => {
+    console.log("data", data);
     try {
       setIsLoading(true);
-      await createGroup( Kg_id, data);
+      const groupResponse = await createGroup(Kg_id, { name: data.name });
+      const groupId = groupResponse.data.id;
+
+      const relationshipPromises = [];
+      if (data.childrenIds && data.childrenIds.length > 0) {
+        relationshipPromises.push(
+          ...data.childrenIds.map((childId) =>
+            createGroupChildren(Kg_id, { group_id: groupId, child_id: childId })
+          )
+        );
+      }
+
+      if (data.staffId) {
+        relationshipPromises.push(
+          createGroupStaff(Kg_id, { group_id: groupId, staff_id: data.staffId })
+        );
+      }
+
+      await Promise.all(relationshipPromises);
+
       const res = await getAllGroups(limit, page, Kg_id);
       setGroups(res.data.data);
       setIsAddDialogOpen(false);
       toast({
-        title: t('common.success'),
-        description: t('groups.addSuccess'),
-        variant: "success"
+        title: t("common.success"),
+        description: t("groups.addSuccess"),
+        variant: "success",
       });
     } catch (error) {
+      console.error("Error adding group:", error);
       toast({
-        title: t('common.error'),
-        description: t('groups.addError'),
-        variant: 'destructive',
+        title: t("common.error"),
+        description: t("groups.addError"),
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
-  };  
+  };
 
   const handleEdit = (group: Group) => {
     setSelectedGroup(group);
@@ -99,22 +213,22 @@ export default function GroupsPage() {
 
     try {
       setIsLoading(true);
-      await updateGroup(Kg_id, data ,selectedGroup.id);
+      await updateGroup(Kg_id, data, selectedGroup.id);
       const res = await getAllGroups(limit, page, Kg_id);
       setGroups(res.data.data);
 
-    setIsEditDialogOpen(false);
+      setIsEditDialogOpen(false);
       setSelectedGroup(null);
       toast({
-        title: t('common.success'),
-        description: t('groups.editSuccess'),
-        variant: "success"
+        title: t("common.success"),
+        description: t("groups.editSuccess"),
+        variant: "success",
       });
     } catch (error) {
       toast({
-        title: t('common.error'),
-        description: t('groups.editError'),
-        variant: 'destructive',
+        title: t("common.error"),
+        description: t("groups.editError"),
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -126,21 +240,21 @@ export default function GroupsPage() {
 
     try {
       setIsLoading(true);
-      await deleteGroup(Kg_id,selectedGroup.id);
+      await deleteGroup(Kg_id, selectedGroup.id);
       const res = await getAllGroups(limit, page, Kg_id);
       setGroups(res.data.data);
       setIsDeleteDialogOpen(false);
       setSelectedGroup(null);
       toast({
-        title: t('common.success'),
-        description: t('groups.deleteSuccess'),
-        variant: "success"
+        title: t("common.success"),
+        description: t("groups.deleteSuccess"),
+        variant: "success",
       });
     } catch (error) {
       toast({
-        title: t('common.error'),
-        description: t('groups.deleteError'),
-        variant: 'destructive',
+        title: t("common.error"),
+        description: t("groups.deleteError"),
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -149,23 +263,26 @@ export default function GroupsPage() {
 
   return (
     <div className={cn("space-y-4", isRTL ? "rtl" : "ltr")}>
-      <div className={cn(
-        "flex items-center justify-between border-b pb-4",
-        isRTL ? "flex-row-reverse" : "flex-row"
-      )}>
+      <div
+        className={cn(
+          "flex items-center justify-between border-b pb-4",
+          isRTL ? "flex-row-reverse" : "flex-row"
+        )}
+      >
         <div>
-          <h1 className="text-3xl font-bold text-[#1A5F5E]">{t('groups.title')}</h1>
-          <p className="text-sm text-muted-foreground">{t('groups.description')}</p>
+          <h1 className="text-3xl font-bold text-[#1A5F5E]">
+            {t("groups.title")}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {t("groups.description")}
+          </p>
         </div>
         <Button
           onClick={() => setIsAddDialogOpen(true)}
           className="bg-[#1A5F5E] hover:bg-[#1A5F5E]/90"
         >
-          <Plus className={cn(
-            "h-4 w-4",
-            isRTL ? "ml-2" : "mr-2"
-          )} />
-          {t('groups.add')}
+          <Plus className={cn("h-4 w-4", isRTL ? "ml-2" : "mr-2")} />
+          {t("groups.add")}
         </Button>
       </div>
 
@@ -225,23 +342,26 @@ export default function GroupsPage() {
         onOpenChange={setIsAddDialogOpen}
         onSubmit={handleAdd}
         isLoading={isLoading}
+        staffList={staffList}
+        childrenList={childrenList}
       />
-    
+
       <GroupDialog
         open={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
         onSubmit={handleEditSubmit}
         defaultValues={selectedGroup}
         isLoading={isLoading}
+        isEditMode={true}
       />
-     
+
       <DeleteDialog
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
         onConfirm={handleDelete}
         isLoading={isLoading}
-        title={t('groups.deleteTitle')}
-        description={t('groups.deleteDescription')}
+        title={t("groups.deleteTitle")}
+        description={t("groups.deleteDescription")}
       />
     </div>
   );

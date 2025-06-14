@@ -1,12 +1,13 @@
 import axiosInstance from "@/api/axiosInstance";
 import { Child } from "../Children/childrenApis";
+import { Staff } from "../Group_staff/staffApis";
 
 export interface Group {
     id: string;
     kg_id: string;
     name: string;
     children: Child[];
-    // staff: Staff[];   
+    staff: Staff[];   
     created_at: string;
     updated_at: string;
   }
