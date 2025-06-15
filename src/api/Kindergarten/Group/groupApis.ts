@@ -28,6 +28,10 @@ export const getAllGroups = (limit: number, page: number, kg_id: string ) => {
     return axiosInstance.get<GroupsResponse>(`/kg/${kg_id}/group?limit=${limit}&page=${page}`);
 };
 
+export const getAllGroupsNames = (kg_id: string ) => {
+    return axiosInstance.get<GroupsResponse>(`/kg/${kg_id}/group`);
+};
+
 export const createGroup = (kg_id: string ,data: CreateGroupRequest) =>
     axiosInstance.post<Group>(`/kg/${kg_id}/group`, data);
 
