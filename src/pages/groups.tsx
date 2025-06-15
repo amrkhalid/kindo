@@ -100,13 +100,33 @@ export default function GroupsPage() {
       ),
     },
     {
+      key: "staff",
+      title: t("table.headers.groups.staff"),
+      render: (_, group) => (
+        <div className="flex flex-col">
+          {group.staff && group.staff.length > 0 ? (
+            <div
+              className={cn(
+                "font-medium text-[#1A5F5E]",
+                isRTL ? "text-right" : "text-left"
+              )}
+            >
+              <div>{group.staff[0]?.name}</div>
+            </div>
+          ) : (
+            <span className="text-gray-500">{t("groups.noStaff")}</span>
+          )}
+        </div>
+      ),
+    },
+    {
       key: "children",
       title: t("table.headers.groups.children"),
       render: (_, group) => (
         <div className="flex flex-col">
           {group.children && group.children.length > 0 ? (
             <ExpandingChildrenTable
-              children={group.children.map((child) => child.childDetails)}
+              children={group.children}
               columns={columnsChildren}
               groupId={group.id}
               onDeleteSuccess={() => {
@@ -136,7 +156,12 @@ export default function GroupsPage() {
             isRTL ? "text-right" : "text-left"
           )}
         >
-          {[row.first_name, row.second_name, row.third_name, row.last_name]
+          {[
+            row.childDetails.first_name,
+            row.childDetails.second_name,
+            row.childDetails.third_name,
+            row.childDetails.last_name,
+          ]
             .filter(Boolean)
             .join(" ")}
         </div>
@@ -145,11 +170,11 @@ export default function GroupsPage() {
     {
       key: "birth_date",
       title: t("table.headers.children.dateOfBirth"),
-      render: (value: string) => (
+      render: (_: any, row: any) => (
         <div
           className={cn("text-gray-600", isRTL ? "text-right" : "text-left")}
         >
-          {new Date(value).toLocaleDateString()}
+          {new Date(row.childDetails.birth_date).toLocaleDateString()}
         </div>
       ),
     },
@@ -161,27 +186,29 @@ export default function GroupsPage() {
     childrenIds?: string[];
   }) => {
     console.log("data", data);
-    try {
-      setIsLoading(true);
-      const groupResponse = await createGroup(Kg_id, { name: data.name });
-      const groupId = groupResponse.data.id;
+    setIsLoading(true);
 
-      const relationshipPromises = [];
+    let createdGroupId = "";
+
+    try {
+      const groupResponse = await createGroup(Kg_id, { name: data.name });
+      createdGroupId = groupResponse.data.id;
+
       if (data.childrenIds && data.childrenIds.length > 0) {
-        relationshipPromises.push(
-          ...data.childrenIds.map((childId) =>
-            createGroupChildren(Kg_id, { group_id: groupId, child_id: childId })
-          )
-        );
+        for (const childId of data.childrenIds) {
+          await createGroupChildren(Kg_id, {
+            group_id: createdGroupId,
+            child_id: childId,
+          });
+        }
       }
 
       if (data.staffId) {
-        relationshipPromises.push(
-          createGroupStaff(Kg_id, { group_id: groupId, staff_id: data.staffId })
-        );
+        await createGroupStaff(Kg_id, {
+          group_id: createdGroupId,
+          staff_id: data.staffId,
+        });
       }
-
-      await Promise.all(relationshipPromises);
 
       const res = await getAllGroups(limit, page, Kg_id);
       setGroups(res.data.data);
@@ -191,11 +218,26 @@ export default function GroupsPage() {
         description: t("groups.addSuccess"),
         variant: "success",
       });
-    } catch (error) {
-      console.error("Error adding group:", error);
+    } catch (error: any) {
+      console.error("Error during group creation:", error);
+
+      if (createdGroupId) {
+        try {
+          await deleteGroup(Kg_id, createdGroupId);
+          console.log("Group rolled back (deleted) due to error");
+        } catch (rollbackError) {
+          console.error("Failed to rollback (delete group):", rollbackError);
+        }
+      }
+
+      let errorMessage = t("groups.addError");
+      if (error.response?.status === 409) {
+        errorMessage = error.response.data?.error || errorMessage;
+      }
+
       toast({
         title: t("common.error"),
-        description: t("groups.addError"),
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
