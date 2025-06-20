@@ -19,6 +19,7 @@ import ProfilePage from '@/pages/profile';
 import SettingsPage from '@/pages/settings';
 import { ActivitiesPage } from '@/pages/activities';
 import SystemUsersPage from '@/pages/system-users';
+import GroupChildrenPage from '@/pages/group-children';
 
 export function AppRoutes() {
   return (
@@ -32,6 +33,7 @@ export function AppRoutes() {
         <Route path={APP.ROUTES.DASHBOARD} element={<DashboardPage />} />
         <Route path={APP.ROUTES.KINDERGARTENS} element={<KindergartensPage />} />
         <Route path={APP.ROUTES.CHILDREN} element={<ChildrenPage />} />
+        <Route path={APP.ROUTES.GROUP_CHILDREN + "/:groupId"} element={<GroupChildrenPage />} />
         <Route path={APP.ROUTES.GROUPS} element={<GroupsPage />} />
         <Route path={APP.ROUTES.PLANS} element={<PlansPage />} />
         <Route path={APP.ROUTES.FEATURES} element={<FeaturesPage />} />

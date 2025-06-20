@@ -19,5 +19,6 @@ export const APP = {
     SETTINGS: '/settings',
     ACTIVITIES: '/activities',
     SYSTEM_USERS: '/system-users',
+    GROUP_CHILDREN:'/group-children',
   },
 } as const; 

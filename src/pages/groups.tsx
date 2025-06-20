@@ -28,8 +28,8 @@ import {
   Staff,
 } from "@/api/Kindergarten/Group_staff/staffApis";
 import { createGroupChildren } from "@/api/Kindergarten/Group_children/groupChildrenApis";
-import { ExpandingChildrenTable } from "@/components/ui/ExpandingChildrenTable";
-
+import { useNavigate } from "react-router-dom";
+import { APP } from "@/constants/app";
 export default function GroupsPage() {
   const { toast } = useToast();
   const [groups, setGroups] = useState<Group[]>([]);
@@ -43,6 +43,7 @@ export default function GroupsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [limit, setLimit] = useState(10);
   const [page, setPage] = useState(1);
+  const navigate = useNavigate();
 
   const { t, i18n } = useTranslation();
   const Kg_id = localStorage.getItem("selectedKG");
@@ -125,18 +126,18 @@ export default function GroupsPage() {
       render: (_, group) => (
         <div className="flex flex-col">
           {group.children && group.children.length > 0 ? (
-            <ExpandingChildrenTable
-              children={group.children}
-              columns={columnsChildren}
-              groupId={group.id}
-              onDeleteSuccess={() => {
-                const fetchData = async () => {
-                  const res = await getAllGroups(limit, page, Kg_id);
-                  setGroups(res.data.data);
-                };
-                fetchData();
-              }}
-            />
+            <div className="flex items-center gap-2">
+              <span>{group.children.length}</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  navigate(`${APP.ROUTES.GROUP_CHILDREN}/${group.id}`)
+                }
+              >
+                {t("groups.viewChildren")}
+              </Button>
+            </div>
           ) : (
             <span className="text-gray-500">{t("groups.noChildren")}</span>
           )}
@@ -144,7 +145,7 @@ export default function GroupsPage() {
       ),
     },
   ];
-
+  
   const columnsChildren: Column<Child>[] = [
     {
       key: "full_name",
