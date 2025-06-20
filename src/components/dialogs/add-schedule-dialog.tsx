@@ -295,7 +295,7 @@ export function AddScheduleDialog({
                 onClick={() => append({ date: "", activities: [] })}
                 className="w-full"
               >
-                + {t('schedules.dialogTitleAdd')}
+                + {t('activities.dialogTitleAdd')}
               </Button>
             </div>
 
