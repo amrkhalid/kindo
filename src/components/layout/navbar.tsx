@@ -27,7 +27,7 @@ import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { SidebarNav } from "./sidebar-nav";
-import kendoLogo from "@/assets/kindo-logo.png";
+import kindoLogo from "@/assets/kindo-logo.png";
 import { cn } from "@/lib/utils";
 import { APP } from "@/constants/app";
 import { useNavigate } from "react-router-dom";
@@ -70,22 +70,22 @@ export function Navbar({ children }: NavbarProps) {
     }
   };
 
- useEffect(() => {
-  async function fetchMyKG() {
-    try {
-      const response = await getMyKG();
-      setKindergartens(response);
-      console.log("kg", response);
+  useEffect(() => {
+    async function fetchMyKG() {
+      try {
+        const response = await getMyKG();
+        setKindergartens(response);
+        console.log("kg", response);
 
-      if (response.length > 0 && !localStorage.getItem("selectedKG")) {
-        localStorage.setItem("selectedKG", response[0]._id);
+        if (response.length > 0 && !localStorage.getItem("selectedKG")) {
+          localStorage.setItem("selectedKG", response[0]._id);
+        }
+      } catch (error) {
+        console.error("Failed to fetch my KG", error);
       }
-    } catch (error) {
-      console.error("Failed to fetch my KG", error);
     }
-  }
-  fetchMyKG();
-}, []);
+    fetchMyKG();
+  }, []);
 
   useEffect(() => {
     const updateDateTime = () => {
@@ -154,7 +154,7 @@ export function Navbar({ children }: NavbarProps) {
                 <div className="flex flex-col h-full">
                   <div className="mb-8">
                     <div className="flex items-center mb-2">
-                      <img src={kendoLogo} alt="Kendo" className="h-8 w-auto" />
+                      <img src={kindoLogo} alt="kindo" className="h-8 w-auto" />
                     </div>
                     <p className="text-sm text-muted-foreground">
                       Kindergarten Management
@@ -163,7 +163,7 @@ export function Navbar({ children }: NavbarProps) {
                   <SidebarNav className="flex-1" />
                   <div className="border-t pt-4 mt-4">
                     <p className="text-xs text-muted-foreground">
-                      © 2025 Kendo
+                      © 2025 kindo
                     </p>
                   </div>
                 </div>

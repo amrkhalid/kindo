@@ -13,12 +13,12 @@
     "auditLogs": "Audit Logs",
     "logout": "Logout",
     "features": "Features",
-    "activities":"Activities",
-    "schedules":"Schedules"
+    "activities": "Activities",
+    "schedules": "Schedules"
   },
   "common": {
-    "copyright": "© 2025 Kendo",
-    "appName": "Kendo",
+    "copyright": "© 2025 kindo",
+    "appName": "kindo",
     "appDescription": "Kindergarten Management",
     "active": "Active",
     "inactive": "Inactive",
@@ -329,7 +329,7 @@
   },
   "auditLogs": {
     "title": "Audit Logs",
-    "timestamp":"Timestamp",
+    "timestamp": "Timestamp",
     "user": "User",
     "action": "Action",
     "fullName": "Full Name",
@@ -369,7 +369,7 @@
     "isActivePlaceholder": "Set kindergarten status",
     "selectPlans": "Select Plan",
     "plans": "Plan",
-    "addDescription":"Enter kindergarten data",
+    "addDescription": "Enter kindergarten data",
     "No results found": "No results found"
   },
   "children": {
@@ -411,8 +411,7 @@
     "assignToGroup": "Assign to Group",
     "assignSuccess": "Child assigned to group successfully",
     "assignError": "Error assigning child to group",
-    "addDescription":"Enter a new child"
-
+    "addDescription": "Enter a new child"
   },
   "groups": {
     "title": "Groups",
@@ -443,7 +442,6 @@
     "assignChildren": "Assign Children",
     "assignChildrenDescription": "Select children to assign to this group",
     "addDescription": "Enter group data"
-
   },
   "roles": {
     "title": "Roles",
@@ -661,9 +659,9 @@
     "noSchedules": "No schedule available.",
     "dialogTitleAdd": "Add Schedule",
     "dialogTitleEdit": "Edit Schedule",
-    "week":"Week",
-    "date":"Date",
-    "removeActivity":"Remove Activity"
+    "week": "Week",
+    "date": "Date",
+    "removeActivity": "Remove Activity"
   },
   "features": {
     "title": "Features",
