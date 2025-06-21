@@ -156,17 +156,7 @@ export default function FinancialPage() {
         </div>
       ),
     },
-    {
-      key: "parent_email" as const,
-      title: t("financial.parentEmail"),
-      render: (_: any, row: Invoice) => (
-        <div
-          className={cn("text-gray-600", isRTL ? "text-right" : "text-left")}
-        >
-          {row.parentuser?.email}
-        </div>
-      ),
-    },
+
     {
       key: "amount_paid" as const,
       title: t("financial.amount"),
@@ -227,9 +217,15 @@ export default function FinancialPage() {
         new Date(payment_date).toLocaleDateString(),
     },
     {
-      key: "notes" as const,
-      title: t("financial.notes"),
-      render: (notes: string) => notes,
+      key: "parent_email" as const,
+      title: t("financial.parentEmail"),
+      render: (_: any, row: Invoice) => (
+        <div
+          className={cn("text-gray-600", isRTL ? "text-right" : "text-left")}
+        >
+          {row.parentuser?.email}
+        </div>
+      ),
     },
     {
       key: "active",
@@ -243,6 +239,11 @@ export default function FinancialPage() {
           {value ? t("common.active") : t("common.inactive")}
         </Badge>
       ),
+    },
+    {
+      key: "notes" as const,
+      title: t("financial.notes"),
+      render: (notes: string) => notes,
     },
   ];
 
@@ -281,10 +282,10 @@ export default function FinancialPage() {
           columns={columns}
           data={transactions}
           searchable
-          onDelete={(selectedTrans) => {
-            setSelectedTrans(selectedTrans);
-            setIsDeleteDialogOpen(true);
-          }}
+          // onDelete={(selectedTrans) => {
+          //   setSelectedTrans(selectedTrans);
+          //   setIsDeleteDialogOpen(true);
+          // }}
           onEdit={(payment) => {
             setSelectedTrans(payment);
             setIsEditDialogOpen(true);

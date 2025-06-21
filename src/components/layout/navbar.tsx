@@ -34,6 +34,7 @@ import { useNavigate } from "react-router-dom";
 import { logout } from "@/api/Auth/Logout";
 import { Kindergarten } from "@/api/Kindergarten/Kindergartens/kindergartenApis";
 import { getMyKG } from "@/api/Profile/myKG";
+import { getUserProfile } from "@/api/Profile/profile";
 
 interface NavbarProps {
   children?: ReactNode;
@@ -50,6 +51,29 @@ export function Navbar({ children }: NavbarProps) {
   const Token = localStorage.getItem("token");
   const isSuperuser = localStorage.getItem("is_superuser") === "true";
   const navigate = useNavigate();
+  const [profile, setProfile] = useState({
+    id: "",
+    id_no: "",
+    username: "",
+    email: "",
+    first_name: "",
+    last_name: "",
+    phone_number: "",
+    is_superuser: false,
+    created_at: "",
+  });
+
+  useEffect(() => {
+    async function fetchProfile() {
+      try {
+        const response = await getUserProfile();
+        setProfile(response.data);
+      } catch (error) {
+        console.error("Failed to fetch profile", error);
+      }
+    }
+    fetchProfile();
+  }, []);
 
   const handleLogout = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -226,7 +250,10 @@ export function Navbar({ children }: NavbarProps) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8">
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback>U</AvatarFallback>
+                  <AvatarFallback>
+                    {profile.first_name?.charAt(0)}
+                    {profile.last_name?.charAt(0)}
+                  </AvatarFallback>
                 </Avatar>
                 <span className="sr-only">User menu</span>
               </Button>
