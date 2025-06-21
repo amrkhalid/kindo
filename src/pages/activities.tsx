@@ -3,7 +3,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MoreVertical,Pencil, Trash2, MapPin, Clock } from "lucide-react";
+import { MoreVertical, Pencil, Trash2, MapPin, Clock } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,6 +39,7 @@ import {
   ActivityDialog,
   activityFormSchema,
 } from "@/components/dialogs/add-activity-dialog";
+import { EditScheduleDialog } from "@/components/dialogs/edit-schedule-dialog";
 
 export type ScheduleFormValues = z.infer<typeof scheduleFormSchema>;
 type ActivityFormValues = z.infer<typeof activityFormSchema>;
@@ -466,13 +467,22 @@ export function ActivitiesPage() {
           setSelectedActivity(null);
         }}
       />
-      <AddScheduleDialog
-        isOpen={isScheduleDialogOpen}
-        onOpenChange={setIsScheduleDialogOpen}
-        onSubmit={onSubmitSchedule}
-        activities={activities}
-        selectedSchedule={selectedSchedule}
-      />
+      {selectedSchedule ? (
+        <EditScheduleDialog
+          isOpen={isScheduleDialogOpen}
+          onOpenChange={setIsScheduleDialogOpen}
+          onSubmit={onSubmitSchedule}
+          activities={activities}
+          selectedSchedule={selectedSchedule}
+        />
+      ) : (
+        <AddScheduleDialog
+          isOpen={isScheduleDialogOpen}
+          onOpenChange={setIsScheduleDialogOpen}
+          onSubmit={onSubmitSchedule}
+          activities={activities}
+        />
+      )}
     </div>
   );
 }
@@ -543,7 +553,7 @@ function ScheduleHeader({
   onEdit?: (schedule: Schedule) => void;
   onDelete?: (id: string) => void;
 }) {
-    const { t } = useTranslation();
+  const { t } = useTranslation();
   return (
     <div className="p-4 bg-gray-50 rounded-lg mb-4">
       <div className="flex justify-between items-start">
