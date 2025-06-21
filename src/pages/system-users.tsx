@@ -25,7 +25,6 @@ import {
 } from "@/components/ui/select";
 import { DeleteDialog } from "@/components/dialogs/delete-dialog";
 import { PageHeader } from "@/components/ui/page-header";
-import { sampleSystemUsers } from "@/lib/sample-data/system-users";
 import {
   getUsers,
   createUser,
@@ -91,7 +90,6 @@ const SystemUsersPage: React.FC = () => {
     created_at: "",
     updated_at: "",
   });
-  const [limit, setLimit] = useState(10);
   const [page, setPage] = useState(1);
 
   const languages = [
@@ -133,9 +131,9 @@ const SystemUsersPage: React.FC = () => {
         password: "",
         phone_number: "",
         address: "",
-        is_active:true,
+        is_active: true,
       });
-      getUsers(limit, page).then((res) => setUsers(res.data.data));
+      getUsers(15, page).then((res) => setUsers(res.data.data));
     } catch (error: any) {
       toast({
         title: t("systemUsers.addError"),
@@ -164,7 +162,7 @@ const SystemUsersPage: React.FC = () => {
       setIsEditDialogOpen(false);
       setSelectedUser(null);
 
-      const res = await getUsers(limit, page);
+      const res = await getUsers(15, page);
       setUsers(res.data.data);
     } catch (error: any) {
       toast({
@@ -185,7 +183,7 @@ const SystemUsersPage: React.FC = () => {
       });
 
       // بعد الحذف: إعادة تحميل المستخدمين
-      const res = await getUsers(limit, page);
+      const res = await getUsers(15, page);
       setUsers(res.data.data);
       setIsDeleteDialogOpen(false);
       setSelectedUser(null);
@@ -236,17 +234,33 @@ const SystemUsersPage: React.FC = () => {
 
   useEffect(() => {
     setLoading(true);
-    getUsers(limit, page)
+    getUsers(15, page)
       .then((res) => {
-        setUsers(res.data.data);
+        setUsers((prev) =>
+          page === 1 ? res.data.data : [...prev, ...res.data.data]
+        );
         setTotalPages(res.data.totalPages);
-        setLoading(false);
       })
       .catch((err) => {
         console.error("Error fetching users:", err);
+      })
+      .finally(() => {
         setLoading(false);
       });
-  }, [limit, page]);
+  }, [page]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const nearBottom =
+        window.innerHeight + window.scrollY >= document.body.offsetHeight - 300;
+      if (nearBottom && page < totalPages && !loading) {
+        setPage((prev) => prev + 1);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [page, totalPages, loading]);
 
   const getFullName = (user: SystemUser) => {
     const names = [
@@ -337,11 +351,15 @@ const SystemUsersPage: React.FC = () => {
       ),
     },
     {
-      key: 'is_active' as keyof SystemUser,
-      title: t('table.headers.systemUsers.status'),
+      key: "is_active" as keyof SystemUser,
+      title: t("table.headers.systemUsers.status"),
       render: (value: boolean) => (
-        <Badge className={value ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
-          {value ? t('common.active') : t('common.inactive')}
+        <Badge
+          className={
+            value ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+          }
+        >
+          {value ? t("common.active") : t("common.inactive")}
         </Badge>
       ),
     },
@@ -403,8 +421,6 @@ const SystemUsersPage: React.FC = () => {
     },
   ];
 
-  if (loading) return <div>{t("loading")}...</div>;
-
   return (
     <div className={cn("space-y-4", isRTL ? "rtl" : "ltr")}>
       <PageHeader
@@ -429,42 +445,6 @@ const SystemUsersPage: React.FC = () => {
           pagination
           pageSize={15}
         />
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex gap-2 items-center">
-            <label>{t("Rows per page")}:</label>
-            <select
-              value={limit}
-              onChange={(e) => {
-                setPage(1);
-                setLimit(Number(e.target.value));
-              }}
-              className="border rounded px-2 py-1"
-            >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-            </select>
-          </div>
-
-          <div className="flex gap-2 py-5">
-            <Button
-              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-              disabled={page === 1}
-            >
-              {t("Previous")}
-            </Button>
-            <span className="py-2">
-              {t("Page")}: {page} / {totalPages}
-            </span>
-            <Button
-              onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-              disabled={page >= totalPages}
-            >
-              {t("Next")}
-            </Button>
-          </div>
-        </div>
       </Card>
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="max-w-2xl">
@@ -707,7 +687,7 @@ const SystemUsersPage: React.FC = () => {
                     value={formData.second_name}
                     onChange={handleInputChange}
                     className="h-9"
-                    disabled                    
+                    disabled
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -720,7 +700,7 @@ const SystemUsersPage: React.FC = () => {
                     value={formData.third_name}
                     onChange={handleInputChange}
                     className="h-9"
-                    disabled                    
+                    disabled
                   />
                 </div>
                 <div className="space-y-1.5">

@@ -28,7 +28,6 @@ const ChildrenPage: React.FC = () => {
   const { toast } = useToast();
   const { isRTL } = useRTL();
   const [totalPages, setTotalPages] = useState(1);
-  const [limit, setLimit] = useState(10);
   const [page, setPage] = useState(1);
   const Kg_id = localStorage.getItem("selectedKG");
 
@@ -93,15 +92,25 @@ const ChildrenPage: React.FC = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
-    getAllChildren(limit, page, Kg_id)
+    let isCancelled = false;
+
+    getAllChildren(15, page, Kg_id)
       .then((res) => {
-        setChildren(res.data.data);
-        setTotalPages(res.data.totalPages);
+        if (!isCancelled) {
+          setChildren((prev) =>
+            page === 1 ? res.data.data : [...prev, ...res.data.data]
+          );
+          setTotalPages(res.data.totalPages);
+        }
       })
       .catch((err) => {
         console.error("Error fetching Children:", err);
       });
-  }, [limit, page, Kg_id]);
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [page, Kg_id]);
 
   useEffect(() => {
     if (Kg_id) {
@@ -115,6 +124,21 @@ const ChildrenPage: React.FC = () => {
     }
   }, [Kg_id]);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + window.scrollY >=
+          document.body.offsetHeight - 300 &&
+        page < totalPages
+      ) {
+        setPage((prev) => prev + 1);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [page, totalPages]);
+
   console.log(children);
 
   const handleAdd = async (data: CreateChildRequest) => {
@@ -122,7 +146,7 @@ const ChildrenPage: React.FC = () => {
 
     try {
       await createChild(Kg_id, data);
-      const res = await getAllChildren(limit, page, Kg_id);
+      const res = await getAllChildren(15, page, Kg_id);
       setChildren(res.data.data);
       setIsAddDialogOpen(false);
       toast({
@@ -148,7 +172,7 @@ const ChildrenPage: React.FC = () => {
         ...data,
         kg: Kg_id,
       });
-      const res = await getAllChildren(limit, page, Kg_id);
+      const res = await getAllChildren(15, page, Kg_id);
       setChildren(res.data.data);
       setIsEditDialogOpen(false);
       setSelectedChildren(null);
@@ -173,7 +197,7 @@ const ChildrenPage: React.FC = () => {
 
     try {
       await deleteChild(Kg_id, selectedChildren.id);
-      const res = await getAllChildren(limit, page, Kg_id);
+      const res = await getAllChildren(15, page, Kg_id);
       setChildren(res.data.data);
       setIsDeleteDialogOpen(false);
       setSelectedChildren(null);
@@ -254,42 +278,6 @@ const ChildrenPage: React.FC = () => {
             setIsAssignDialogOpen(true);
           }}
         />
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex gap-2 items-center">
-            <label>{t("Rows per page")}:</label>
-            <select
-              value={limit}
-              onChange={(e) => {
-                setPage(1);
-                setLimit(Number(e.target.value));
-              }}
-              className="border rounded px-2 py-1"
-            >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-            </select>
-          </div>
-
-          <div className="flex gap-2 py-5">
-            <Button
-              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-              disabled={page === 1}
-            >
-              {t("Previous")}
-            </Button>
-            <span className="py-2">
-              {t("Page")}: {page} / {totalPages}
-            </span>
-            <Button
-              onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-              disabled={page >= totalPages}
-            >
-              {t("Next")}
-            </Button>
-          </div>
-        </div>
       </Card>
 
       <ChildDialog

@@ -26,7 +26,6 @@ const FeaturesPage = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [totalPages, setTotalPages] = useState(1);
-  const [limit, setLimit] = useState(10);
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const { t, i18n } = useTranslation();
@@ -98,8 +97,10 @@ const FeaturesPage = () => {
     const fetchFeatures = async () => {
       setIsLoading(true);
       try {
-        const res = await getFeatures(limit, page);
-        setFeatures(res.data.data);
+        const res = await getFeatures(15, page);
+        setFeatures((prev) =>
+          page === 1 ? res.data.data : [...prev, ...res.data.data]
+        );
         setTotalPages(res.data.totalPages);
       } catch (error) {
         toast({
@@ -111,8 +112,24 @@ const FeaturesPage = () => {
         setIsLoading(false);
       }
     };
+
     fetchFeatures();
-  }, [limit, page]);
+  }, [page]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (isLoading) return;
+      if (page >= totalPages) return;
+      const nearBottom =
+        window.innerHeight + window.scrollY >= document.body.offsetHeight - 300;
+      if (nearBottom) {
+        setPage((prev) => prev + 1);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [isLoading, page, totalPages]);
 
   const handleAddFeature = async (data: FeatureFormData) => {
     try {
@@ -124,7 +141,7 @@ const FeaturesPage = () => {
           buildIn: data.buildIn,
         },
       });
-      const res = await getFeatures(limit, page);
+      const res = await getFeatures(15, page);
       setFeatures(res.data.data);
       setIsAddDialogOpen(false);
       toast({
@@ -158,7 +175,7 @@ const FeaturesPage = () => {
       setIsLoading(true);
       await updateFeature(data._id, { enable: data.enable });
 
-      const res = await getFeatures(limit, page);
+      const res = await getFeatures(15, page);
       setFeatures(res.data.data);
 
       setIsEditDialogOpen(false);
@@ -217,42 +234,6 @@ const FeaturesPage = () => {
             setIsEditDialogOpen(true);
           }}
         />
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex gap-2 items-center">
-            <label>{t("Rows per page")}:</label>
-            <select
-              value={limit}
-              onChange={(e) => {
-                setPage(1);
-                setLimit(Number(e.target.value));
-              }}
-              className="border rounded px-2 py-1"
-            >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-            </select>
-          </div>
-
-          <div className="flex gap-2 py-5">
-            <Button
-              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-              disabled={page === 1}
-            >
-              {t("Previous")}
-            </Button>
-            <span className="py-2">
-              {t("Page")}: {page} / {totalPages}
-            </span>
-            <Button
-              onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-              disabled={page >= totalPages}
-            >
-              {t("Next")}
-            </Button>
-          </div>
-        </div>
       </Card>
 
       <FeatureDialog

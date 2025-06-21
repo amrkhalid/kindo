@@ -12,6 +12,8 @@ export default function AuditLogsPage() {
   const [auditLogs, setAuditLogs] = useState<SubscriptionAuditLogItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const languages = [
     { code: "en", label: "English", dir: "ltr" },
@@ -19,13 +21,18 @@ export default function AuditLogsPage() {
     { code: "he", label: "עברית", dir: "rtl" },
   ];
 
-  const isRTL = languages.find((lang) => lang.code === i18n.language)?.dir === "rtl";
+  const isRTL =
+    languages.find((lang) => lang.code === i18n.language)?.dir === "rtl";
 
   useEffect(() => {
     setLoading(true);
-    getAuditLogs()
+    getAuditLogs(15, page)
       .then((response) => {
-        setAuditLogs(response.data.data);
+        setAuditLogs((prev) =>
+          page === 1 ? response.data.data : [...prev, ...response.data.data]
+        );
+        setTotalPages(response.data.totalPages);
+        setError(null);
       })
       .catch((err) => {
         setError(err.message || "Error fetching audit logs");
@@ -33,7 +40,21 @@ export default function AuditLogsPage() {
       .finally(() => {
         setLoading(false);
       });
-  }, []);
+  }, [page]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (loading) return;
+      if (page >= totalPages) return;
+      const nearBottom =
+        window.innerHeight + window.scrollY >= document.body.offsetHeight - 300;
+      if (nearBottom) {
+        setPage((prev) => prev + 1);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [loading, page, totalPages]);
 
   const columns = [
     {
@@ -89,21 +110,9 @@ export default function AuditLogsPage() {
         </p>
       </div>
 
-      {loading ? (
-        <p>{t("loading")}</p>
-      ) : error ? (
-        <p className="text-red-500">{error}</p>
-      ) : (
-        <Card className="p-6">
-          <DataTable
-            columns={columns}
-            data={auditLogs}
-            searchable
-            pagination
-            pageSize={10}
-          />
-        </Card>
-      )}
+      <Card className="p-6">
+        <DataTable columns={columns} data={auditLogs} searchable />
+      </Card>
     </div>
   );
 }

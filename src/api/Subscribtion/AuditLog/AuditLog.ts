@@ -35,5 +35,5 @@ export interface SubscriptionAuditLogResponse {
 }
 
 
-export const getAuditLogs = () => 
-  axiosInstance.get<SubscriptionAuditLogResponse>("/subscribtion/subscribtion-audit-log");
+export const getAuditLogs = (limit: number, page: number) => 
+  axiosInstance.get<SubscriptionAuditLogResponse>(`/subscribtion/subscribtion-audit-log?limit=${limit}&page=${page}`);

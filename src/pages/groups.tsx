@@ -30,6 +30,7 @@ import {
 import { createGroupChildren } from "@/api/Kindergarten/Group_children/groupChildrenApis";
 import { useNavigate } from "react-router-dom";
 import { APP } from "@/constants/app";
+
 export default function GroupsPage() {
   const { toast } = useToast();
   const [groups, setGroups] = useState<Group[]>([]);
@@ -41,7 +42,6 @@ export default function GroupsPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [totalPages, setTotalPages] = useState(1);
-  const [limit, setLimit] = useState(10);
   const [page, setPage] = useState(1);
   const navigate = useNavigate();
 
@@ -64,12 +64,14 @@ export default function GroupsPage() {
     const fetchData = async () => {
       try {
         const [groupsRes, staffRes, childrenRes] = await Promise.all([
-          getAllGroups(limit, page, Kg_id),
+          getAllGroups(15, page, Kg_id),
           getAllStaff(Kg_id),
           getAllChildrenNames(Kg_id),
         ]);
 
-        setGroups(groupsRes.data.data);
+        setGroups((prev) =>
+          page === 1 ? groupsRes.data.data : [...prev, ...groupsRes.data.data]
+        );
         setTotalPages(groupsRes.data.totalPages);
         setStaffList(staffRes.data.data);
         setChildrenList(childrenRes.data.data);
@@ -81,7 +83,21 @@ export default function GroupsPage() {
     };
 
     if (Kg_id) fetchData();
-  }, [limit, page, Kg_id]);
+  }, [page, Kg_id]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const isBottom =
+        window.innerHeight + window.scrollY >= document.body.offsetHeight - 300;
+
+      if (isBottom && page < totalPages && !isLoading) {
+        setPage((prev) => prev + 1);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [page, totalPages, isLoading]);
 
   console.log("g", groups);
 
@@ -145,7 +161,7 @@ export default function GroupsPage() {
       ),
     },
   ];
-  
+
   const columnsChildren: Column<Child>[] = [
     {
       key: "full_name",
@@ -211,7 +227,7 @@ export default function GroupsPage() {
         });
       }
 
-      const res = await getAllGroups(limit, page, Kg_id);
+      const res = await getAllGroups(15, page, Kg_id);
       setGroups(res.data.data);
       setIsAddDialogOpen(false);
       toast({
@@ -257,7 +273,7 @@ export default function GroupsPage() {
     try {
       setIsLoading(true);
       await updateGroup(Kg_id, data, selectedGroup.id);
-      const res = await getAllGroups(limit, page, Kg_id);
+      const res = await getAllGroups(15, page, Kg_id);
       setGroups(res.data.data);
 
       setIsEditDialogOpen(false);
@@ -284,7 +300,7 @@ export default function GroupsPage() {
     try {
       setIsLoading(true);
       await deleteGroup(Kg_id, selectedGroup.id);
-      const res = await getAllGroups(limit, page, Kg_id);
+      const res = await getAllGroups(15, page, Kg_id);
       setGroups(res.data.data);
       setIsDeleteDialogOpen(false);
       setSelectedGroup(null);
@@ -334,50 +350,12 @@ export default function GroupsPage() {
           columns={columns}
           data={groups}
           searchable
-          pagination
-          pageSize={10}
           onEdit={handleEdit}
           onDelete={(group) => {
             setSelectedGroup(group);
             setIsDeleteDialogOpen(true);
           }}
         />
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex gap-2 items-center">
-            <label>{t("Rows per page")}:</label>
-            <select
-              value={limit}
-              onChange={(e) => {
-                setPage(1);
-                setLimit(Number(e.target.value));
-              }}
-              className="border rounded px-2 py-1"
-            >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-            </select>
-          </div>
-
-          <div className="flex gap-2 py-5">
-            <Button
-              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-              disabled={page === 1}
-            >
-              {t("Previous")}
-            </Button>
-            <span className="py-2">
-              {t("Page")}: {page} / {totalPages}
-            </span>
-            <Button
-              onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-              disabled={page >= totalPages}
-            >
-              {t("Next")}
-            </Button>
-          </div>
-        </div>
       </Card>
 
       <GroupDialog
