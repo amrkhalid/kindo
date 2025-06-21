@@ -21,8 +21,13 @@ import { User } from "@/api/User/user";
   
   
 export interface CreateRoleRequest {
-    idno: string;
-    role:string;
+    id_no: string;
+    first_name: string;
+    last_name: string;
+    gender: string;
+    email: string;
+    phone_number: string;
+    role: string;
   }
 
 export interface UpdateRoleRequest {
@@ -34,7 +39,7 @@ export const getAllRoles = async (limit: number, page: number, kg_id: string) =>
 };
 
 export const createRole = (kg_id: string ,data: CreateRoleRequest) =>
-    axiosInstance.post<Role>(`/kg/${kg_id}/role`, data);
+    axiosInstance.post<Role>(`/kg/${kg_id}/rolev2`, data);
 
 export const updateRole = (kg_id: string ,data: UpdateRoleRequest,id: string) =>
     axiosInstance.put<Role>(`/kg/${kg_id}/role/${id}`, data);

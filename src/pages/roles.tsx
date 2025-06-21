@@ -12,7 +12,6 @@ import { AddRoleDialog } from "@/components/dialogs/add-role-dialog";
 import { EditRoleDialog } from "@/components/dialogs/edit-role-dialog";
 import { DeleteDialog } from "@/components/dialogs/delete-dialog";
 import { PageHeader } from "@/components/ui/page-header";
-import { Loader2 } from "lucide-react";
 import {
   createRole,
   deleteRole,
@@ -73,23 +72,40 @@ const RolesPage: React.FC = () => {
   console.log("roles", roles);
 
   const handleAddRole = async ({
+    firstName,
+    lastName,
     identity,
+    gender,
+    email,
+    phoneNumber,
     role,
   }: {
+    firstName: string;
+    lastName: string;
     identity: string;
+    gender: string;
+    email: string;
+    phoneNumber: string;
     role: string;
   }) => {
     try {
-      await createRole(Kg_id, {
-        idno: identity,
+      const payload = {
+        first_name: firstName,
+        last_name: lastName,
+        id_no: identity,
+        gender,
+        email,
+        phone_number: phoneNumber,
         role,
-      });
+      };
+
+      await createRole(Kg_id, payload);
       const res = await getAllRoles(15, page, Kg_id);
       setRoles(res.data.data);
 
       toast({
         title: t("roles.addSuccess"),
-        description: `${identity ?? "—"} ${t("roles.addDescription")}`,
+        description: `${firstName} ${lastName} ${t("roles.addDescription")}`,
         variant: "success",
       });
 
@@ -272,7 +288,6 @@ const RolesPage: React.FC = () => {
             setIsDeleteDialogOpen(true);
           }}
         />
-      
       </Card>
 
       <AddRoleDialog
