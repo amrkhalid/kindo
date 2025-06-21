@@ -146,6 +146,7 @@ export function Navbar({ children }: NavbarProps) {
 
   const changeLanguage = (langCode: string) => {
     i18n.changeLanguage(langCode);
+    
   };
 
   return (
@@ -220,7 +221,7 @@ export function Navbar({ children }: NavbarProps) {
           </DropdownMenu>
 
           {/* Notifications */}
-          <DropdownMenu>
+          {/* <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8 relative">
                 <Bell className="h-4 w-4" />
@@ -241,9 +242,8 @@ export function Navbar({ children }: NavbarProps) {
                 <h4 className="text-sm font-medium">Notifications</h4>
               </div>
               <DropdownMenuSeparator />
-              {/* Add notification items here */}
             </DropdownMenuContent>
-          </DropdownMenu>
+          </DropdownMenu> */}
 
           {/* User Menu */}
           <DropdownMenu>

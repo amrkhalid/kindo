@@ -1,19 +1,17 @@
 import { cn } from "@/lib/utils";
 import { Link, useLocation } from "react-router-dom";
 import {
-  Home,
   Users,
   School,
-  FileText,
-  ClipboardList,
   UserCog,
   Package,
   Settings,
   Calendar,
   Code,
-  LayoutDashboard,
-  Wrench,
-  Baby
+  Baby,
+  ContactRound,
+  CircleDollarSign,
+  FileSearch 
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { APP } from "@/constants/app";
@@ -41,7 +39,7 @@ export function SidebarNav({ className, isCollapsed, ...props }: SidebarNavProps
     {
       title: t('navbar.roles'),
       href: '/roles',
-      icon: UserCog,
+      icon: ContactRound,
     },
     {
       title: t('navbar.groups'),
@@ -51,7 +49,7 @@ export function SidebarNav({ className, isCollapsed, ...props }: SidebarNavProps
     {
       title: t('navbar.financial'),
       href: '/financial',
-      icon: FileText,
+      icon: CircleDollarSign,
     },
     {
       title: t('navbar.schedules'),
@@ -74,12 +72,12 @@ export function SidebarNav({ className, isCollapsed, ...props }: SidebarNavProps
     {
       title: t('navigation.systemUsers'),
       href: '/system-users',
-      icon: Wrench,
+      icon: UserCog,
     },
     {
       title: t('navbar.auditLogs'),
       href: '/audit-logs',
-      icon: Wrench,
+      icon: FileSearch,
     },
     {
       title: t('navigation.plans'),
