@@ -161,7 +161,7 @@ export function GroupDialog({
                         </SelectValue>
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent className="max-h-48" searchable searchPlaceholder="Search staff...">
                       {staffList.map((staff) => (
                         <SelectItem key={staff.id} value={staff.id}>
                           {getStaffName(staff)} ({staff.role})
@@ -188,7 +188,7 @@ export function GroupDialog({
                         <SelectValue placeholder={t("groups.selectChildren")} />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent className="max-h-48" searchable searchPlaceholder="Search child...">
                       {childrenList.map((child) => (
                         <SelectItem
                           key={child.id}

@@ -215,7 +215,7 @@ export function EditScheduleDialog({
                               <SelectValue placeholder="Select activities" />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent>
+                          <SelectContent className="max-h-48">
                             {activities
                               .filter(
                                 (activity) =>

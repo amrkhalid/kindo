@@ -1,9 +1,21 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
 import { Child } from "@/api/Kindergarten/Children/childrenApis";
@@ -20,7 +32,7 @@ const paymentMethods = [
   { value: "credit_card", labelKey: "financial.creditCard" },
   { value: "cash", labelKey: "financial.cash" },
   { value: "bank_transfer", labelKey: "financial.bankTransfer" },
-  { value: "check", labelKey: "financial.check" }
+  { value: "check", labelKey: "financial.check" },
 ];
 
 export function AddPaymentDialog({
@@ -37,15 +49,21 @@ export function AddPaymentDialog({
     amount_paid: 0,
     payment_method: "",
     payment_date: "",
-    notes: ""
+    notes: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.child_id || !form.parent_id || !form.amount_paid || !form.payment_method || !form.payment_date) {
+    if (
+      !form.child_id ||
+      !form.parent_id ||
+      !form.amount_paid ||
+      !form.payment_method ||
+      !form.payment_date
+    ) {
       toast({
-        title: t('common.error'),
-        description: t('common.required'),
+        title: t("common.error"),
+        description: t("common.required"),
         variant: "destructive",
       });
       return;
@@ -65,9 +83,9 @@ export function AddPaymentDialog({
       const response = await createInvoice(Kg_id!, newPayment);
       onAddPayment(response.data);
       toast({
-      title: t('financial.addSuccess'),
-      description: t('financial.addTransaction'),
-      variant: "success"
+        title: t("financial.addSuccess"),
+        description: t("financial.addTransaction"),
+        variant: "success",
       });
       setForm({
         child_id: "",
@@ -75,7 +93,7 @@ export function AddPaymentDialog({
         amount_paid: 0,
         payment_method: "",
         payment_date: "",
-        notes: ""
+        notes: "",
       });
       onOpenChange(false);
     } catch (error) {
@@ -89,14 +107,14 @@ export function AddPaymentDialog({
   };
 
   return (
-   <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{t('financial.addTransaction')}</DialogTitle>
+          <DialogTitle>{t("financial.addTransaction")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="child_id">{t('financial.childName')}</Label>
+            <Label htmlFor="child_id">{t("financial.childName")}</Label>
             <Select
               value={form.child_id}
               onValueChange={(value) => {
@@ -115,7 +133,7 @@ export function AddPaymentDialog({
                   placeholder={t("financial.childNamePlaceholder")}
                 />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-h-64" searchable searchPlaceholder="Search child...">
                 {children.map((child) => (
                   <SelectItem key={child.id} value={child.id}>
                     {`${child.first_name} ${child.last_name}`}
@@ -137,13 +155,19 @@ export function AddPaymentDialog({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="payment_method">{t('financial.paymentMethod')}</Label>
+            <Label htmlFor="payment_method">
+              {t("financial.paymentMethod")}
+            </Label>
             <Select
               value={form.payment_method}
-              onValueChange={(value) => setForm({ ...form, payment_method: value })}
+              onValueChange={(value) =>
+                setForm({ ...form, payment_method: value })
+              }
             >
               <SelectTrigger>
-                <SelectValue placeholder={t('financial.paymentMethodPlaceholder')} />
+                <SelectValue
+                  placeholder={t("financial.paymentMethodPlaceholder")}
+                />
               </SelectTrigger>
               <SelectContent>
                 {paymentMethods.map((method) => (
@@ -155,25 +179,27 @@ export function AddPaymentDialog({
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="payment_date">{t('financial.paymentDate')}</Label>
+            <Label htmlFor="payment_date">{t("financial.paymentDate")}</Label>
             <Input
               id="payment_date"
               type="date"
               value={form.payment_date}
-              onChange={(e) => setForm({ ...form, payment_date: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, payment_date: e.target.value })
+              }
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="notes">{t('financial.notes')}</Label>
+            <Label htmlFor="notes">{t("financial.notes")}</Label>
             <Input
               id="notes"
               value={form.notes}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
-              placeholder={t('financial.notesPlaceholder')}
+              placeholder={t("financial.notesPlaceholder")}
             />
           </div>
           <DialogFooter>
-            <Button type="submit">{t('financial.addTransaction')}</Button>
+            <Button type="submit">{t("financial.addTransaction")}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
