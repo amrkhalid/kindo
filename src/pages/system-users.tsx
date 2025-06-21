@@ -660,106 +660,6 @@ const SystemUsersPage: React.FC = () => {
           >
             <div className="space-y-4">
               <h3 className="text-base font-semibold text-[#1A5F5E] pb-1 border-b">
-                {t("systemUsers.personalInfo")}
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="first_name" className="text-sm font-medium">
-                    {t("systemUsers.firstName")}
-                  </Label>
-                  <Input
-                    id="first_name"
-                    name="first_name"
-                    value={formData.first_name}
-                    onChange={handleInputChange}
-                    required
-                    className="h-9"
-                    disabled
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="second_name" className="text-sm font-medium">
-                    {t("systemUsers.secondName")}
-                  </Label>
-                  <Input
-                    id="second_name"
-                    name="second_name"
-                    value={formData.second_name}
-                    onChange={handleInputChange}
-                    className="h-9"
-                    disabled
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="third_name" className="text-sm font-medium">
-                    {t("systemUsers.thirdName")}
-                  </Label>
-                  <Input
-                    id="third_name"
-                    name="third_name"
-                    value={formData.third_name}
-                    onChange={handleInputChange}
-                    className="h-9"
-                    disabled
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="last_name" className="text-sm font-medium">
-                    {t("systemUsers.lastName")}
-                  </Label>
-                  <Input
-                    id="last_name"
-                    name="last_name"
-                    value={formData.last_name}
-                    onChange={handleInputChange}
-                    required
-                    className="h-9"
-                    disabled
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="id_no" className="text-sm font-medium">
-                    {t("systemUsers.idNo")}
-                  </Label>
-                  <Input
-                    id="id_no"
-                    name="id_no"
-                    value={formData.id_no}
-                    onChange={handleInputChange}
-                    required
-                    className="h-9"
-                    disabled
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="gender" className="text-sm font-medium">
-                    {t("systemUsers.gender")}
-                  </Label>
-                  <Select
-                    value={formData.gender}
-                    onValueChange={handleGenderChange}
-                    disabled
-                  >
-                    <SelectTrigger className="h-9">
-                      <SelectValue
-                        placeholder={t("systemUsers.selectGender")}
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="male">
-                        {t("systemUsers.male")}
-                      </SelectItem>
-                      <SelectItem value="female">
-                        {t("systemUsers.female")}
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="text-base font-semibold text-[#1A5F5E] pb-1 border-b">
                 {t("systemUsers.contactInfo")}
               </h3>
               <div className="grid grid-cols-2 gap-4">
@@ -810,22 +710,7 @@ const SystemUsersPage: React.FC = () => {
               <h3 className="text-base font-semibold text-[#1A5F5E] pb-1 border-b">
                 {t("systemUsers.accountInfo")}
               </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="username" className="text-sm font-medium">
-                    {t("systemUsers.username")}
-                  </Label>
-                  <Input
-                    id="username"
-                    name="username"
-                    value={formData.username}
-                    onChange={handleInputChange}
-                    required
-                    className="h-9"
-                    disabled
-                  />
-                </div>
-                <div className="space-y-1.5">
+              <div className="grid gap-4">
                   <Label htmlFor="is_active" className="text-sm font-medium">
                     {t("systemUsers.status")}
                   </Label>
@@ -853,7 +738,6 @@ const SystemUsersPage: React.FC = () => {
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
             </div>
 
             <Button type="submit" className="w-full h-9">
