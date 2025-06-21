@@ -146,7 +146,7 @@ export function Navbar({ children }: NavbarProps) {
 
   const changeLanguage = (langCode: string) => {
     i18n.changeLanguage(langCode);
-    
+    localStorage.setItem("appLang", langCode);
   };
 
   return (
