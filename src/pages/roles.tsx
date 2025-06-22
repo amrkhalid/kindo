@@ -33,21 +33,35 @@ const RolesPage: React.FC = () => {
   const Kg_id = localStorage.getItem("selectedKG");
   const isRTL = i18n.dir() === "rtl";
 
+  const [isLoading, setIsLoading] = useState(false); 
+
   useEffect(() => {
     let isCancelled = false;
 
-    getAllRoles(15, page, Kg_id)
-      .then((res) => {
+    const fetchRoles = async () => {
+      setIsLoading(true);
+      try {
+        const res = await getAllRoles(15, page, Kg_id);
         if (!isCancelled) {
           setRoles((prev) =>
             page === 1 ? res.data.data : [...prev, ...res.data.data]
           );
           setTotalPages(res.data.totalPages);
         }
-      })
-      .catch((err) => {
-        console.error("Error fetching Roles:", err);
-      });
+      } catch (err) {
+        if (!isCancelled) {
+          console.error("Error fetching Roles:", err);
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    if (Kg_id) {
+      fetchRoles();
+    }
 
     return () => {
       isCancelled = true;
@@ -279,6 +293,7 @@ const RolesPage: React.FC = () => {
           data={roles}
           columns={columns}
           searchable
+          isLoading={isLoading}
           onEdit={(role) => {
             setSelectedRole(role);
             setIsEditDialogOpen(true);

@@ -46,21 +46,46 @@ export default function FinancialPage() {
   const Kg_id = localStorage.getItem("selectedKG");
   const [children, setChildren] = useState<Child[]>([]);
 
-  useEffect(() => {
-    getAllChildrenNames(Kg_id)
-      .then((res) => setChildren(res.data.data))
-      .catch((err) => console.error("Error fetching Children:", err));
+  const [isLoading, setIsLoading] = useState(false);
 
-    getAllTransaction(15, page, Kg_id)
-      .then((res) => {
-        setTransactions((prev) =>
-          page === 1 ? res.data.data : [...prev, ...res.data.data]
-        );
-        setTotalPages(res.data.totalPages);
-      })
-      .catch((err) => {
-        console.error("Error fetching Transactions:", err);
-      });
+  useEffect(() => {
+    let isCancelled = false;
+
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const [childrenRes, transactionsRes] = await Promise.all([
+          getAllChildrenNames(Kg_id),
+          getAllTransaction(15, page, Kg_id),
+        ]);
+
+        if (!isCancelled) {
+          setChildren(childrenRes.data.data);
+          setTransactions((prev) =>
+            page === 1
+              ? transactionsRes.data.data
+              : [...prev, ...transactionsRes.data.data]
+          );
+          setTotalPages(transactionsRes.data.totalPages);
+        }
+      } catch (err) {
+        if (!isCancelled) {
+          console.error("Error fetching data:", err);
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    if (Kg_id) {
+      fetchData();
+    }
+
+    return () => {
+      isCancelled = true;
+    };
   }, [page, Kg_id]);
 
   useEffect(() => {
@@ -282,6 +307,7 @@ export default function FinancialPage() {
           columns={columns}
           data={transactions}
           searchable
+          isLoading={isLoading}
           // onDelete={(selectedTrans) => {
           //   setSelectedTrans(selectedTrans);
           //   setIsDeleteDialogOpen(true);

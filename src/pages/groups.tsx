@@ -315,6 +315,7 @@ export default function GroupsPage() {
           columns={columns}
           data={groups}
           searchable
+          isLoading={isLoading}
           onEdit={handleEdit}
           onDelete={(group) => {
             setSelectedGroup(group);

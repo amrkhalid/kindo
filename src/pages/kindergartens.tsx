@@ -270,6 +270,7 @@ const KindergartensPage = () => {
           data={kindergartens}
           searchable
           title={t("kindergartens.title")}
+          isLoading={isLoading}
           onEdit={(kindergarten) => {
             setSelectedKindergarten(kindergarten);
             setIsEditDialogOpen(true);

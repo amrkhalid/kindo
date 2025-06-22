@@ -110,22 +110,35 @@ const ChildrenPage: React.FC = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
   const [isAbsenceDialogOpen, setIsAbsenceDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     let isCancelled = false;
 
-    getAllChildren(15, page, Kg_id)
-      .then((res) => {
+    const fetchChildren = async () => {
+      setIsLoading(true);
+      try {
+        const res = await getAllChildren(15, page, Kg_id);
         if (!isCancelled) {
           setChildren((prev) =>
             page === 1 ? res.data.data : [...prev, ...res.data.data]
           );
           setTotalPages(res.data.totalPages);
         }
-      })
-      .catch((err) => {
-        console.error("Error fetching Children:", err);
-      });
+      } catch (err) {
+        if (!isCancelled) {
+          console.error("Error fetching Children:", err);
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    if (Kg_id) {
+      fetchChildren();
+    }
 
     return () => {
       isCancelled = true;
@@ -351,6 +364,7 @@ const ChildrenPage: React.FC = () => {
         <DataTable
           columns={columns}
           data={children}
+          isLoading={isLoading}
           onEdit={(selectedChildren) => {
             setSelectedChildren(selectedChildren);
             setIsEditDialogOpen(true);
@@ -410,7 +424,7 @@ const ChildrenPage: React.FC = () => {
         onSubmit={handleAbsence}
         child={selectedChildren}
       />
-      
+
       <ChildDialog
         child={selectedChildren}
         open={isEditDialogOpen}

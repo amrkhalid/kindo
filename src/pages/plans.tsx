@@ -52,7 +52,6 @@ const PlansPage: React.FC = () => {
         }));
         setPlans(plansData);
         console.log("plans", plans);
-        setIsLoading(false);
       } catch (error) {
         toast({
           title: t("common.error"),
@@ -267,7 +266,7 @@ const PlansPage: React.FC = () => {
           columns={columns}
           data={plans}
           searchable
-          loading={isLoading}
+          isLoading={isLoading}
           onEdit={(plan) => {
             setSelectedPlan(plan);
             setIsEditDialogOpen(true);

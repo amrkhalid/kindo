@@ -444,6 +444,7 @@ const SystemUsersPage: React.FC = () => {
           searchable
           pagination
           pageSize={15}
+          isLoading={loading}
         />
       </Card>
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
@@ -711,33 +712,31 @@ const SystemUsersPage: React.FC = () => {
                 {t("systemUsers.accountInfo")}
               </h3>
               <div className="grid gap-4">
-                  <Label htmlFor="is_active" className="text-sm font-medium">
-                    {t("systemUsers.status")}
-                  </Label>
-                  <Select
-                    value={formData.is_active ? "active" : "inactive"}
-                    onValueChange={(value) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        is_active: value === "active",
-                      }))
-                    }
-                  >
-                    <SelectTrigger className="h-9">
-                      <SelectValue
-                        placeholder={t("systemUsers.selectStatus")}
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">
-                        {t("systemUsers.active")}
-                      </SelectItem>
-                      <SelectItem value="inactive">
-                        {t("systemUsers.inactive")}
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                <Label htmlFor="is_active" className="text-sm font-medium">
+                  {t("systemUsers.status")}
+                </Label>
+                <Select
+                  value={formData.is_active ? "active" : "inactive"}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      is_active: value === "active",
+                    }))
+                  }
+                >
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder={t("systemUsers.selectStatus")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">
+                      {t("systemUsers.active")}
+                    </SelectItem>
+                    <SelectItem value="inactive">
+                      {t("systemUsers.inactive")}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <Button type="submit" className="w-full h-9">

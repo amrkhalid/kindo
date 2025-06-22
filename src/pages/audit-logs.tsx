@@ -111,7 +111,12 @@ export default function AuditLogsPage() {
       </div>
 
       <Card className="p-6">
-        <DataTable columns={columns} data={auditLogs} searchable />
+        <DataTable
+          columns={columns}
+          data={auditLogs}
+          searchable
+          isLoading={loading}
+        />
       </Card>
     </div>
   );

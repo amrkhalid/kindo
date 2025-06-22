@@ -228,7 +228,7 @@ const FeaturesPage = () => {
           columns={columns}
           data={features}
           searchable
-          loading={isLoading}
+          isLoading={isLoading}
           onEdit={(feature) => {
             setSelectedFeature(feature);
             setIsEditDialogOpen(true);
