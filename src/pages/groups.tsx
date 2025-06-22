@@ -162,41 +162,6 @@ export default function GroupsPage() {
     },
   ];
 
-  const columnsChildren: Column<Child>[] = [
-    {
-      key: "full_name",
-      title: t("table.headers.children.fullName"),
-      render: (_: any, row: any) => (
-        <div
-          className={cn(
-            "font-medium text-[#1A5F5E]",
-            isRTL ? "text-right" : "text-left"
-          )}
-        >
-          {[
-            row.childDetails.first_name,
-            row.childDetails.second_name,
-            row.childDetails.third_name,
-            row.childDetails.last_name,
-          ]
-            .filter(Boolean)
-            .join(" ")}
-        </div>
-      ),
-    },
-    {
-      key: "birth_date",
-      title: t("table.headers.children.dateOfBirth"),
-      render: (_: any, row: any) => (
-        <div
-          className={cn("text-gray-600", isRTL ? "text-right" : "text-left")}
-        >
-          {new Date(row.childDetails.birth_date).toLocaleDateString()}
-        </div>
-      ),
-    },
-  ];
-
   const handleAdd = async (data: {
     name: string;
     staffId?: string;

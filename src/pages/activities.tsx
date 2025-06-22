@@ -26,10 +26,12 @@ import {
 } from "@/api/Kindergarten/Activity/activityApis";
 import {
   createSchedule,
+  CreateScheduleRequest,
   deleteSchedule,
   getAllSchedules,
   Schedule,
   updateSchedule,
+  UpdateScheduleRequest,
 } from "@/api/Kindergarten/Schedule/scheduleApis";
 import {
   AddScheduleDialog,
@@ -167,11 +169,11 @@ export function ActivitiesPage() {
     }
   };
 
-  const onSubmitSchedule = async (data: ScheduleFormValues) => {
+  const onSubmitCreateSchedule = async (data: ScheduleFormValues) => {
     if (!Kg_id) return;
 
     try {
-      const formattedSchedule = {
+      const formattedSchedule: CreateScheduleRequest = {
         name: data.name,
         start_time: new Date(data.start_time).toISOString(),
         end_time: new Date(data.end_time).toISOString(),
@@ -182,21 +184,12 @@ export function ActivitiesPage() {
         })),
       };
 
-      if (selectedSchedule) {
-        await updateSchedule(Kg_id, selectedSchedule.id, formattedSchedule);
-        toast({
-          title: "Schedule Updated",
-          description: "The schedule has been updated successfully.",
-          variant: "success",
-        });
-      } else {
-        await createSchedule(Kg_id, formattedSchedule);
-        toast({
-          title: "Schedule Created",
-          description: "The schedule has been created successfully.",
-          variant: "success",
-        });
-      }
+      await createSchedule(Kg_id, formattedSchedule);
+      toast({
+        title: "Schedule Created",
+        description: "The schedule has been created successfully.",
+        variant: "success",
+      });
 
       const res = await getAllSchedules(Kg_id);
       setSchedules(res.data.data);
@@ -207,13 +200,61 @@ export function ActivitiesPage() {
     } catch (error) {
       toast({
         title: "Error",
-        description: selectedSchedule
-          ? "Failed to update schedule"
-          : "Failed to create schedule",
+        description: "Failed to create schedule",
         variant: "destructive",
       });
     }
   };
+
+  const onSubmitUpdateSchedule = async (data: ScheduleFormValues) => {
+    if (!Kg_id || !selectedSchedule) return;
+
+    try {
+      const formattedSchedule: UpdateScheduleRequest = {
+        name: data.name,
+        start_date: new Date(data.start_time).toISOString(),
+        end_date: new Date(data.end_time).toISOString(),
+        week: Number(data.week),
+        activities: data.activities.map((day) => ({
+          date: day.date,
+          activities: day.activities,
+        })),
+      };
+
+      await updateSchedule(Kg_id, selectedSchedule.id, formattedSchedule);
+      toast({
+        title: "Schedule Updated",
+        description: "The schedule has been updated successfully.",
+        variant: "success",
+      });
+
+      const res = await getAllSchedules(Kg_id);
+      setSchedules(res.data.data);
+
+      setIsScheduleDialogOpen(false);
+      setSelectedSchedule(null);
+      scheduleFormHook.reset();
+    } catch (error: any) {
+      let errorMessage = "Failed to update schedule";
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      }
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const onSubmitSchedule = async (data: ScheduleFormValues) => {
+    if (selectedSchedule) {
+      await onSubmitUpdateSchedule(data);
+    } else {
+      await onSubmitCreateSchedule(data);
+    }
+  };
+
   const handleEdit = (activity: Activity) => {
     setSelectedActivity(activity);
     form.reset({
