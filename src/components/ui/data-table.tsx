@@ -8,8 +8,18 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Search, Loader2, Edit, Trash2, MoreVertical, Plus, Check } from "lucide-react";
-import { useTranslation } from 'react-i18next';
+import {
+  Search,
+  Loader2,
+  Edit,
+  Trash2,
+  MoreVertical,
+  Plus,
+  Check,
+  LogOut,
+  CalendarX,
+} from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,6 +44,8 @@ interface DataTableProps<T> {
   onEdit?: (row: T) => void;
   onDelete?: (row: T) => void;
   onAssign?: (row: T) => void;
+  onLeave?: (row: T) => void;
+  onAbsence?: (row: T) => void;
   searchable?: boolean;
   pagination?: boolean;
   pageSize?: number;
@@ -45,7 +57,23 @@ interface DataTableProps<T> {
 const ROWS_PER_PAGE = 15;
 const SEARCH_DEBOUNCE_MS = 300;
 
-export function DataTable<T>({ columns, data, title, onAdd, onEdit, onDelete, onAssign, searchable = true, pagination = false, pageSize = 10, onRowClick, onSelectionChange, isLoading = false }: DataTableProps<T>) {
+export function DataTable<T>({
+  columns,
+  data,
+  title,
+  onAdd,
+  onEdit,
+  onDelete,
+  onAssign,
+  onLeave,
+  onAbsence,
+  searchable = true,
+  pagination = false,
+  pageSize = 10,
+  onRowClick,
+  onSelectionChange,
+  isLoading = false,
+}: DataTableProps<T>) {
   const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
@@ -54,22 +82,22 @@ export function DataTable<T>({ columns, data, title, onAdd, onEdit, onDelete, on
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState<{
     key: keyof T | null;
-    direction: 'asc' | 'desc';
-  }>({ key: null, direction: 'asc' });
+    direction: "asc" | "desc";
+  }>({ key: null, direction: "asc" });
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [selectedRows, setSelectedRows] = useState<T[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
-  const isRTL = t('dir') === 'rtl';
+  const isRTL = t("dir") === "rtl";
 
   const getFontFamily = () => {
-    switch (t('lang')) {
-      case 'en':
-        return 'font-[Roboto]';
-      case 'he':
-        return 'font-[Horev CLM Heavy]';
+    switch (t("lang")) {
+      case "en":
+        return "font-[Roboto]";
+      case "he":
+        return "font-[Horev CLM Heavy]";
       default:
-        return 'font-[Cairo]';
+        return "font-[Cairo]";
     }
   };
 
@@ -97,7 +125,7 @@ export function DataTable<T>({ columns, data, title, onAdd, onEdit, onDelete, on
     return data.filter((item) =>
       Object.entries(item).some(([key, value]) => {
         if (value === null || value === undefined) return false;
-        if (typeof value === 'object') return false;
+        if (typeof value === "object") return false;
         return String(value).toLowerCase().includes(searchTerm.toLowerCase());
       })
     );
@@ -135,8 +163,8 @@ export function DataTable<T>({ columns, data, title, onAdd, onEdit, onDelete, on
         if (aValue === undefined || bValue === undefined) return 0;
         if (aValue === null || bValue === null) return 0;
 
-        if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
-        if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+        if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+        if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
         return 0;
       });
     }
@@ -154,7 +182,9 @@ export function DataTable<T>({ columns, data, title, onAdd, onEdit, onDelete, on
         if (entries[0].isIntersecting && displayedItems < filteredData.length) {
           setIsLoadingMore(true);
           setTimeout(() => {
-            setDisplayedItems((prev) => Math.min(prev + ROWS_PER_PAGE, filteredData.length));
+            setDisplayedItems((prev) =>
+              Math.min(prev + ROWS_PER_PAGE, filteredData.length)
+            );
             setIsLoadingMore(false);
           }, 300);
         }
@@ -174,19 +204,18 @@ export function DataTable<T>({ columns, data, title, onAdd, onEdit, onDelete, on
   const handleSort = (key: keyof T) => {
     setSortConfig((prev) => ({
       key,
-      direction:
-        prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc',
+      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
     }));
   };
 
   const getSortIcon = (columnKey: keyof T) => {
     if (!sortConfig || sortConfig.key !== columnKey) return null;
-    return sortConfig.direction === 'asc' ? '↑' : '↓';
+    return sortConfig.direction === "asc" ? "↑" : "↓";
   };
 
   const renderCellValue = (value: unknown) => {
-    if (value === null || value === undefined) return '';
-    if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+    if (value === null || value === undefined) return "";
+    if (typeof value === "boolean") return value ? "Yes" : "No";
     return String(value);
   };
 
@@ -203,7 +232,8 @@ export function DataTable<T>({ columns, data, title, onAdd, onEdit, onDelete, on
 
   const handleSelectAll = () => {
     setSelectedRows((prev) => {
-      const newSelection = prev.length === filteredData.length ? [] : [...filteredData];
+      const newSelection =
+        prev.length === filteredData.length ? [] : [...filteredData];
       onSelectionChange?.(newSelection);
       return newSelection;
     });
@@ -212,23 +242,23 @@ export function DataTable<T>({ columns, data, title, onAdd, onEdit, onDelete, on
   const isRowSelected = (row: T) => selectedRows.includes(row);
 
   return (
-    <div className={cn(
-      "space-y-4",
-      isRTL ? 'rtl' : 'ltr',
-      getFontFamily()
-    )}>
-      <div className={cn(
-        "flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6",
-        isRTL ? "flex-row-reverse" : "flex-row"
-      )}>
+    <div className={cn("space-y-4", isRTL ? "rtl" : "ltr", getFontFamily())}>
+      <div
+        className={cn(
+          "flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6",
+          isRTL ? "flex-row-reverse" : "flex-row"
+        )}
+      >
         {searchable && (
           <div className="relative w-full md:w-64">
-            <Search className={cn(
-              "absolute top-1/2 transform -translate-y-1/2 text-[#1A5F5E] h-4 w-4",
-              isRTL ? "right-3" : "left-3"
-            )} />
+            <Search
+              className={cn(
+                "absolute top-1/2 transform -translate-y-1/2 text-[#1A5F5E] h-4 w-4",
+                isRTL ? "right-3" : "left-3"
+              )}
+            />
             <Input
-              placeholder={t('table.search')}
+              placeholder={t("table.search")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className={cn(
@@ -249,32 +279,39 @@ export function DataTable<T>({ columns, data, title, onAdd, onEdit, onDelete, on
             )}
           >
             <Plus className="mr-2 h-4 w-4" />
-            {t('common.add')}
+            {t("common.add")}
           </Button>
         )}
       </div>
 
       <div className="relative overflow-x-auto">
         {isLoading && (
-          <div className={cn(
-            "absolute inset-0 bg-white/50 backdrop-blur-sm z-10 flex items-center justify-center",
-            getFontFamily()
-          )}>
+          <div
+            className={cn(
+              "absolute inset-0 bg-white/50 backdrop-blur-sm z-10 flex items-center justify-center",
+              getFontFamily()
+            )}
+          >
             <Loader2 className="h-6 w-6 animate-spin text-[#1A5F5E]" />
           </div>
         )}
 
-        <Table className={cn(
-          "w-full",
-          isRTL ? "text-right" : "text-left",
-          getFontFamily()
-        )}>
+        <Table
+          className={cn(
+            "w-full",
+            isRTL ? "text-right" : "text-left",
+            getFontFamily()
+          )}
+        >
           <TableHeader>
             <TableRow className="bg-[#1A5F5E] hover:bg-[#1A5F5E]/90">
               {onSelectionChange && (
                 <TableHead className={cn("w-[50px]", getFontFamily())}>
                   <Checkbox
-                    checked={selectedRows.length === filteredData.length && filteredData.length > 0}
+                    checked={
+                      selectedRows.length === filteredData.length &&
+                      filteredData.length > 0
+                    }
                     onCheckedChange={handleSelectAll}
                     className="border-white"
                   />
@@ -297,11 +334,13 @@ export function DataTable<T>({ columns, data, title, onAdd, onEdit, onDelete, on
                     onClick={() => handleSort(column.key)}
                   >
                     <span>{column.title}</span>
-                    <span className="text-white/90">{getSortIcon(column.key)}</span>
+                    <span className="text-white/90">
+                      {getSortIcon(column.key)}
+                    </span>
                   </div>
                 </TableHead>
               ))}
-              {(onEdit || onDelete || onAssign) && (
+              {(onEdit || onDelete || onAssign || onLeave || onAbsence) && (
                 <TableHead className={cn("w-[50px]", getFontFamily())} />
               )}
             </TableRow>
@@ -337,10 +376,12 @@ export function DataTable<T>({ columns, data, title, onAdd, onEdit, onDelete, on
                         getFontFamily()
                       )}
                     >
-                      <div className={cn(
-                        "flex items-center",
-                        isRTL ? "flex-row-reverse" : "flex-row"
-                      )}>
+                      <div
+                        className={cn(
+                          "flex items-center",
+                          isRTL ? "flex-row-reverse" : "flex-row"
+                        )}
+                      >
                         {column.render
                           ? column.render(row[column.key], row)
                           : renderCellValue(row[column.key])}
@@ -348,7 +389,7 @@ export function DataTable<T>({ columns, data, title, onAdd, onEdit, onDelete, on
                     </TableCell>
                   ))}
 
-                  {(onEdit || onDelete || onAssign) && (
+                  {(onEdit || onDelete || onAssign || onLeave || onAbsence) && (
                     <TableCell className={cn("w-[50px]", getFontFamily())}>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -366,16 +407,19 @@ export function DataTable<T>({ columns, data, title, onAdd, onEdit, onDelete, on
                               className={cn("cursor-pointer", getFontFamily())}
                             >
                               <Edit className="mr-2 h-4 w-4" />
-                              {t('common.edit')}
+                              {t("common.edit")}
                             </DropdownMenuItem>
                           )}
                           {onDelete && (
                             <DropdownMenuItem
                               onClick={() => onDelete(row)}
-                              className={cn("cursor-pointer text-red-600 focus:text-red-600", getFontFamily())}
+                              className={cn(
+                                "cursor-pointer text-red-600 focus:text-red-600",
+                                getFontFamily()
+                              )}
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
-                              {t('common.delete')}
+                              {t("common.delete")}
                             </DropdownMenuItem>
                           )}
                           {onAssign && (
@@ -384,7 +428,25 @@ export function DataTable<T>({ columns, data, title, onAdd, onEdit, onDelete, on
                               className={cn("cursor-pointer", getFontFamily())}
                             >
                               <Check className="mr-2 h-4 w-4" />
-                              {t('common.assign')}
+                              {t("common.assign")}
+                            </DropdownMenuItem>
+                          )}
+                          {onLeave && (
+                            <DropdownMenuItem
+                              onClick={() => onLeave(row)}
+                              className={cn("cursor-pointer", getFontFamily())}
+                            >
+                              <LogOut className="mr-2 h-4 w-4" />
+                              {t("common.leave")}
+                            </DropdownMenuItem>
+                          )}
+                          {onAbsence && (
+                            <DropdownMenuItem
+                              onClick={() => onAbsence(row)}
+                              className={cn("cursor-pointer", getFontFamily())}
+                            >
+                              <CalendarX className="mr-2 h-4 w-4" />
+                              {t("common.absence")}
                             </DropdownMenuItem>
                           )}
                         </DropdownMenuContent>
@@ -396,10 +458,17 @@ export function DataTable<T>({ columns, data, title, onAdd, onEdit, onDelete, on
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={columns.length + ((onEdit || onDelete || onAssign) ? 1 : 0) + (onSelectionChange ? 1 : 0)}
-                  className={cn("text-center py-8 text-gray-500", getFontFamily())}
+                  colSpan={
+                    columns.length +
+                    (onEdit || onDelete || onAssign || onLeave ? 1 : 0) +
+                    (onSelectionChange ? 1 : 0)
+                  }
+                  className={cn(
+                    "text-center py-8 text-gray-500",
+                    getFontFamily()
+                  )}
                 >
-                  {data.length === 0 ? t('table.noData') : t('table.noResults')}
+                  {data.length === 0 ? t("table.noData") : t("table.noResults")}
                 </TableCell>
               </TableRow>
             )}
@@ -418,7 +487,10 @@ export function DataTable<T>({ columns, data, title, onAdd, onEdit, onDelete, on
             )}
           >
             <Loader2 className="h-4 w-4 animate-spin text-[#1A5F5E]" />
-            <span className="text-[#1A5F5E]">{t('table.loadingMore')} ({displayedItems} {t('table.of')} {filteredData.length} {t('table.results')})</span>
+            <span className="text-[#1A5F5E]">
+              {t("table.loadingMore")} ({displayedItems} {t("table.of")}{" "}
+              {filteredData.length} {t("table.results")})
+            </span>
           </div>
         )}
       </div>

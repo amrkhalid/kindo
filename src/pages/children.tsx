@@ -22,6 +22,11 @@ import {
 import { AssignChildrenDialog } from "@/components/dialogs/assign-children-dialog";
 import { getAllGroupsNames, Group } from "@/api/Kindergarten/Group/groupApis";
 import { createGroupChildren } from "@/api/Kindergarten/Group_children/groupChildrenApis";
+import { Badge } from "@/components/ui/badge";
+import { createLeave } from "@/api/Kindergarten/Absence-leaves/leaveApis";
+import { LeaveDialog } from "@/components/dialogs/add-leave-dialog";
+import { createAbsence } from "@/api/Kindergarten/Absence-leaves/absenceApi";
+import { AbsenceDialog } from "@/components/dialogs/add-absence-dialog";
 
 const ChildrenPage: React.FC = () => {
   const { t } = useTranslation();
@@ -81,6 +86,19 @@ const ChildrenPage: React.FC = () => {
         </div>
       ),
     },
+    {
+      key: "group",
+      title: t("table.headers.children.groupId"),
+      render: (value: string | undefined) => (
+        <Badge
+          className={
+            value ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
+          }
+        >
+          {value ? t("common.hasGroup") : t("common.noGroup")}
+        </Badge>
+      ),
+    },
   ];
 
   const [children, setChildren] = useState<Child[]>([]);
@@ -90,6 +108,8 @@ const ChildrenPage: React.FC = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
+  const [isAbsenceDialogOpen, setIsAbsenceDialogOpen] = useState(false);
 
   useEffect(() => {
     let isCancelled = false;
@@ -245,6 +265,72 @@ const ChildrenPage: React.FC = () => {
     }
   };
 
+  const handleLeave = async (data: {
+    date: string;
+    time: string;
+    note: string;
+  }) => {
+    if (!selectedChildren) return;
+
+    try {
+      await createLeave(Kg_id, {
+        child_id: selectedChildren.id,
+        date: data.date,
+        time: data.time,
+        note: data.note,
+      });
+
+      setIsLeaveDialogOpen(false);
+      setSelectedChildren(null);
+      toast({
+        title: t("common.success"),
+        description: t("children.leaveSuccess"),
+        variant: "success",
+      });
+    } catch (error) {
+      console.error("Error creating leave:", error);
+      toast({
+        variant: "destructive",
+        title: t("common.error"),
+        description: t("children.leaveError"),
+      });
+    }
+  };
+
+  const handleAbsence = async (data: {
+    absence: string;
+    date: string;
+    time: string;
+    note: string;
+  }) => {
+    if (!selectedChildren) return;
+
+    try {
+      await createAbsence(Kg_id, {
+        child_id: selectedChildren.id,
+        absence: data.absence,
+        date: data.date,
+        time: data.time,
+        note: data.note,
+      });
+
+      setIsAbsenceDialogOpen(false);
+      setSelectedChildren(null);
+      toast({
+        title: t("common.success"),
+        description: t("children.absenceSuccess"),
+        variant: "success",
+      });
+    } catch (error) {
+      console.error("Error recording absence:", error);
+      toast({
+        variant: "destructive",
+        title: t("common.error"),
+        description: t("children.absenceError"),
+      });
+    }
+  };
+
   return (
     <div className={cn("w-full px-6 py-6", isRTL ? "rtl" : "ltr")}>
       <PageHeader
@@ -277,6 +363,14 @@ const ChildrenPage: React.FC = () => {
             setSelectedChildren(child);
             setIsAssignDialogOpen(true);
           }}
+          onLeave={(child) => {
+            setSelectedChildren(child);
+            setIsLeaveDialogOpen(true);
+          }}
+          onAbsence={(child) => {
+            setSelectedChildren(child);
+            setIsAbsenceDialogOpen(true);
+          }}
         />
       </Card>
 
@@ -303,6 +397,20 @@ const ChildrenPage: React.FC = () => {
         groups={groups}
       />
 
+      <LeaveDialog
+        open={isLeaveDialogOpen}
+        onOpenChange={setIsLeaveDialogOpen}
+        onSubmit={handleLeave}
+        child={selectedChildren}
+      />
+
+      <AbsenceDialog
+        open={isAbsenceDialogOpen}
+        onOpenChange={setIsAbsenceDialogOpen}
+        onSubmit={handleAbsence}
+        child={selectedChildren}
+      />
+      
       <ChildDialog
         child={selectedChildren}
         open={isEditDialogOpen}
