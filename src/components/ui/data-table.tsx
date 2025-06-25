@@ -296,184 +296,205 @@ export function DataTable<T>({
           </div>
         )}
 
-        <Table
-          className={cn(
-            "w-full",
-            isRTL ? "text-right" : "text-left",
-            getFontFamily()
-          )}
-        >
-          <TableHeader>
-            <TableRow className="bg-[#1A5F5E] hover:bg-[#1A5F5E]/90">
-              {onSelectionChange && (
-                <TableHead className={cn("w-[50px]", getFontFamily())}>
-                  <Checkbox
-                    checked={
-                      selectedRows.length === filteredData.length &&
-                      filteredData.length > 0
-                    }
-                    onCheckedChange={handleSelectAll}
-                    className="border-white"
-                  />
-                </TableHead>
-              )}
-              {columns.map((column) => (
-                <TableHead
-                  key={String(column.key)}
-                  className={cn(
-                    "py-4 text-white font-medium",
-                    isRTL ? "text-right" : "text-left",
-                    getFontFamily()
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "flex items-center gap-2 cursor-pointer hover:text-white/90 transition-colors",
-                      isRTL ? "flex-row-reverse" : "flex-row"
-                    )}
-                    onClick={() => handleSort(column.key)}
+          <Table
+            className={cn(
+              "w-full",
+              isRTL ? "text-right" : "text-left",
+              getFontFamily()
+            )}
+          >
+            <TableHeader>
+              <TableRow className="bg-[#1A5F5E] hover:bg-[#1A5F5E]/90">
+                {onSelectionChange && (
+                  <TableHead
+                    className={cn("w-[50px] text-center", getFontFamily())}
                   >
-                    <span>{column.title}</span>
-                    <span className="text-white/90">
-                      {getSortIcon(column.key)}
-                    </span>
-                  </div>
-                </TableHead>
-              ))}
-              {(onEdit || onDelete || onAssign || onLeave || onAbsence) && (
-                <TableHead className={cn("w-[50px]", getFontFamily())} />
-              )}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredData.length > 0 ? (
-              filteredData.slice(0, displayedItems).map((row, rowIndex) => (
-                <TableRow
-                  key={rowIndex}
-                  className={cn(
-                    "hover:bg-[#1A5F5E]/5",
-                    rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50",
-                    isRowSelected(row) ? "bg-[#1A5F5E]/10" : "",
-                    getFontFamily()
-                  )}
-                  onClick={() => onRowClick?.(row)}
-                >
-                  {onSelectionChange && (
-                    <TableCell className={cn("w-[50px]", getFontFamily())}>
+                    <div className="flex justify-center">
                       <Checkbox
-                        checked={isRowSelected(row)}
-                        onCheckedChange={() => handleRowSelect(row)}
-                        className="border-[#1A5F5E]"
+                        checked={
+                          selectedRows.length === filteredData.length &&
+                          filteredData.length > 0
+                        }
+                        onCheckedChange={handleSelectAll}
+                        className="border-white"
                       />
-                    </TableCell>
-                  )}
-                  {columns.map((column) => (
-                    <TableCell
-                      key={`${rowIndex}-${String(column.key)}`}
+                    </div>
+                  </TableHead>
+                )}
+                {columns.map((column) => (
+                  <TableHead
+                    key={String(column.key)}
+                    className={cn(
+                      "py-4 text-white font-medium text-center",
+                      getFontFamily()
+                    )}
+                  >
+                    <div
                       className={cn(
-                        "py-3 text-gray-700",
-                        isRTL ? "text-right" : "text-left",
-                        getFontFamily()
+                        "flex items-center justify-center gap-2 cursor-pointer hover:text-white/90 transition-colors",
+                        isRTL ? "flex-row-reverse" : "flex-row"
                       )}
+                      onClick={() => handleSort(column.key)}
                     >
-                      <div
+                      <span>{column.title}</span>
+                      <span className="text-white/90">
+                        {getSortIcon(column.key)}
+                      </span>
+                    </div>
+                  </TableHead>
+                ))}
+                {(onEdit || onDelete || onAssign || onLeave || onAbsence) && (
+                  <TableHead
+                    className={cn("w-[50px] text-center", getFontFamily())}
+                  />
+                )}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredData.length > 0 ? (
+                filteredData.slice(0, displayedItems).map((row, rowIndex) => (
+                  <TableRow
+                    key={rowIndex}
+                    className={cn(
+                      "hover:bg-[#1A5F5E]/5",
+                      rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50",
+                      isRowSelected(row) ? "bg-[#1A5F5E]/10" : "",
+                      getFontFamily()
+                    )}
+                    onClick={() => onRowClick?.(row)}
+                  >
+                    {onSelectionChange && (
+                      <TableCell className={cn("w-[50px]", getFontFamily())}>
+                        <div className="flex justify-center">
+                          <Checkbox
+                            checked={isRowSelected(row)}
+                            onCheckedChange={() => handleRowSelect(row)}
+                            className="border-[#1A5F5E]"
+                          />
+                        </div>
+                      </TableCell>
+                    )}
+                    {columns.map((column) => (
+                      <TableCell
+                        key={`${rowIndex}-${String(column.key)}`}
                         className={cn(
-                          "flex items-center",
-                          isRTL ? "flex-row-reverse" : "flex-row"
+                          "py-3 text-gray-700 text-center",
+                          getFontFamily()
                         )}
                       >
-                        {column.render
-                          ? column.render(row[column.key], row)
-                          : renderCellValue(row[column.key])}
-                      </div>
-                    </TableCell>
-                  ))}
+                        <div className="flex justify-center items-center">
+                          {column.render
+                            ? column.render(row[column.key], row)
+                            : renderCellValue(row[column.key])}
+                        </div>
+                      </TableCell>
+                    ))}
 
-                  {(onEdit || onDelete || onAssign || onLeave || onAbsence) && (
-                    <TableCell className={cn("w-[50px]", getFontFamily())}>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            className={cn("h-8 w-8 p-0", getFontFamily())}
-                          >
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          {onEdit && (
-                            <DropdownMenuItem
-                              onClick={() => onEdit(row)}
-                              className={cn("cursor-pointer", getFontFamily())}
-                            >
-                              <Edit className="mr-2 h-4 w-4" />
-                              {t("common.edit")}
-                            </DropdownMenuItem>
-                          )}
-                          {onDelete && (
-                            <DropdownMenuItem
-                              onClick={() => onDelete(row)}
-                              className={cn(
-                                "cursor-pointer text-red-600 focus:text-red-600",
-                                getFontFamily()
+                    {(onEdit ||
+                      onDelete ||
+                      onAssign ||
+                      onLeave ||
+                      onAbsence) && (
+                      <TableCell className={cn("w-[50px]", getFontFamily())}>
+                        <div className="flex justify-center">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                className={cn("h-8 w-8 p-0", getFontFamily())}
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              {onEdit && (
+                                <DropdownMenuItem
+                                  onClick={() => onEdit(row)}
+                                  className={cn(
+                                    "cursor-pointer",
+                                    getFontFamily()
+                                  )}
+                                >
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  {t("common.edit")}
+                                </DropdownMenuItem>
                               )}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              {t("common.delete")}
-                            </DropdownMenuItem>
-                          )}
-                          {onAssign && (
-                            <DropdownMenuItem
-                              onClick={() => onAssign(row)}
-                              className={cn("cursor-pointer", getFontFamily())}
-                            >
-                              <Check className="mr-2 h-4 w-4" />
-                              {t("common.assign")}
-                            </DropdownMenuItem>
-                          )}
-                          {onLeave && (
-                            <DropdownMenuItem
-                              onClick={() => onLeave(row)}
-                              className={cn("cursor-pointer", getFontFamily())}
-                            >
-                              <LogOut className="mr-2 h-4 w-4" />
-                              {t("common.leave")}
-                            </DropdownMenuItem>
-                          )}
-                          {onAbsence && (
-                            <DropdownMenuItem
-                              onClick={() => onAbsence(row)}
-                              className={cn("cursor-pointer", getFontFamily())}
-                            >
-                              <CalendarX className="mr-2 h-4 w-4" />
-                              {t("common.absence")}
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  )}
+                              {onDelete && (
+                                <DropdownMenuItem
+                                  onClick={() => onDelete(row)}
+                                  className={cn(
+                                    "cursor-pointer text-red-600 focus:text-red-600",
+                                    getFontFamily()
+                                  )}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  {t("common.delete")}
+                                </DropdownMenuItem>
+                              )}
+                              {onAssign && (
+                                <DropdownMenuItem
+                                  onClick={() => onAssign(row)}
+                                  className={cn(
+                                    "cursor-pointer",
+                                    getFontFamily()
+                                  )}
+                                >
+                                  <Check className="mr-2 h-4 w-4" />
+                                  {t("common.assign")}
+                                </DropdownMenuItem>
+                              )}
+                              {onLeave && (
+                                <DropdownMenuItem
+                                  onClick={() => onLeave(row)}
+                                  className={cn(
+                                    "cursor-pointer",
+                                    getFontFamily()
+                                  )}
+                                >
+                                  <LogOut className="mr-2 h-4 w-4" />
+                                  {t("common.leave")}
+                                </DropdownMenuItem>
+                              )}
+                              {onAbsence && (
+                                <DropdownMenuItem
+                                  onClick={() => onAbsence(row)}
+                                  className={cn(
+                                    "cursor-pointer",
+                                    getFontFamily()
+                                  )}
+                                >
+                                  <CalendarX className="mr-2 h-4 w-4" />
+                                  {t("common.absence")}
+                                </DropdownMenuItem>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={
+                      columns.length +
+                      (onEdit || onDelete || onAssign || onLeave ? 1 : 0) +
+                      (onSelectionChange ? 1 : 0)
+                    }
+                    className={cn(
+                      "text-center py-8 text-gray-500",
+                      getFontFamily()
+                    )}
+                  >
+                    {data.length === 0
+                      ? t("table.noData")
+                      : t("table.noResults")}
+                  </TableCell>
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={
-                    columns.length +
-                    (onEdit || onDelete || onAssign || onLeave ? 1 : 0) +
-                    (onSelectionChange ? 1 : 0)
-                  }
-                  className={cn(
-                    "text-center py-8 text-gray-500",
-                    getFontFamily()
-                  )}
-                >
-                  {data.length === 0 ? t("table.noData") : t("table.noResults")}
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              )}
+            </TableBody>
+          </Table>
 
         {filteredData.length > displayedItems && (
           <div

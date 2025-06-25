@@ -167,7 +167,7 @@ export function Navbar({ children }: NavbarProps) {
 
         <div className="flex items-center gap-1 sm:gap-2">
           {/* Mobile menu button */}
-          {isMobile && (
+          {/* {isMobile && (
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="outline" size="icon" className="h-8 w-8">
@@ -194,7 +194,7 @@ export function Navbar({ children }: NavbarProps) {
                 </div>
               </SheetContent>
             </Sheet>
-          )}
+          )} */}
 
           {/* Language Dropdown */}
           <DropdownMenu>

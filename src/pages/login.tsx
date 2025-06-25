@@ -16,7 +16,6 @@ import { APP } from "@/constants/app";
 import kindoLogo from "@/assets/kindo-logo.png";
 import { getUserRole, login } from "@/api/Auth/Login";
 
-// List of available languages with their directions
 const languages = [
   { code: "en", label: "English", dir: "ltr" },
   { code: "ar", label: "العربية", dir: "rtl" },
@@ -32,13 +31,11 @@ export default function LoginPage() {
     password: "",
   });
 
-  // Change language handler
   const changeLanguage = (langCode: string) => {
     i18n.changeLanguage(langCode);
     localStorage.setItem("preferredLanguage", langCode);
   };
 
-  // Get the current language's direction
   const currentLanguage = languages.find((lang) => lang.code === i18n.language);
   const isRTL = currentLanguage?.dir === "rtl";
 
@@ -91,44 +88,50 @@ export default function LoginPage() {
 
   return (
     <div
-      className={`min-h-screen flex items-center justify-center bg-background ${
+      className={`min-h-screen flex items-center justify-center bg-background px-4 sm:px-6 ${
         isRTL ? "rtl" : "ltr"
       }`}
     >
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-2">
           <div className="flex justify-end mb-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <Globe className="h-4 w-4" />
-                  <span className="sr-only">Change Language</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align={isRTL ? "start" : "end"}>
-                {languages.map((lang) => (
-                  <DropdownMenuItem
-                    key={lang.code}
-                    onClick={() => changeLanguage(lang.code)}
-                    className="cursor-pointer"
-                  >
-                    {lang.label}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-          <div className="flex flex-col items-center">
-            <img src={kindoLogo} alt="kindo" className="h-12 w-auto mb-4" />
-            <CardTitle className="text-2xl font-bold text-center">
-              {t("login.title")}
-            </CardTitle>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Globe className="h-4 w-4" />
+                    <span className="sr-only">Change Language</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align={isRTL ? "start" : "end"}>
+                  {languages.map((lang) => (
+                    <DropdownMenuItem
+                      key={lang.code}
+                      onClick={() => changeLanguage(lang.code)}
+                      className="cursor-pointer"
+                    >
+                      {lang.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+            <div className="flex flex-col items-center">
+              <img
+                src={kindoLogo}
+                alt="kindo"
+                className="h-12 w-auto mb-2 sm:mb-4"
+              />
+              <CardTitle className="text-xl sm:text-2xl font-bold text-center">
+                {t("login.title")}
+              </CardTitle>
           </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">{t("login.username")}</Label>
+              <Label htmlFor="username" className="text-sm sm:text-base">
+                {t("login.username")}
+              </Label>
               <Input
                 id="username"
                 name="username"
@@ -140,7 +143,9 @@ export default function LoginPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">{t("login.password")}</Label>
+              <Label htmlFor="password" className="text-sm sm:text-base">
+                {t("login.password")}
+              </Label>
               <Input
                 id="password"
                 name="password"
